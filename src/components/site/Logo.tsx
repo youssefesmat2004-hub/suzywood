@@ -9,7 +9,7 @@ export function Logo() {
       <span className="flex flex-col leading-none">
         <span className="font-serif text-xl tracking-tight">Suzy Wood</span>
         <span className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground mt-0.5">
-          Handcrafted Kids Interiors
+          Premium Nursery & Toddler Furniture
         </span>
       </span>
     </Link>
