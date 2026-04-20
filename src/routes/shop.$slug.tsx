@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { getProduct } from "@/lib/products";
+import { getProduct, type Product } from "@/lib/products";
 import { Check, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 
@@ -43,7 +43,7 @@ export const Route = createFileRoute("/shop/$slug")({
 });
 
 function ProductPage() {
-  const { product } = Route.useLoaderData();
+  const { product } = Route.useLoaderData() as { product: Product };
   const [active, setActive] = useState(0);
   const [size, setSize] = useState(product.sizes[0].value);
   const [finish, setFinish] = useState(product.finishes[0].value);
