@@ -38,7 +38,7 @@ function Index() {
           <div className="grid lg:grid-cols-12 gap-10 items-center">
             <div className="lg:col-span-5 space-y-7">
               <span className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.28em] text-secondary">
-                <span className="h-px w-8 bg-secondary" /> Est. in Cairo
+                <span className="h-px w-8 bg-secondary" /> Est. 2018 · Cairo
               </span>
               <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl leading-[1.05] text-balance">
                 Crafting safe, beautiful spaces for your little&nbsp;ones.
