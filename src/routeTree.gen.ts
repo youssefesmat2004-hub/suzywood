@@ -20,6 +20,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ShopSlugRouteImport } from './routes/shop.$slug'
+import { Route as ShopRouteImport } from './routes/shop.'
 import { Route as ShopCategorySlugRouteImport } from './routes/shop.category.$slug'
 
 const WishlistRoute = WishlistRouteImport.update({
@@ -77,6 +78,11 @@ const ShopSlugRoute = ShopSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => ShopRoute,
 } as any)
+const ShopRoute = ShopRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ShopRoute,
+} as any)
 const ShopCategorySlugRoute = ShopCategorySlugRouteImport.update({
   id: '/category/$slug',
   path: '/category/$slug',
@@ -94,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/our-craft': typeof OurCraftRoute
   '/shop': typeof ShopRouteWithChildren
   '/wishlist': typeof WishlistRoute
+  '/shop/': typeof ShopRoute
   '/shop/$slug': typeof ShopSlugRoute
   '/shop/category/$slug': typeof ShopCategorySlugRoute
 }
@@ -106,8 +113,8 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/custom-builds': typeof CustomBuildsRoute
   '/our-craft': typeof OurCraftRoute
-  '/shop': typeof ShopRouteWithChildren
   '/wishlist': typeof WishlistRoute
+  '/shop': typeof ShopRoute
   '/shop/$slug': typeof ShopSlugRoute
   '/shop/category/$slug': typeof ShopCategorySlugRoute
 }
@@ -123,6 +130,7 @@ export interface FileRoutesById {
   '/our-craft': typeof OurCraftRoute
   '/shop': typeof ShopRouteWithChildren
   '/wishlist': typeof WishlistRoute
+  '/shop/': typeof ShopRoute
   '/shop/$slug': typeof ShopSlugRoute
   '/shop/category/$slug': typeof ShopCategorySlugRoute
 }
@@ -139,6 +147,7 @@ export interface FileRouteTypes {
     | '/our-craft'
     | '/shop'
     | '/wishlist'
+    | '/shop/'
     | '/shop/$slug'
     | '/shop/category/$slug'
   fileRoutesByTo: FileRoutesByTo
@@ -151,8 +160,8 @@ export interface FileRouteTypes {
     | '/contact'
     | '/custom-builds'
     | '/our-craft'
-    | '/shop'
     | '/wishlist'
+    | '/shop'
     | '/shop/$slug'
     | '/shop/category/$slug'
   id:
@@ -167,6 +176,7 @@ export interface FileRouteTypes {
     | '/our-craft'
     | '/shop'
     | '/wishlist'
+    | '/shop/'
     | '/shop/$slug'
     | '/shop/category/$slug'
   fileRoutesById: FileRoutesById
@@ -263,6 +273,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShopSlugRouteImport
       parentRoute: typeof ShopRoute
     }
+    '/shop/': {
+      id: '/shop/'
+      path: '/'
+      fullPath: '/shop/'
+      preLoaderRoute: typeof ShopRouteImport
+      parentRoute: typeof ShopRoute
+    }
     '/shop/category/$slug': {
       id: '/shop/category/$slug'
       path: '/category/$slug'
@@ -274,11 +291,13 @@ declare module '@tanstack/react-router' {
 }
 
 interface ShopRouteChildren {
+  ShopRoute: typeof ShopRoute
   ShopSlugRoute: typeof ShopSlugRoute
   ShopCategorySlugRoute: typeof ShopCategorySlugRoute
 }
 
 const ShopRouteChildren: ShopRouteChildren = {
+  ShopRoute: ShopRoute,
   ShopSlugRoute: ShopSlugRoute,
   ShopCategorySlugRoute: ShopCategorySlugRoute,
 }
@@ -300,3 +319,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
