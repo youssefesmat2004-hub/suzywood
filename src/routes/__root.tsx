@@ -1,5 +1,7 @@
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import { Toaster } from "@/components/ui/sonner";
+import { AuthProvider } from "@/lib/auth";
+import { CartProvider } from "@/lib/cart";
 
 import appCss from "../styles.css?url";
 
@@ -9,16 +11,9 @@ function NotFoundComponent() {
       <div className="max-w-md text-center">
         <h1 className="font-serif text-7xl text-primary">404</h1>
         <h2 className="mt-4 text-xl font-serif">Page not found</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          The page you're looking for doesn't exist or has been moved.
-        </p>
+        <p className="mt-2 text-sm text-muted-foreground">The page you're looking for doesn't exist.</p>
         <div className="mt-6">
-          <Link
-            to="/"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            Return Home
-          </Link>
+          <Link to="/" className="inline-flex items-center justify-center rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90">Return Home</Link>
         </div>
       </div>
     </div>
@@ -31,8 +26,7 @@ export const Route = createRootRoute({
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Suzy Wood — Handcrafted Kids Interiors" },
-      { name: "description", content: "Heirloom-quality, handcrafted nursery and toddler furniture. Made-to-order solid wood cribs, changing tables and more." },
-      { name: "author", content: "Suzy Wood" },
+      { name: "description", content: "Heirloom-quality, handcrafted nursery and toddler furniture made to order in Cairo." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -57,9 +51,11 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   return (
-    <>
-      <Outlet />
-      <Toaster />
-    </>
+    <AuthProvider>
+      <CartProvider>
+        <Outlet />
+        <Toaster />
+      </CartProvider>
+    </AuthProvider>
   );
 }

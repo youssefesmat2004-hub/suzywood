@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
-import { Product } from "@/lib/products";
 import { ArrowUpRight } from "lucide-react";
+import type { Product } from "@/lib/types";
+import { resolveImage } from "@/lib/images";
 
 export function ProductCard({ product }: { product: Product }) {
   return (
@@ -11,7 +12,7 @@ export function ProductCard({ product }: { product: Product }) {
     >
       <div className="relative aspect-[4/5] overflow-hidden bg-muted">
         <img
-          src={product.image}
+          src={resolveImage(product.image_url)}
           alt={product.name}
           loading="lazy"
           width={1024}
@@ -21,11 +22,11 @@ export function ProductCard({ product }: { product: Product }) {
       </div>
       <div className="p-6 flex flex-col gap-2">
         <h3 className="font-serif text-2xl">{product.name}</h3>
-        <p className="text-sm text-muted-foreground">{product.tagline}</p>
+        <p className="text-sm text-muted-foreground line-clamp-1">{product.tagline}</p>
         <div className="mt-4 flex items-end justify-between">
           <div>
             <p className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">From</p>
-            <p className="font-serif text-xl text-primary">EGP {product.startingPrice.toLocaleString()}</p>
+            <p className="font-serif text-xl text-primary">EGP {product.starting_price.toLocaleString()}</p>
           </div>
           <span className="inline-flex items-center gap-1 text-sm text-primary border-b border-primary/40 pb-0.5 group-hover:border-primary transition-colors">
             Explore Options
