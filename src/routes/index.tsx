@@ -30,7 +30,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  const { featured } = Route.useLoaderData();
+  const { featured } = Route.useLoaderData() as { featured: Product[] };
   return (
     <Layout>
       <section className="relative">

@@ -25,7 +25,7 @@ export const Route = createFileRoute("/shop")({
 });
 
 function Shop() {
-  const { categories, products } = Route.useLoaderData();
+  const { categories, products } = Route.useLoaderData() as { categories: Category[]; products: Product[] };
   return (
     <Layout>
       <section className="container mx-auto px-6 lg:px-10 pt-16 pb-8">

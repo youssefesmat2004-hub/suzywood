@@ -34,7 +34,7 @@ export const Route = createFileRoute("/shop/category/$slug")({
 });
 
 function CategoryPage() {
-  const { category, products } = Route.useLoaderData();
+  const { category, products } = Route.useLoaderData() as { category: Category; products: Product[] };
   return (
     <Layout>
       <section className="container mx-auto px-6 lg:px-10 pt-16 pb-8">
