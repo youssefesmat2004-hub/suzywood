@@ -13,7 +13,7 @@ export function Footer() {
           </p>
           <div className="mt-6 space-y-2 text-sm">
             <a href="tel:+201000000000" className="flex items-center gap-2 hover:text-primary"><Phone className="h-3.5 w-3.5" /> +20 100 000 0000</a>
-            <a href="mailto:studio@suzywood.com" className="flex items-center gap-2 hover:text-primary"><Mail className="h-3.5 w-3.5" /> studio@suzywood.com</a>
+            <a href="mailto:studio@suzywood.com" className="flex items-center gap-2 hover:text-primary"><Mail className="h-3.5 w-3.5" />{" "}studio@suzywood.com</a>
           </div>
           <div className="mt-6 flex gap-3">
             <a aria-label="Instagram" href="#" className="h-9 w-9 flex items-center justify-center rounded-full border border-border hover:bg-primary hover:text-primary-foreground transition-colors">

@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Layout } from "@/components/site/Layout";
 import { ValueBar } from "@/components/site/ValueBar";
-import { ProductCard } from "@/components/site/ProductCard";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import type { Product } from "@/lib/types";
+import { resolveImage } from "@/lib/images";
+import { ArrowUpRight } from "lucide-react";
 import hero from "@/assets/hero-nursery.jpg";
 import craft from "@/assets/craft-story.jpg";
 
@@ -22,15 +23,16 @@ export const Route = createFileRoute("/")({
       .from("products")
       .select("*")
       .eq("is_active", true)
-      .eq("is_featured", true)
-      .limit(3);
-    return { featured: (data ?? []) as Product[] };
+      .eq("category_id", "c387b0a0-fbb9-48be-b16e-9c2158e9e794")
+      .order("is_featured", { ascending: false })
+      .order("starting_price");
+    return { cribs: (data ?? []) as Product[] };
   },
   component: Index,
 });
 
 function Index() {
-  const { featured } = Route.useLoaderData() as { featured: Product[] };
+  const { cribs } = Route.useLoaderData() as { cribs: Product[] };
   return (
     <Layout>
       <section className="relative">
@@ -70,13 +72,36 @@ function Index() {
       <section className="container mx-auto px-6 lg:px-10 py-24">
         <div className="flex flex-wrap items-end justify-between gap-6 mb-12">
           <div className="max-w-xl">
-            <p className="text-[11px] uppercase tracking-[0.28em] text-secondary mb-3">The Collection</p>
-            <h2 className="font-serif text-4xl md:text-5xl">Pieces designed to grow with them.</h2>
+            <p className="text-[11px] uppercase tracking-[0.28em] text-secondary mb-3">Our Cribs</p>
+            <h2 className="font-serif text-4xl md:text-5xl">Choose the perfect crib for your nursery.</h2>
           </div>
-          <Link to="/shop" className="text-sm border-b border-primary pb-0.5 hover:opacity-70">View all pieces →</Link>
+          <Link to="/shop/category/$slug" params={{ slug: "nursery" }} className="text-sm border-b border-primary pb-0.5 hover:opacity-70">View all cribs →</Link>
         </div>
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {featured.map((p) => <ProductCard key={p.id} product={p} />)}
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {cribs.map((p) => (
+            <Link
+              key={p.id}
+              to="/shop/$slug"
+              params={{ slug: p.slug }}
+              className="group flex flex-col bg-card rounded-2xl overflow-hidden shadow-soft hover:shadow-elegant transition-all duration-500 border border-border/60"
+            >
+              <div className="relative aspect-square overflow-hidden bg-muted">
+                <img
+                  src={resolveImage(p.image_url)}
+                  alt={p.name}
+                  loading="lazy"
+                  className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+              </div>
+              <div className="p-4 flex items-center justify-between gap-2">
+                <div>
+                  <h3 className="font-serif text-lg">{p.name}</h3>
+                  <p className="text-sm text-primary">EGP {p.starting_price.toLocaleString()}</p>
+                </div>
+                <ArrowUpRight className="h-4 w-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+            </Link>
+          ))}
         </div>
       </section>
 
