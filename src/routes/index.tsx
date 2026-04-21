@@ -8,6 +8,7 @@ import { resolveImage } from "@/lib/images";
 import { ArrowUpRight } from "lucide-react";
 import hero from "@/assets/hero-nursery.jpg";
 import craft from "@/assets/craft-story.jpg";
+import cribBanner from "@/assets/crib-aurora.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -70,6 +71,9 @@ function Index() {
       <div className="mt-20 lg:mt-28"><ValueBar /></div>
 
       <section className="container mx-auto px-6 lg:px-10 py-24">
+        <div className="mb-10 aspect-[16/7] rounded-3xl overflow-hidden shadow-card">
+          <img src={cribBanner} alt="Handcrafted nursery crib in a beautifully styled room" className="h-full w-full object-cover" />
+        </div>
         <div className="flex flex-wrap items-end justify-between gap-6 mb-12">
           <div className="max-w-xl">
             <p className="text-[11px] uppercase tracking-[0.28em] text-secondary mb-3">Our Cribs</p>
