@@ -75,8 +75,8 @@ function Checkout() {
       return;
     }
     clear();
-    toast.success(`Order ${order.order_number} placed`, { description: "We'll contact you shortly to confirm payment." });
-    navigate({ to: "/account" });
+    toast.success(`Order ${order.order_number} placed`, { description: "Send payment via Instapay to complete." });
+    navigate({ to: "/payment" });
   };
 
   if (items.length === 0) {
