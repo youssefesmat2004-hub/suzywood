@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WishlistRouteImport } from './routes/wishlist'
 import { Route as ShopRouteImport } from './routes/shop'
+import { Route as PaymentRouteImport } from './routes/payment'
 import { Route as OurCraftRouteImport } from './routes/our-craft'
 import { Route as CustomBuildsRouteImport } from './routes/custom-builds'
 import { Route as ContactRouteImport } from './routes/contact'
@@ -30,6 +31,11 @@ const WishlistRoute = WishlistRouteImport.update({
 const ShopRoute = ShopRouteImport.update({
   id: '/shop',
   path: '/shop',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PaymentRoute = PaymentRouteImport.update({
+  id: '/payment',
+  path: '/payment',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OurCraftRoute = OurCraftRouteImport.update({
@@ -92,6 +98,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/custom-builds': typeof CustomBuildsRoute
   '/our-craft': typeof OurCraftRoute
+  '/payment': typeof PaymentRoute
   '/shop': typeof ShopRouteWithChildren
   '/wishlist': typeof WishlistRoute
   '/shop/$slug': typeof ShopSlugRoute
@@ -106,6 +113,7 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/custom-builds': typeof CustomBuildsRoute
   '/our-craft': typeof OurCraftRoute
+  '/payment': typeof PaymentRoute
   '/shop': typeof ShopRouteWithChildren
   '/wishlist': typeof WishlistRoute
   '/shop/$slug': typeof ShopSlugRoute
@@ -121,6 +129,7 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/custom-builds': typeof CustomBuildsRoute
   '/our-craft': typeof OurCraftRoute
+  '/payment': typeof PaymentRoute
   '/shop': typeof ShopRouteWithChildren
   '/wishlist': typeof WishlistRoute
   '/shop/$slug': typeof ShopSlugRoute
@@ -137,6 +146,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/custom-builds'
     | '/our-craft'
+    | '/payment'
     | '/shop'
     | '/wishlist'
     | '/shop/$slug'
@@ -151,6 +161,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/custom-builds'
     | '/our-craft'
+    | '/payment'
     | '/shop'
     | '/wishlist'
     | '/shop/$slug'
@@ -165,6 +176,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/custom-builds'
     | '/our-craft'
+    | '/payment'
     | '/shop'
     | '/wishlist'
     | '/shop/$slug'
@@ -180,6 +192,7 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   CustomBuildsRoute: typeof CustomBuildsRoute
   OurCraftRoute: typeof OurCraftRoute
+  PaymentRoute: typeof PaymentRoute
   ShopRoute: typeof ShopRouteWithChildren
   WishlistRoute: typeof WishlistRoute
 }
@@ -198,6 +211,13 @@ declare module '@tanstack/react-router' {
       path: '/shop'
       fullPath: '/shop'
       preLoaderRoute: typeof ShopRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/payment': {
+      id: '/payment'
+      path: '/payment'
+      fullPath: '/payment'
+      preLoaderRoute: typeof PaymentRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/our-craft': {
@@ -294,6 +314,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   CustomBuildsRoute: CustomBuildsRoute,
   OurCraftRoute: OurCraftRoute,
+  PaymentRoute: PaymentRoute,
   ShopRoute: ShopRouteWithChildren,
   WishlistRoute: WishlistRoute,
 }

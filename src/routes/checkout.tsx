@@ -75,8 +75,8 @@ function Checkout() {
       return;
     }
     clear();
-    toast.success(`Order ${order.order_number} placed`, { description: "We'll contact you shortly to confirm payment." });
-    navigate({ to: "/account" });
+    toast.success(`Order ${order.order_number} placed`, { description: "Send payment via Instapay to complete." });
+    navigate({ to: "/payment" });
   };
 
   if (items.length === 0) {
@@ -109,7 +109,9 @@ function Checkout() {
             <div className="space-y-1"><Label htmlFor="notes">Delivery notes (optional)</Label><Textarea id="notes" name="notes" maxLength={500} rows={2} /></div>
 
             <div className="rounded-xl bg-muted/50 border border-border p-4 text-sm text-muted-foreground">
-              We'll contact you on WhatsApp within one working day to confirm your order and arrange payment via <strong>Apple Pay, Instapay or debit card</strong>.
+              Pay easily via <strong>Instapay</strong> (number <strong>01096313532</strong> or scan our QR on the{" "}
+              <Link to="/payment" className="underline text-primary">payment page</Link>). Card payments coming soon —
+              we'll contact you on WhatsApp to confirm your order.
             </div>
 
             <Button type="submit" size="lg" disabled={submitting} className="w-full">
