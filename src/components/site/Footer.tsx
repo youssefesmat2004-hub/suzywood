@@ -40,6 +40,7 @@ export function Footer() {
             <li><Link to="/custom-builds" className="hover:text-primary">Custom Builds</Link></li>
             <li><Link to="/our-craft" className="hover:text-primary">Our Craft</Link></li>
             <li><Link to="/contact" className="hover:text-primary">Contact</Link></li>
+            <li><Link to="/payment" className="hover:text-primary">Pay with Instapay</Link></li>
             <li><span className="text-muted-foreground">Shipping: 1,000 EGP nationwide</span></li>
           </ul>
         </div>
