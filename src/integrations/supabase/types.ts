@@ -221,6 +221,53 @@ export type Database = {
         }
         Relationships: []
       }
+      product_variants: {
+        Row: {
+          created_at: string
+          id: string
+          image_url: string | null
+          is_active: boolean
+          name: string
+          price: number
+          product_id: string
+          sort_order: number
+          stock_quantity: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name: string
+          price?: number
+          product_id: string
+          sort_order?: number
+          stock_quantity?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name?: string
+          price?: number
+          product_id?: string
+          sort_order?: number
+          stock_quantity?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_variants_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           care_info: string | null
@@ -240,6 +287,7 @@ export type Database = {
           sizes: Json
           slug: string
           starting_price: number
+          stock_quantity: number
           tagline: string | null
           updated_at: string
         }
@@ -261,6 +309,7 @@ export type Database = {
           sizes?: Json
           slug: string
           starting_price: number
+          stock_quantity?: number
           tagline?: string | null
           updated_at?: string
         }
@@ -282,6 +331,7 @@ export type Database = {
           sizes?: Json
           slug?: string
           starting_price?: number
+          stock_quantity?: number
           tagline?: string | null
           updated_at?: string
         }
@@ -362,6 +412,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      site_content: {
+        Row: {
+          description: string | null
+          id: string
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          description?: string | null
+          id?: string
+          key: string
+          updated_at?: string
+          value?: string
+        }
+        Update: {
+          description?: string | null
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
