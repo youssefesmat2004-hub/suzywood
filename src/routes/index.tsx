@@ -9,6 +9,7 @@ import { ArrowUpRight } from "lucide-react";
 import hero from "@/assets/hero-nursery.jpg";
 import craft from "@/assets/craft-story.jpg";
 import cribBanner from "@/assets/crib-aurora.jpg";
+import { useSiteContent } from "@/lib/site-content";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -34,6 +35,9 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const { cribs } = Route.useLoaderData() as { cribs: Product[] };
+  const content = useSiteContent();
+  const heroTitle = content.hero_title || "Crafting safe, beautiful spaces for your little ones.";
+  const heroSubtitle = content.hero_subtitle || "Solid-wood nursery and toddler furniture, hand-built to order in our studio — designed to live with your family for years, not seasons.";
   return (
     <Layout>
       <section className="relative">
@@ -44,10 +48,10 @@ function Index() {
                 <span className="h-px w-8 bg-secondary" /> Est. 2018 · Cairo
               </span>
               <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl leading-[1.05] text-balance">
-                Crafting safe, beautiful spaces for your little&nbsp;ones.
+                {heroTitle}
               </h1>
               <p className="text-lg text-muted-foreground max-w-md leading-relaxed">
-                Solid-wood nursery and toddler furniture, hand-built to order in our studio — designed to live with your family for years, not seasons.
+                {heroSubtitle}
               </p>
               <div className="flex flex-wrap gap-3 pt-2">
                 <Button asChild size="lg"><Link to="/shop">Shop the Collection</Link></Button>
