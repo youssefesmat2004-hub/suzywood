@@ -28,11 +28,13 @@ type Order = {
 
 const STATUSES = [
   "pending_payment",
-  "processing",
+  "confirmed",
+  "in_production",
   "shipped",
   "delivered",
   "cancelled",
 ] as const;
+type OrderStatus = (typeof STATUSES)[number];
 
 const statusColor: Record<string, string> = {
   pending_payment: "bg-amber-100 text-amber-800 border-amber-200",
@@ -77,7 +79,7 @@ function OrdersPage() {
     );
   }, [orders, search]);
 
-  const updateStatus = async (id: string, status: string) => {
+  const updateStatus = async (id: string, status: OrderStatus) => {
     const { error } = await supabase.from("orders").update({ status }).eq("id", id);
     if (error) {
       toast.error(error.message);
@@ -144,7 +146,7 @@ function OrdersPage() {
                     <td className="px-4 py-3">
                       <select
                         value={o.status}
-                        onChange={(e) => updateStatus(o.id, e.target.value)}
+                        onChange={(e) => updateStatus(o.id, e.target.value as OrderStatus)}
                         className={`text-xs rounded-md border px-2 py-1.5 ${statusColor[o.status] ?? ""}`}
                       >
                         {STATUSES.map((s) => (
