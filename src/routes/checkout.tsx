@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Layout } from "@/components/site/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,8 @@ import { useCart } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import qrImage from "@/assets/instapay-qr.jpeg";
+import { Upload, Check } from "lucide-react";
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({ meta: [{ title: "Checkout — Suzy Wood" }] }),
@@ -16,35 +18,84 @@ export const Route = createFileRoute("/checkout")({
 });
 
 const SHIPPING = 1000;
+const INSTAPAY_NUMBER = "01096313532";
+const INSTAPAY_HANDLE = "axady@instapay";
+
+type Details = {
+  name: string; email: string; phone: string;
+  address: string; city: string; governorate: string; notes: string;
+};
 
 function Checkout() {
   const { items, subtotal, clear } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [step, setStep] = useState<"details" | "pay">("details");
+  const [details, setDetails] = useState<Details | null>(null);
+  const [reference, setReference] = useState("");
+  const [proofFile, setProofFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const total = subtotal + SHIPPING;
 
-  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const onDetailsSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (items.length === 0) return;
     const fd = new FormData(e.currentTarget);
+    setDetails({
+      name: String(fd.get("name") ?? ""),
+      email: String(fd.get("email") ?? ""),
+      phone: String(fd.get("phone") ?? ""),
+      address: String(fd.get("address") ?? ""),
+      city: String(fd.get("city") ?? ""),
+      governorate: String(fd.get("governorate") ?? ""),
+      notes: String(fd.get("notes") ?? ""),
+    });
+    setStep("pay");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const onConfirmPaid = async () => {
+    if (!details) return;
+    if (!reference.trim()) {
+      toast.error("Please enter your InstaPay transaction ID");
+      return;
+    }
     setSubmitting(true);
+
+    let proofUrl: string | null = null;
+    if (proofFile) {
+      const ext = proofFile.name.split(".").pop()?.toLowerCase() ?? "jpg";
+      const path = `${crypto.randomUUID()}.${ext}`;
+      const up = await supabase.storage.from("payment-proofs").upload(path, proofFile, {
+        contentType: proofFile.type || "image/jpeg",
+        upsert: false,
+      });
+      if (up.error) {
+        setSubmitting(false);
+        toast.error("Couldn't upload screenshot", { description: up.error.message });
+        return;
+      }
+      proofUrl = supabase.storage.from("payment-proofs").getPublicUrl(path).data.publicUrl;
+    }
 
     const { data: order, error } = await supabase
       .from("orders")
       .insert({
         user_id: user?.id ?? null,
-        customer_name: String(fd.get("name")),
-        customer_email: String(fd.get("email")),
-        customer_phone: String(fd.get("phone")),
-        shipping_address: String(fd.get("address")),
-        shipping_city: String(fd.get("city")),
-        shipping_governorate: String(fd.get("governorate")),
-        shipping_notes: String(fd.get("notes") ?? "") || null,
+        customer_name: details.name,
+        customer_email: details.email,
+        customer_phone: details.phone,
+        shipping_address: details.address,
+        shipping_city: details.city,
+        shipping_governorate: details.governorate,
+        shipping_notes: details.notes || null,
         subtotal,
         shipping_fee: SHIPPING,
         total,
-        payment_method: "pending",
+        payment_method: "instapay",
+        instapay_reference: reference.trim(),
+        payment_proof_url: proofUrl,
       })
       .select()
       .single();
@@ -75,7 +126,9 @@ function Checkout() {
       return;
     }
     clear();
-    toast.success(`Order ${order.order_number} placed`, { description: "Send payment via Instapay to complete." });
+    toast.success(`Order ${order.order_number} submitted`, {
+      description: "We'll verify your payment and email you once confirmed.",
+    });
     navigate({ to: "/payment" });
   };
 
@@ -93,31 +146,114 @@ function Checkout() {
   return (
     <Layout>
       <section className="container mx-auto px-6 lg:px-10 py-16 max-w-5xl">
-        <h1 className="font-serif text-5xl mb-10">Checkout</h1>
+        <h1 className="font-serif text-5xl mb-2">Checkout</h1>
+        <p className="text-sm text-muted-foreground mb-10">
+          Step {step === "details" ? "1" : "2"} of 2 — {step === "details" ? "Your details" : "InstaPay payment"}
+        </p>
         <div className="grid lg:grid-cols-3 gap-10">
-          <form onSubmit={onSubmit} className="lg:col-span-2 space-y-5 bg-card border border-border rounded-2xl p-8">
+          {step === "details" ? (
+          <form onSubmit={onDetailsSubmit} className="lg:col-span-2 space-y-5 bg-card border border-border rounded-2xl p-8">
             <div className="grid sm:grid-cols-2 gap-5">
-              <div className="space-y-1"><Label htmlFor="name">Full name</Label><Input id="name" name="name" required maxLength={100} defaultValue={user?.user_metadata?.full_name ?? ""} /></div>
-              <div className="space-y-1"><Label htmlFor="phone">Phone</Label><Input id="phone" name="phone" type="tel" required maxLength={20} defaultValue={user?.user_metadata?.phone ?? ""} /></div>
+              <div className="space-y-1"><Label htmlFor="name">Full name</Label><Input id="name" name="name" required maxLength={100} defaultValue={details?.name ?? user?.user_metadata?.full_name ?? ""} /></div>
+              <div className="space-y-1"><Label htmlFor="phone">Phone</Label><Input id="phone" name="phone" type="tel" required maxLength={20} defaultValue={details?.phone ?? user?.user_metadata?.phone ?? ""} /></div>
             </div>
-            <div className="space-y-1"><Label htmlFor="email">Email</Label><Input id="email" type="email" name="email" required defaultValue={user?.email ?? ""} /></div>
-            <div className="space-y-1"><Label htmlFor="address">Address</Label><Textarea id="address" name="address" required maxLength={500} rows={2} /></div>
+            <div className="space-y-1"><Label htmlFor="email">Email</Label><Input id="email" type="email" name="email" required defaultValue={details?.email ?? user?.email ?? ""} /></div>
+            <div className="space-y-1"><Label htmlFor="address">Address</Label><Textarea id="address" name="address" required maxLength={500} rows={2} defaultValue={details?.address ?? ""} /></div>
             <div className="grid sm:grid-cols-2 gap-5">
-              <div className="space-y-1"><Label htmlFor="city">City / Area</Label><Input id="city" name="city" required maxLength={100} placeholder="e.g. New Cairo" /></div>
-              <div className="space-y-1"><Label htmlFor="governorate">Governorate</Label><Input id="governorate" name="governorate" required maxLength={100} placeholder="e.g. Cairo" /></div>
+              <div className="space-y-1"><Label htmlFor="city">City / Area</Label><Input id="city" name="city" required maxLength={100} placeholder="e.g. New Cairo" defaultValue={details?.city ?? ""} /></div>
+              <div className="space-y-1"><Label htmlFor="governorate">Governorate</Label><Input id="governorate" name="governorate" required maxLength={100} placeholder="e.g. Cairo" defaultValue={details?.governorate ?? ""} /></div>
             </div>
-            <div className="space-y-1"><Label htmlFor="notes">Delivery notes (optional)</Label><Textarea id="notes" name="notes" maxLength={500} rows={2} /></div>
+            <div className="space-y-1"><Label htmlFor="notes">Delivery notes (optional)</Label><Textarea id="notes" name="notes" maxLength={500} rows={2} defaultValue={details?.notes ?? ""} /></div>
 
             <div className="rounded-xl bg-muted/50 border border-border p-4 text-sm text-muted-foreground">
-              Pay easily via <strong>Instapay</strong> (number <strong>01096313532</strong> or scan our QR on the{" "}
-              <Link to="/payment" className="underline text-primary">payment page</Link>). Card payments coming soon —
-              we'll contact you on WhatsApp to confirm your order.
+              Next step: pay <strong>EGP {total.toLocaleString()}</strong> via <strong>InstaPay</strong> using our QR code,
+              then upload your receipt to complete the order.
             </div>
 
-            <Button type="submit" size="lg" disabled={submitting} className="w-full">
-              {submitting ? "Placing order…" : `Place Order — EGP ${total.toLocaleString()}`}
+            <Button type="submit" size="lg" className="w-full">
+              Continue to payment — EGP {total.toLocaleString()}
             </Button>
           </form>
+          ) : (
+          <div className="lg:col-span-2 space-y-5 bg-card border border-border rounded-2xl p-8">
+            <div>
+              <h2 className="font-serif text-2xl mb-1">Pay with InstaPay</h2>
+              <p className="text-sm text-muted-foreground">
+                Send exactly <strong className="text-foreground">EGP {total.toLocaleString()}</strong> using the QR below,
+                then enter your transaction ID and upload a screenshot.
+              </p>
+            </div>
+
+            <div className="grid sm:grid-cols-[200px_1fr] gap-5 items-start bg-muted/40 border border-border rounded-xl p-5">
+              <img src={qrImage} alt="Suzy Wood InstaPay QR code" className="w-full max-w-[200px] rounded-lg" />
+              <div className="space-y-3 text-sm">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Amount</p>
+                  <p className="font-serif text-2xl text-primary">EGP {total.toLocaleString()}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">InstaPay number</p>
+                  <p className="font-medium">{INSTAPAY_NUMBER}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">InstaPay handle</p>
+                  <p className="font-medium">{INSTAPAY_HANDLE}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <Label htmlFor="reference">InstaPay transaction ID / reference *</Label>
+              <Input
+                id="reference"
+                value={reference}
+                onChange={(e) => setReference(e.target.value)}
+                placeholder="e.g. 1234567890"
+                maxLength={100}
+                required
+              />
+            </div>
+
+            <div className="space-y-1">
+              <Label htmlFor="proof">Payment screenshot (optional but recommended)</Label>
+              <input
+                ref={fileInputRef}
+                id="proof"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => setProofFile(e.target.files?.[0] ?? null)}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full justify-start"
+              >
+                {proofFile ? (
+                  <><Check className="h-4 w-4 mr-2" />{proofFile.name}</>
+                ) : (
+                  <><Upload className="h-4 w-4 mr-2" />Upload screenshot</>
+                )}
+              </Button>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <Button type="button" variant="outline" onClick={() => setStep("details")} disabled={submitting}>
+                Back
+              </Button>
+              <Button
+                type="button"
+                size="lg"
+                onClick={onConfirmPaid}
+                disabled={submitting || !reference.trim()}
+                className="flex-1"
+              >
+                {submitting ? "Submitting…" : "I have paid"}
+              </Button>
+            </div>
+          </div>
+          )}
 
           <aside className="bg-muted/40 border border-border rounded-2xl p-6 h-fit space-y-4">
             <h2 className="font-serif text-xl">Order summary</h2>
