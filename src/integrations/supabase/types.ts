@@ -165,9 +165,11 @@ export type Database = {
           customer_name: string
           customer_phone: string
           id: string
+          instapay_reference: string | null
           internal_notes: string | null
           order_number: string
           payment_method: string | null
+          payment_proof_url: string | null
           shipping_address: string
           shipping_city: string
           shipping_fee: number
@@ -185,9 +187,11 @@ export type Database = {
           customer_name: string
           customer_phone: string
           id?: string
+          instapay_reference?: string | null
           internal_notes?: string | null
           order_number?: string
           payment_method?: string | null
+          payment_proof_url?: string | null
           shipping_address: string
           shipping_city: string
           shipping_fee?: number
@@ -205,9 +209,11 @@ export type Database = {
           customer_name?: string
           customer_phone?: string
           id?: string
+          instapay_reference?: string | null
           internal_notes?: string | null
           order_number?: string
           payment_method?: string | null
+          payment_proof_url?: string | null
           shipping_address?: string
           shipping_city?: string
           shipping_fee?: number
