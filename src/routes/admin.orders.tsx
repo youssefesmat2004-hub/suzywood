@@ -25,6 +25,8 @@ type Order = {
   status: string;
   total: number;
   created_at: string;
+  instapay_reference: string | null;
+  payment_proof_url: string | null;
   order_items: OrderItem[];
 };
 
@@ -61,7 +63,7 @@ function OrdersPage() {
   const load = async () => {
     const { data, error } = await supabase
       .from("orders")
-      .select("id, order_number, customer_name, customer_email, customer_phone, status, total, created_at, order_items(id, product_name, quantity, unit_price, size, finish)")
+      .select("id, order_number, customer_name, customer_email, customer_phone, status, total, created_at, instapay_reference, payment_proof_url, order_items(id, product_name, quantity, unit_price, size, finish)")
       .order("created_at", { ascending: false });
     if (error) toast.error(error.message);
     setOrders((data ?? []) as Order[]);
@@ -172,7 +174,7 @@ function OrdersPage() {
                   {expanded === o.id && (
                     <tr key={`${o.id}-detail`} className="bg-muted/20">
                       <td colSpan={6} className="px-8 py-4">
-                        <div className="grid gap-4 md:grid-cols-2">
+                        <div className="grid gap-4 md:grid-cols-3">
                           <div>
                             <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Items</p>
                             <ul className="space-y-1 text-sm">
@@ -192,6 +194,34 @@ function OrdersPage() {
                             <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Contact</p>
                             <p className="text-sm">{o.customer_phone}</p>
                             <p className="text-sm">{o.customer_email}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">InstaPay payment</p>
+                            <p className="text-sm">
+                              <span className="text-muted-foreground">Reference: </span>
+                              {o.instapay_reference ? (
+                                <span className="font-mono">{o.instapay_reference}</span>
+                              ) : (
+                                <span className="text-muted-foreground italic">none</span>
+                              )}
+                            </p>
+                            {o.payment_proof_url ? (
+                              <a
+                                href={o.payment_proof_url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="mt-2 inline-block"
+                              >
+                                <img
+                                  src={o.payment_proof_url}
+                                  alt="Payment screenshot"
+                                  className="h-32 w-auto rounded-md border border-border object-cover hover:opacity-90"
+                                />
+                                <span className="block text-xs text-primary mt-1 underline">Open full size</span>
+                              </a>
+                            ) : (
+                              <p className="text-sm text-muted-foreground italic mt-1">No screenshot uploaded</p>
+                            )}
                           </div>
                         </div>
                       </td>
