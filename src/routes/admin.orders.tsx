@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Search, ChevronDown, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
+import { sendOrderStatusEmail } from "@/lib/order-emails.functions";
 
 type OrderItem = {
   id: string;
@@ -54,6 +56,7 @@ function OrdersPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState<string | null>(null);
+  const sendEmail = useServerFn(sendOrderStatusEmail);
 
   const load = async () => {
     const { data, error } = await supabase
@@ -88,6 +91,16 @@ function OrdersPage() {
     }
     setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
     toast.success("Status updated");
+    try {
+      const result = await sendEmail({ data: { orderId: id } });
+      if (result?.ok) {
+        toast.success("Customer notified by email");
+      } else if (result?.error) {
+        toast.error(`Email not sent: ${result.error}`);
+      }
+    } catch (e: any) {
+      toast.error(`Email not sent: ${e?.message ?? "unknown error"}`);
+    }
   };
 
   return (
