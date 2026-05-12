@@ -24,6 +24,8 @@ type Order = {
   customer_phone: string;
   status: string;
   total: number;
+  upfront_amount: number | null;
+  remaining_amount: number | null;
   created_at: string;
   instapay_reference: string | null;
   payment_proof_url: string | null;
@@ -33,12 +35,20 @@ type Order = {
 const STATUSES = [
   "pending_payment",
   "confirmed",
-  "in_production",
   "shipped",
   "delivered",
   "cancelled",
 ] as const;
 type OrderStatus = (typeof STATUSES)[number];
+
+const STATUS_LABELS: Record<string, string> = {
+  pending_payment: "Pending Payment",
+  confirmed: "Payment Confirmed",
+  in_production: "Payment Confirmed",
+  shipped: "Out for Delivery",
+  delivered: "Delivered & Completed",
+  cancelled: "Cancelled",
+};
 
 const statusColor: Record<string, string> = {
   pending_payment: "bg-amber-100 text-amber-800 border-amber-200",
