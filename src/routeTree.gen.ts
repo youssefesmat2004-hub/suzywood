@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WishlistRouteImport } from './routes/wishlist'
+import { Route as ThankYouRouteImport } from './routes/thank-you'
 import { Route as ShopRouteImport } from './routes/shop'
 import { Route as PaymentRouteImport } from './routes/payment'
 import { Route as OurCraftRouteImport } from './routes/our-craft'
@@ -34,6 +35,11 @@ import { Route as AdminProductsIdRouteImport } from './routes/admin.products.$id
 const WishlistRoute = WishlistRouteImport.update({
   id: '/wishlist',
   path: '/wishlist',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ThankYouRoute = ThankYouRouteImport.update({
+  id: '/thank-you',
+  path: '/thank-you',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ShopRoute = ShopRouteImport.update({
@@ -149,6 +155,7 @@ export interface FileRoutesByFullPath {
   '/our-craft': typeof OurCraftRoute
   '/payment': typeof PaymentRoute
   '/shop': typeof ShopRouteWithChildren
+  '/thank-you': typeof ThankYouRoute
   '/wishlist': typeof WishlistRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/login': typeof AdminLoginRoute
@@ -171,6 +178,7 @@ export interface FileRoutesByTo {
   '/our-craft': typeof OurCraftRoute
   '/payment': typeof PaymentRoute
   '/shop': typeof ShopRouteWithChildren
+  '/thank-you': typeof ThankYouRoute
   '/wishlist': typeof WishlistRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/login': typeof AdminLoginRoute
@@ -195,6 +203,7 @@ export interface FileRoutesById {
   '/our-craft': typeof OurCraftRoute
   '/payment': typeof PaymentRoute
   '/shop': typeof ShopRouteWithChildren
+  '/thank-you': typeof ThankYouRoute
   '/wishlist': typeof WishlistRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/login': typeof AdminLoginRoute
@@ -220,6 +229,7 @@ export interface FileRouteTypes {
     | '/our-craft'
     | '/payment'
     | '/shop'
+    | '/thank-you'
     | '/wishlist'
     | '/admin/content'
     | '/admin/login'
@@ -242,6 +252,7 @@ export interface FileRouteTypes {
     | '/our-craft'
     | '/payment'
     | '/shop'
+    | '/thank-you'
     | '/wishlist'
     | '/admin/content'
     | '/admin/login'
@@ -265,6 +276,7 @@ export interface FileRouteTypes {
     | '/our-craft'
     | '/payment'
     | '/shop'
+    | '/thank-you'
     | '/wishlist'
     | '/admin/content'
     | '/admin/login'
@@ -289,6 +301,7 @@ export interface RootRouteChildren {
   OurCraftRoute: typeof OurCraftRoute
   PaymentRoute: typeof PaymentRoute
   ShopRoute: typeof ShopRouteWithChildren
+  ThankYouRoute: typeof ThankYouRoute
   WishlistRoute: typeof WishlistRoute
 }
 
@@ -299,6 +312,13 @@ declare module '@tanstack/react-router' {
       path: '/wishlist'
       fullPath: '/wishlist'
       preLoaderRoute: typeof WishlistRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/thank-you': {
+      id: '/thank-you'
+      path: '/thank-you'
+      fullPath: '/thank-you'
+      preLoaderRoute: typeof ThankYouRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/shop': {
@@ -490,6 +510,7 @@ const rootRouteChildren: RootRouteChildren = {
   OurCraftRoute: OurCraftRoute,
   PaymentRoute: PaymentRoute,
   ShopRoute: ShopRouteWithChildren,
+  ThankYouRoute: ThankYouRoute,
   WishlistRoute: WishlistRoute,
 }
 export const routeTree = rootRouteImport
