@@ -8,6 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useCart } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
+import { sendCheckoutPendingEmail } from "@/lib/checkout-emails.functions";
 import { toast } from "sonner";
 import qrImage from "@/assets/instapay-qr.jpeg";
 import { Upload, Check } from "lucide-react";
@@ -30,6 +32,7 @@ function Checkout() {
   const { items, subtotal, clear } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const sendPendingEmail = useServerFn(sendCheckoutPendingEmail);
   const [step, setStep] = useState<"details" | "pay">("details");
   const [details, setDetails] = useState<Details | null>(null);
   const [reference, setReference] = useState("");
@@ -126,10 +129,14 @@ function Checkout() {
       return;
     }
     clear();
+    // Fire-and-forget confirmation email
+    sendPendingEmail({ data: { orderId: order.id } }).catch((e) =>
+      console.error("Pending email failed", e),
+    );
     toast.success(`Order ${order.order_number} submitted`, {
       description: "We'll verify your payment and email you once confirmed.",
     });
-    navigate({ to: "/payment" });
+    navigate({ to: "/thank-you", search: { order: order.order_number } });
   };
 
   if (items.length === 0) {
