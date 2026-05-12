@@ -4,19 +4,19 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const STATUS_LABELS: Record<string, string> = {
   pending_payment: "Pending Payment",
-  confirmed: "Confirmed",
-  in_production: "In Production",
-  shipped: "Shipped",
-  delivered: "Delivered",
+  confirmed: "Payment Confirmed",
+  in_production: "Payment Confirmed",
+  shipped: "Out for Delivery",
+  delivered: "Delivered & Completed",
   cancelled: "Cancelled",
 };
 
 const STATUS_HEADLINES: Record<string, string> = {
   pending_payment: "We're awaiting payment for your order",
-  confirmed: "Your order has been confirmed",
-  in_production: "Your order is now in production",
-  shipped: "Your order has been shipped",
-  delivered: "Your order has been delivered",
+  confirmed: "Your payment is confirmed — we'll be in touch about delivery",
+  in_production: "Your payment is confirmed — we'll be in touch about delivery",
+  shipped: "Your order is out for delivery",
+  delivered: "Your order has been delivered — thank you!",
   cancelled: "Your order has been cancelled",
 };
 
@@ -35,6 +35,8 @@ function renderEmail(opts: {
   status: string;
   items: Array<{ product_name: string; quantity: number; unit_price: number; size: string | null; finish: string | null }>;
   total: number;
+  upfront: number | null;
+  remaining: number | null;
 }) {
   const headline = STATUS_HEADLINES[opts.status] ?? `Your order status is now ${STATUS_LABELS[opts.status] ?? opts.status}`;
   const statusLabel = STATUS_LABELS[opts.status] ?? opts.status;
@@ -54,6 +56,23 @@ function renderEmail(opts: {
     })
     .join("");
 
+  const paymentBlock = opts.upfront != null && opts.remaining != null
+    ? `
+        <tr><td style="padding:8px 32px 0;">
+          <h3 style="margin:16px 0 4px;font-size:14px;color:#777;text-transform:uppercase;letter-spacing:1px;font-family:Arial,sans-serif;font-weight:600;">Payment summary</h3>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-family:Arial,sans-serif;">
+            <tr>
+              <td style="padding:8px 0;color:#222;font-size:14px;">Paid upfront (70%)</td>
+              <td style="padding:8px 0;color:#1a1a1a;font-size:14px;text-align:right;font-weight:600;">EGP ${Number(opts.upfront).toLocaleString()}</td>
+            </tr>
+            <tr>
+              <td style="padding:8px 0;color:#222;font-size:14px;border-bottom:1px solid #eee;">Due on delivery (30% + delivery fees)</td>
+              <td style="padding:8px 0;color:#1a1a1a;font-size:14px;text-align:right;border-bottom:1px solid #eee;">EGP ${Number(opts.remaining).toLocaleString()}</td>
+            </tr>
+          </table>
+        </td></tr>`
+    : "";
+
   return `<!doctype html>
 <html><body style="margin:0;padding:0;background:#f6f4ef;font-family:Georgia,'Times New Roman',serif;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f6f4ef;padding:32px 12px;">
@@ -70,6 +89,7 @@ function renderEmail(opts: {
             <strong style="color:#1a1a1a;">${escapeHtml(statusLabel)}</strong>.
           </p>
         </td></tr>
+        ${paymentBlock}
         <tr><td style="padding:8px 32px 0;">
           <h3 style="margin:16px 0 4px;font-size:14px;color:#777;text-transform:uppercase;letter-spacing:1px;font-family:Arial,sans-serif;font-weight:600;">Your items</h3>
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-family:Arial,sans-serif;">
@@ -107,7 +127,7 @@ export const sendOrderStatusEmail = createServerFn({ method: "POST" })
 
     const { data: order, error } = await supabase
       .from("orders")
-      .select("id, order_number, customer_name, customer_email, status, total, order_items(product_name, quantity, unit_price, size, finish)")
+      .select("id, order_number, customer_name, customer_email, status, total, upfront_amount, remaining_amount, order_items(product_name, quantity, unit_price, size, finish)")
       .eq("id", data.orderId)
       .single();
 
@@ -122,6 +142,8 @@ export const sendOrderStatusEmail = createServerFn({ method: "POST" })
       status: order.status,
       items: (order.order_items ?? []) as any,
       total: Number(order.total),
+      upfront: order.upfront_amount != null ? Number(order.upfront_amount) : null,
+      remaining: order.remaining_amount != null ? Number(order.remaining_amount) : null,
     });
 
     const subject = `Order ${order.order_number}: ${STATUS_LABELS[order.status] ?? order.status}`;

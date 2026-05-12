@@ -24,6 +24,8 @@ type Order = {
   customer_phone: string;
   status: string;
   total: number;
+  upfront_amount: number | null;
+  remaining_amount: number | null;
   created_at: string;
   instapay_reference: string | null;
   payment_proof_url: string | null;
@@ -33,12 +35,20 @@ type Order = {
 const STATUSES = [
   "pending_payment",
   "confirmed",
-  "in_production",
   "shipped",
   "delivered",
   "cancelled",
 ] as const;
 type OrderStatus = (typeof STATUSES)[number];
+
+const STATUS_LABELS: Record<string, string> = {
+  pending_payment: "Pending Payment",
+  confirmed: "Payment Confirmed",
+  in_production: "Payment Confirmed",
+  shipped: "Out for Delivery",
+  delivered: "Delivered & Completed",
+  cancelled: "Cancelled",
+};
 
 const statusColor: Record<string, string> = {
   pending_payment: "bg-amber-100 text-amber-800 border-amber-200",
@@ -63,7 +73,7 @@ function OrdersPage() {
   const load = async () => {
     const { data, error } = await supabase
       .from("orders")
-      .select("id, order_number, customer_name, customer_email, customer_phone, status, total, created_at, instapay_reference, payment_proof_url, order_items(id, product_name, quantity, unit_price, size, finish)")
+      .select("id, order_number, customer_name, customer_email, customer_phone, status, total, upfront_amount, remaining_amount, created_at, instapay_reference, payment_proof_url, order_items(id, product_name, quantity, unit_price, size, finish)")
       .order("created_at", { ascending: false });
     if (error) toast.error(error.message);
     setOrders((data ?? []) as Order[]);
@@ -166,8 +176,11 @@ function OrdersPage() {
                         className={`text-xs rounded-md border px-2 py-1.5 ${statusColor[o.status] ?? ""}`}
                       >
                         {STATUSES.map((s) => (
-                          <option key={s} value={s}>{s.replace("_", " ")}</option>
+                          <option key={s} value={s}>{STATUS_LABELS[s]}</option>
                         ))}
+                        {!STATUSES.includes(o.status as OrderStatus) && (
+                          <option value={o.status}>{STATUS_LABELS[o.status] ?? o.status}</option>
+                        )}
                       </select>
                     </td>
                   </tr>
@@ -197,6 +210,12 @@ function OrdersPage() {
                           </div>
                           <div>
                             <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">InstaPay payment</p>
+                            {o.upfront_amount != null && o.remaining_amount != null ? (
+                              <div className="text-xs text-muted-foreground mb-2 space-y-0.5">
+                                <div>Paid upfront (70%): <span className="text-foreground font-medium">EGP {Number(o.upfront_amount).toLocaleString()}</span></div>
+                                <div>Due on delivery: <span className="text-foreground font-medium">EGP {Number(o.remaining_amount).toLocaleString()}</span></div>
+                              </div>
+                            ) : null}
                             <p className="text-sm">
                               <span className="text-muted-foreground">Reference: </span>
                               {o.instapay_reference ? (

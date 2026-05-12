@@ -170,6 +170,7 @@ export type Database = {
           order_number: string
           payment_method: string | null
           payment_proof_url: string | null
+          remaining_amount: number | null
           shipping_address: string
           shipping_city: string
           shipping_fee: number
@@ -179,6 +180,7 @@ export type Database = {
           subtotal: number
           total: number
           updated_at: string
+          upfront_amount: number | null
           user_id: string | null
         }
         Insert: {
@@ -192,6 +194,7 @@ export type Database = {
           order_number?: string
           payment_method?: string | null
           payment_proof_url?: string | null
+          remaining_amount?: number | null
           shipping_address: string
           shipping_city: string
           shipping_fee?: number
@@ -201,6 +204,7 @@ export type Database = {
           subtotal: number
           total: number
           updated_at?: string
+          upfront_amount?: number | null
           user_id?: string | null
         }
         Update: {
@@ -214,6 +218,7 @@ export type Database = {
           order_number?: string
           payment_method?: string | null
           payment_proof_url?: string | null
+          remaining_amount?: number | null
           shipping_address?: string
           shipping_city?: string
           shipping_fee?: number
@@ -223,6 +228,7 @@ export type Database = {
           subtotal?: number
           total?: number
           updated_at?: string
+          upfront_amount?: number | null
           user_id?: string | null
         }
         Relationships: []
