@@ -4,19 +4,19 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const STATUS_LABELS: Record<string, string> = {
   pending_payment: "Pending Payment",
-  confirmed: "Confirmed",
-  in_production: "In Production",
-  shipped: "Shipped",
-  delivered: "Delivered",
+  confirmed: "Payment Confirmed",
+  in_production: "Payment Confirmed",
+  shipped: "Out for Delivery",
+  delivered: "Delivered & Completed",
   cancelled: "Cancelled",
 };
 
 const STATUS_HEADLINES: Record<string, string> = {
   pending_payment: "We're awaiting payment for your order",
-  confirmed: "Your order has been confirmed",
-  in_production: "Your order is now in production",
-  shipped: "Your order has been shipped",
-  delivered: "Your order has been delivered",
+  confirmed: "Your payment is confirmed — we'll be in touch about delivery",
+  in_production: "Your payment is confirmed — we'll be in touch about delivery",
+  shipped: "Your order is out for delivery",
+  delivered: "Your order has been delivered — thank you!",
   cancelled: "Your order has been cancelled",
 };
 
