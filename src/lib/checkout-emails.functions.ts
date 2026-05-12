@@ -24,7 +24,7 @@ export const sendCheckoutPendingEmail = createServerFn({ method: "POST" })
     const { data: order, error } = await supabaseAdmin
       .from("orders")
       .select(
-        "id, order_number, customer_name, customer_email, total, instapay_reference, order_items(product_name, quantity, unit_price, size, finish)",
+        "id, order_number, customer_name, customer_email, total, upfront_amount, remaining_amount, instapay_reference, order_items(product_name, quantity, unit_price, size, finish)",
       )
       .eq("id", data.orderId)
       .single();
@@ -49,6 +49,9 @@ export const sendCheckoutPendingEmail = createServerFn({ method: "POST" })
       })
       .join("");
 
+    const upfront = Number(order.upfront_amount ?? 0);
+    const remaining = Number(order.remaining_amount ?? 0);
+
     const html = `<!doctype html>
 <html><body style="margin:0;padding:0;background:#f6f4ef;font-family:Georgia,'Times New Roman',serif;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f6f4ef;padding:32px 12px;">
@@ -58,13 +61,28 @@ export const sendCheckoutPendingEmail = createServerFn({ method: "POST" })
           <h1 style="margin:0;font-size:22px;color:#1a1a1a;font-weight:normal;">Suzy Wood</h1>
         </td></tr>
         <tr><td style="padding:8px 32px 0;">
-          <h2 style="margin:0 0 8px;font-size:20px;color:#1a1a1a;font-weight:normal;">Thank you for your order!</h2>
+          <h2 style="margin:0 0 8px;font-size:20px;color:#1a1a1a;font-weight:normal;">Thank you! Your order is confirmed.</h2>
           <p style="margin:0 0 4px;color:#555;font-size:14px;font-family:Arial,sans-serif;">Hi ${escapeHtml(order.customer_name)},</p>
           <p style="margin:8px 0 16px;color:#555;font-size:14px;line-height:1.6;font-family:Arial,sans-serif;">
-            We've received your order <strong>${escapeHtml(order.order_number)}</strong>. It is currently
-            <strong style="color:#1a1a1a;">Pending Payment</strong> while we verify your InstaPay transfer
-            ${order.instapay_reference ? `(reference <strong>${escapeHtml(order.instapay_reference)}</strong>)` : ""}.
-            You'll receive another email as soon as your payment is confirmed.
+            We've received your order <strong>${escapeHtml(order.order_number)}</strong> and the 70% upfront payment
+            ${order.instapay_reference ? `(InstaPay reference <strong>${escapeHtml(order.instapay_reference)}</strong>)` : ""}.
+            Our team will contact you shortly to arrange delivery.
+          </p>
+        </td></tr>
+        <tr><td style="padding:8px 32px 0;">
+          <h3 style="margin:16px 0 4px;font-size:14px;color:#777;text-transform:uppercase;letter-spacing:1px;font-family:Arial,sans-serif;font-weight:600;">Payment summary</h3>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-family:Arial,sans-serif;">
+            <tr>
+              <td style="padding:8px 0;color:#222;font-size:14px;">Amount paid upfront (70%)</td>
+              <td style="padding:8px 0;color:#1a1a1a;font-size:14px;text-align:right;font-weight:600;">EGP ${upfront.toLocaleString()}</td>
+            </tr>
+            <tr>
+              <td style="padding:8px 0;color:#222;font-size:14px;border-bottom:1px solid #eee;">Remaining on delivery (30% + delivery fees)</td>
+              <td style="padding:8px 0;color:#1a1a1a;font-size:14px;text-align:right;border-bottom:1px solid #eee;">EGP ${remaining.toLocaleString()}</td>
+            </tr>
+          </table>
+          <p style="margin:12px 0 0;color:#555;font-size:13px;line-height:1.6;font-family:Arial,sans-serif;">
+            Please have the remaining amount ready when your order arrives.
           </p>
         </td></tr>
         <tr><td style="padding:8px 32px 0;">
@@ -72,7 +90,7 @@ export const sendCheckoutPendingEmail = createServerFn({ method: "POST" })
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-family:Arial,sans-serif;">
             ${itemsRows}
             <tr>
-              <td style="padding:14px 0 0;color:#1a1a1a;font-size:14px;font-weight:600;">Total</td>
+              <td style="padding:14px 0 0;color:#1a1a1a;font-size:14px;font-weight:600;">Order total</td>
               <td style="padding:14px 0 0;color:#1a1a1a;font-size:14px;font-weight:600;text-align:right;">EGP ${Number(order.total).toLocaleString()}</td>
             </tr>
           </table>
