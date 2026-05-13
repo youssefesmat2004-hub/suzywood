@@ -31,6 +31,7 @@ export type Product = {
   lead_time_weeks: number;
   is_featured: boolean;
   is_active: boolean;
+  stock_quantity?: number;
 };
 
 export type Review = {
