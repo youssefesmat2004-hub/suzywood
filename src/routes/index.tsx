@@ -4,8 +4,11 @@ import { ValueBar } from "@/components/site/ValueBar";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import type { Product } from "@/lib/types";
+import { asOptions } from "@/lib/types";
 import { resolveImage } from "@/lib/images";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Plus } from "lucide-react";
+import { useCart } from "@/lib/cart";
+import { toast } from "sonner";
 import hero from "@/assets/hero-nursery.jpg";
 import craft from "@/assets/craft-story.jpg";
 import cribBanner from "@/assets/crib-aurora.jpg";
@@ -36,8 +39,34 @@ export const Route = createFileRoute("/")({
 function Index() {
   const { cribs } = Route.useLoaderData() as { cribs: Product[] };
   const content = useSiteContent();
+  const cart = useCart();
   const heroTitle = content.hero_title || "Crafting safe, beautiful spaces for your little ones.";
   const heroSubtitle = content.hero_subtitle || "Solid-wood nursery and toddler furniture, hand-built to order in our studio — designed to live with your family for years, not seasons.";
+
+  const quickAdd = (e: React.MouseEvent, p: Product) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const sizes = asOptions(p.sizes);
+    const finishes = asOptions(p.finishes);
+    const size = sizes[0];
+    const finish = finishes[0];
+    cart.add({
+      productId: p.id,
+      slug: p.slug,
+      name: p.name,
+      image: resolveImage(p.image_url),
+      size: size?.value ?? "",
+      sizeLabel: size?.label ?? "",
+      finish: finish?.value ?? "",
+      finishLabel: finish?.label ?? "",
+      engraving: "",
+      unitPrice: p.starting_price,
+      quantity: 1,
+    });
+    toast.success("Added to cart", {
+      description: `${p.name}${size ? ` · ${size.label}` : ""}${finish ? ` · ${finish.label}` : ""}`,
+    });
+  };
   return (
     <Layout>
       <section className="relative">
@@ -100,6 +129,14 @@ function Index() {
                   loading="lazy"
                   className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
+                <button
+                  type="button"
+                  onClick={(e) => quickAdd(e, p)}
+                  aria-label={`Quick add ${p.name} to cart`}
+                  className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-2 text-xs font-medium text-primary-foreground shadow-elegant opacity-0 translate-y-1 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0 hover:bg-primary/90 focus:opacity-100 focus:translate-y-0"
+                >
+                  <Plus className="h-3.5 w-3.5" /> Quick add
+                </button>
               </div>
               <div className="p-4 flex items-center justify-between gap-2">
                 <div>
