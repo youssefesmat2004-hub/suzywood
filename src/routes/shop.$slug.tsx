@@ -79,7 +79,11 @@ export const Route = createFileRoute("/shop/$slug")({
 });
 
 function ProductPage() {
-  const { product, variants, related } = Route.useLoaderData();
+  const { product, variants, related } = Route.useLoaderData() as {
+    product: Product;
+    variants: Variant[];
+    related: Product[];
+  };
   const navigate = useNavigate();
   const cart = useCart();
   const sizes = asOptions(product.sizes);
