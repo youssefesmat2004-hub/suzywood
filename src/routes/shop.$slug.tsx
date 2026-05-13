@@ -1,28 +1,56 @@
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Layout } from "@/components/site/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import type { Product } from "@/lib/types";
 import { asOptions } from "@/lib/types";
 import { resolveImage, resolveGallery } from "@/lib/images";
 import { Reviews } from "@/components/site/Reviews";
+import { ProductCard } from "@/components/site/ProductCard";
 import { WishlistButton } from "@/components/site/WishlistButton";
 import { useCart } from "@/lib/cart";
-import { Check, ShoppingBag } from "lucide-react";
+import { Check, ShoppingBag, Minus, Plus } from "lucide-react";
 import { toast } from "sonner";
+
+type Variant = {
+  id: string;
+  name: string;
+  price: number;
+  stock_quantity: number;
+  image_url: string | null;
+  is_active: boolean;
+  sort_order: number;
+};
 
 export const Route = createFileRoute("/shop/$slug")({
   loader: async ({ params }) => {
     const { data } = await supabase.from("products").select("*").eq("slug", params.slug).eq("is_active", true).maybeSingle();
     if (!data) throw notFound();
-    return { product: data as Product };
+    const product = data as Product;
+    const [{ data: variants }, { data: related }] = await Promise.all([
+      supabase
+        .from("product_variants")
+        .select("*")
+        .eq("product_id", product.id)
+        .eq("is_active", true)
+        .order("sort_order"),
+      supabase
+        .from("products")
+        .select("*")
+        .eq("is_active", true)
+        .eq("category_id", product.category_id)
+        .neq("id", product.id)
+        .limit(4),
+    ]);
+    return {
+      product,
+      variants: (variants ?? []) as Variant[],
+      related: (related ?? []) as Product[],
+    };
   },
   head: ({ loaderData }) => {
     const p = loaderData?.product;
@@ -51,31 +79,60 @@ export const Route = createFileRoute("/shop/$slug")({
 });
 
 function ProductPage() {
-  const { product } = Route.useLoaderData();
+  const { product, variants, related } = Route.useLoaderData();
   const navigate = useNavigate();
   const cart = useCart();
   const sizes = asOptions(product.sizes);
   const finishes = asOptions(product.finishes);
   const gallery = resolveGallery(product.gallery);
-  const [active, setActive] = useState(0);
   const [size, setSize] = useState(sizes[0]?.value ?? "");
   const [finish, setFinish] = useState(finishes[0]?.value ?? "");
   const [engraving, setEngraving] = useState("");
+  const [variantId, setVariantId] = useState<string>(variants[0]?.id ?? "");
+  const [qty, setQty] = useState(1);
+  const [active, setActive] = useState(0);
+
+  const selectedVariant = useMemo(
+    () => variants.find((v) => v.id === variantId) ?? null,
+    [variants, variantId],
+  );
+
+  // Combine product gallery with variant image (variant image leads when selected)
+  const images = useMemo(() => {
+    const base = gallery.length > 0 ? gallery : [resolveImage(product.image_url)];
+    if (selectedVariant?.image_url) {
+      const variantImg = resolveImage(selectedVariant.image_url);
+      return [variantImg, ...base.filter((s) => s !== variantImg)];
+    }
+    return base;
+  }, [gallery, selectedVariant, product.image_url]);
+
+  const stock = selectedVariant ? selectedVariant.stock_quantity : (product.stock_quantity ?? 99);
+  const soldOut = stock <= 0;
+  const unitPrice = selectedVariant ? selectedVariant.price : product.starting_price;
+
+  const stockBadge = soldOut
+    ? { label: "Sold out", className: "bg-destructive/10 text-destructive" }
+    : stock <= 5
+      ? { label: `Only ${stock} left`, className: "bg-amber-500/15 text-amber-700" }
+      : { label: "In stock", className: "bg-secondary/15 text-secondary" };
 
   const addToCart = () => {
+    if (soldOut) return;
     const sizeLabel = sizes.find((s) => s.value === size)?.label ?? "";
     const finishLabel = finishes.find((f) => f.value === finish)?.label ?? "";
+    const variantSuffix = selectedVariant ? ` · ${selectedVariant.name}` : "";
     cart.add({
       productId: product.id,
       slug: product.slug,
-      name: product.name,
-      image: resolveImage(product.image_url),
+      name: product.name + variantSuffix,
+      image: selectedVariant?.image_url ? resolveImage(selectedVariant.image_url) : resolveImage(product.image_url),
       size, sizeLabel, finish, finishLabel,
       engraving: engraving.slice(0, 20),
-      unitPrice: product.starting_price,
-      quantity: 1,
+      unitPrice,
+      quantity: qty,
     });
-    toast.success("Added to cart", { description: `${product.name}`, action: { label: "View cart", onClick: () => navigate({ to: "/cart" }) } });
+    toast.success("Added to cart", { description: `${product.name}${variantSuffix} × ${qty}`, action: { label: "View cart", onClick: () => navigate({ to: "/cart" }) } });
   };
 
   return (
@@ -86,11 +143,11 @@ function ProductPage() {
         <div className="mt-8 grid lg:grid-cols-2 gap-12 lg:gap-16">
           <div>
             <div className="aspect-square rounded-3xl overflow-hidden bg-muted shadow-card">
-              <img src={gallery[active] ?? resolveImage(product.image_url)} alt={product.name} width={1024} height={1024} className="h-full w-full object-cover" />
+              <img src={images[active] ?? images[0]} alt={product.name} width={1024} height={1024} className="h-full w-full object-cover" />
             </div>
-            {gallery.length > 1 && (
+            {images.length > 1 && (
               <div className="mt-4 flex gap-3">
-                {gallery.map((src, i) => (
+                {images.map((src, i) => (
                   <button key={i} onClick={() => setActive(i)} className={`h-20 w-20 rounded-xl overflow-hidden border-2 transition-all ${active === i ? "border-primary" : "border-transparent opacity-70 hover:opacity-100"}`}>
                     <img src={src} alt="" loading="lazy" width={160} height={160} className="h-full w-full object-cover" />
                   </button>
@@ -101,50 +158,122 @@ function ProductPage() {
 
           <div className="space-y-7">
             <div>
-              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary/15 text-secondary text-[11px] uppercase tracking-[0.22em]">
-                <Check className="h-3 w-3" /> Make-to-Order · Ships in {product.lead_time_weeks} Weeks
-              </span>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary/15 text-secondary text-[11px] uppercase tracking-[0.22em]">
+                  <Check className="h-3 w-3" /> Make-to-Order · {product.lead_time_weeks} Weeks
+                </span>
+                <span className={`px-3 py-1 rounded-full text-[11px] uppercase tracking-[0.22em] ${stockBadge.className}`}>
+                  {stockBadge.label}
+                </span>
+              </div>
               <h1 className="font-serif text-4xl md:text-5xl mt-5">{product.name}</h1>
               {product.tagline && <p className="mt-3 text-muted-foreground">{product.tagline}</p>}
-              <p className="mt-6 font-serif text-3xl text-primary">From EGP {product.starting_price.toLocaleString()}</p>
+              <p className="mt-6 font-serif text-3xl text-primary">
+                {selectedVariant ? "" : "From "}EGP {unitPrice.toLocaleString()}
+              </p>
             </div>
 
             {product.description && <p className="text-foreground/80 leading-relaxed">{product.description}</p>}
 
             <div className="space-y-5 pt-2 border-t border-border">
-              {sizes.length > 0 && (
+              {variants.length > 0 && (
                 <div className="space-y-2 pt-5">
+                  <Label>Variant</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {variants.map((v) => {
+                      const isSel = v.id === variantId;
+                      const out = v.stock_quantity <= 0;
+                      return (
+                        <button
+                          key={v.id}
+                          type="button"
+                          onClick={() => { setVariantId(v.id); setActive(0); }}
+                          disabled={out}
+                          className={`px-4 py-2 rounded-full border text-sm transition-colors ${isSel ? "border-primary bg-primary text-primary-foreground" : "border-border hover:border-primary"} ${out ? "opacity-50 line-through cursor-not-allowed" : ""}`}
+                        >
+                          {v.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              {sizes.length > 0 && (
+                <div className={`space-y-2 ${variants.length === 0 ? "pt-5" : ""}`}>
                   <Label>Size</Label>
-                  <Select value={size} onValueChange={setSize}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {sizes.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                  <div className="flex flex-wrap gap-2">
+                    {sizes.map((s) => (
+                      <button
+                        key={s.value}
+                        type="button"
+                        onClick={() => setSize(s.value)}
+                        className={`px-4 py-2 rounded-full border text-sm transition-colors ${size === s.value ? "border-primary bg-primary text-primary-foreground" : "border-border hover:border-primary"}`}
+                      >
+                        {s.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
               {finishes.length > 0 && (
                 <div className="space-y-2">
                   <Label>Wood Finish</Label>
-                  <Select value={finish} onValueChange={setFinish}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {finishes.map((f) => <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                  <div className="flex flex-wrap gap-2">
+                    {finishes.map((f) => (
+                      <button
+                        key={f.value}
+                        type="button"
+                        onClick={() => setFinish(f.value)}
+                        className={`px-4 py-2 rounded-full border text-sm transition-colors ${finish === f.value ? "border-primary bg-primary text-primary-foreground" : "border-border hover:border-primary"}`}
+                      >
+                        {f.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
               <div className="space-y-2">
                 <Label htmlFor="engrave">Add baby's name for custom engraving (optional)</Label>
                 <Input id="engrave" value={engraving} onChange={(e) => setEngraving(e.target.value)} maxLength={20} placeholder="e.g. Layla" />
               </div>
+
+              <div className="space-y-2">
+                <Label>Quantity</Label>
+                <div className="inline-flex items-center rounded-full border border-border">
+                  <button
+                    type="button"
+                    aria-label="Decrease quantity"
+                    onClick={() => setQty((q) => Math.max(1, q - 1))}
+                    disabled={qty <= 1 || soldOut}
+                    className="h-10 w-10 inline-flex items-center justify-center hover:bg-muted disabled:opacity-40 rounded-l-full"
+                  >
+                    <Minus className="h-4 w-4" />
+                  </button>
+                  <span className="w-12 text-center text-sm tabular-nums">{qty}</span>
+                  <button
+                    type="button"
+                    aria-label="Increase quantity"
+                    onClick={() => setQty((q) => Math.min(stock || 99, q + 1))}
+                    disabled={soldOut || qty >= stock}
+                    className="h-10 w-10 inline-flex items-center justify-center hover:bg-muted disabled:opacity-40 rounded-r-full"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
             </div>
 
             <div className="flex flex-col gap-3 pt-2">
               <div className="flex gap-3">
-                <Button size="lg" className="flex-1" onClick={addToCart}>
-                  <ShoppingBag className="h-4 w-4 mr-2" /> Add to Cart
-                </Button>
+                {soldOut ? (
+                  <Button size="lg" className="flex-1" disabled variant="secondary">
+                    Sold Out
+                  </Button>
+                ) : (
+                  <Button size="lg" className="flex-1" onClick={addToCart}>
+                    <ShoppingBag className="h-4 w-4 mr-2" /> Add to Cart
+                  </Button>
+                )}
                 <WishlistButton productId={product.id} />
               </div>
               <Button asChild size="lg" variant="outline" className="w-full">
@@ -177,6 +306,21 @@ function ProductPage() {
             </TabsContent>
           </Tabs>
         </div>
+
+        {related.length > 0 && (
+          <section className="mt-24 pt-12 border-t border-border">
+            <div className="flex items-end justify-between gap-4 mb-8">
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.28em] text-secondary mb-2">You may also like</p>
+                <h2 className="font-serif text-3xl md:text-4xl">More from this collection</h2>
+              </div>
+              <Link to="/shop" className="text-sm border-b border-primary pb-0.5 hover:opacity-70">View all →</Link>
+            </div>
+            <div className="grid gap-6 grid-cols-2 lg:grid-cols-4">
+              {related.map((p) => <ProductCard key={p.id} product={p} />)}
+            </div>
+          </section>
+        )}
       </div>
     </Layout>
   );
