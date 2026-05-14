@@ -56,7 +56,8 @@ function ProductsPage() {
 
   const toggleField = async (id: string, field: "is_active" | "is_featured", value: boolean) => {
     setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, [field]: value } : p)));
-    const { error } = await supabase.from("products").update({ [field]: value }).eq("id", id);
+    const update = field === "is_active" ? { is_active: value } : { is_featured: value };
+    const { error } = await supabase.from("products").update(update).eq("id", id);
     if (error) {
       toast.error(error.message);
       setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, [field]: !value } : p)));
