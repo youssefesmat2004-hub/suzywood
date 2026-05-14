@@ -18,8 +18,8 @@ function Dashboard() {
       const [ordersRes, pendingRes, productsRes, revenueRes] = await Promise.all([
         supabase.from("orders").select("id", { count: "exact", head: true }),
         supabase.from("orders").select("id", { count: "exact", head: true }).eq("status", "pending_payment"),
-        supabase.from("products").select("id", { count: "exact", head: true }),
-        supabase.from("orders").select("total").neq("status", "cancelled"),
+        supabase.from("products").select("id", { count: "exact", head: true }).eq("is_active", true),
+        supabase.from("orders").select("total").eq("status", "delivered"),
       ]);
       const revenue = (revenueRes.data ?? []).reduce((s, r: { total: number }) => s + Number(r.total), 0);
       setStats({
@@ -34,9 +34,9 @@ function Dashboard() {
 
   const cards = [
     { label: "Total Orders", value: stats.orders, icon: ShoppingBag, color: "text-blue-600 bg-blue-50" },
-    { label: "Pending Payment", value: stats.pending, icon: Clock, color: "text-amber-600 bg-amber-50" },
-    { label: "Products", value: stats.products, icon: Package, color: "text-emerald-600 bg-emerald-50" },
-    { label: "Revenue (EGP)", value: stats.revenue.toLocaleString(), icon: DollarSign, color: "text-purple-600 bg-purple-50" },
+    { label: "Total Revenue (EGP)", value: stats.revenue.toLocaleString(), icon: DollarSign, color: "text-purple-600 bg-purple-50" },
+    { label: "Total Products", value: stats.products, icon: Package, color: "text-emerald-600 bg-emerald-50" },
+    { label: "Pending Orders", value: stats.pending, icon: Clock, color: "text-amber-600 bg-amber-50" },
   ];
 
   return (
