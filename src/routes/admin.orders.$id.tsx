@@ -96,7 +96,7 @@ function OrderDetailPage() {
   const updateStatus = async (status: string) => {
     if (!order) return;
     setSaving(true);
-    const { error } = await supabase.from("orders").update({ status: status as Order["status"] }).eq("id", order.id);
+    const { error } = await supabase.from("orders").update({ status } as never).eq("id", order.id);
     if (error) {
       toast.error(error.message);
       setSaving(false);
