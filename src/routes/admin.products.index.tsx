@@ -3,9 +3,10 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Pencil, Trash2, Search } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Star, AlertTriangle } from "lucide-react";
 import { resolveImage } from "@/lib/images";
 import { toast } from "sonner";
+import { Switch } from "@/components/ui/switch";
 
 type ProductRow = {
   id: string;
@@ -15,6 +16,7 @@ type ProductRow = {
   stock_quantity: number;
   image_url: string | null;
   is_active: boolean;
+  is_featured: boolean;
   category_id: string;
 };
 
@@ -30,7 +32,7 @@ function ProductsPage() {
   const load = async () => {
     const { data, error } = await supabase
       .from("products")
-      .select("id,name,slug,starting_price,stock_quantity,image_url,is_active,category_id")
+      .select("id,name,slug,starting_price,stock_quantity,image_url,is_active,is_featured,category_id")
       .order("created_at", { ascending: false });
     if (error) toast.error(error.message);
     setProducts((data ?? []) as ProductRow[]);
@@ -50,6 +52,21 @@ function ProductsPage() {
     }
     setProducts((p) => p.filter((x) => x.id !== id));
     toast.success("Product deleted");
+  };
+
+  const toggleField = async (id: string, field: "is_active" | "is_featured", value: boolean) => {
+    setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, [field]: value } : p)));
+    const { error } = await supabase.from("products").update({ [field]: value }).eq("id", id);
+    if (error) {
+      toast.error(error.message);
+      setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, [field]: !value } : p)));
+      return;
+    }
+    toast.success(
+      field === "is_active"
+        ? value ? "Product is now visible" : "Product hidden from website"
+        : value ? "Marked as featured" : "Removed from featured",
+    );
   };
 
   const filtered = products.filter((p) =>
@@ -79,18 +96,47 @@ function ProductsPage() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((p) => (
             <div key={p.id} className="bg-background border rounded-xl overflow-hidden flex flex-col">
-              <div className="aspect-square bg-muted">
+              <div className="aspect-square bg-muted relative">
                 {p.image_url && (
                   <img src={resolveImage(p.image_url)} alt={p.name} className="w-full h-full object-cover" />
                 )}
+                <div className="absolute top-2 left-2 flex flex-col gap-1.5">
+                  {!p.is_active && (
+                    <span className="text-[10px] uppercase tracking-wider bg-muted-foreground/90 text-background px-2 py-0.5 rounded">Hidden</span>
+                  )}
+                  {p.is_featured && (
+                    <span className="text-[10px] uppercase tracking-wider bg-primary text-primary-foreground px-2 py-0.5 rounded inline-flex items-center gap-1">
+                      <Star className="h-3 w-3" /> Featured
+                    </span>
+                  )}
+                  {p.stock_quantity === 0 ? (
+                    <span className="text-[10px] uppercase tracking-wider bg-destructive text-destructive-foreground px-2 py-0.5 rounded">Sold out</span>
+                  ) : p.stock_quantity < 5 ? (
+                    <span className="text-[10px] uppercase tracking-wider bg-amber-500 text-white px-2 py-0.5 rounded inline-flex items-center gap-1">
+                      <AlertTriangle className="h-3 w-3" /> Low stock
+                    </span>
+                  ) : null}
+                </div>
               </div>
               <div className="p-4 flex-1 flex flex-col">
-                <div className="flex items-start justify-between gap-2">
-                  <h3 className="font-serif text-lg leading-tight">{p.name}</h3>
-                  {!p.is_active && <span className="text-[10px] uppercase tracking-wider bg-muted px-2 py-0.5 rounded">Hidden</span>}
-                </div>
+                <h3 className="font-serif text-lg leading-tight">{p.name}</h3>
                 <p className="text-sm text-primary mt-1">EGP {Number(p.starting_price).toLocaleString()}</p>
-                <p className="text-xs text-muted-foreground mt-1">Stock: {p.stock_quantity}</p>
+                <p className={`text-xs mt-1 ${p.stock_quantity === 0 ? "text-destructive" : p.stock_quantity < 5 ? "text-amber-600 font-medium" : "text-muted-foreground"}`}>
+                  Stock: {p.stock_quantity}
+                  {p.stock_quantity > 0 && p.stock_quantity < 5 && " — low!"}
+                </p>
+
+                <div className="mt-4 space-y-2 border-t pt-3">
+                  <label className="flex items-center justify-between text-sm cursor-pointer">
+                    <span className="text-muted-foreground">Visible on site</span>
+                    <Switch checked={p.is_active} onCheckedChange={(v) => toggleField(p.id, "is_active", v)} />
+                  </label>
+                  <label className="flex items-center justify-between text-sm cursor-pointer">
+                    <span className="text-muted-foreground">Featured on homepage</span>
+                    <Switch checked={p.is_featured} onCheckedChange={(v) => toggleField(p.id, "is_featured", v)} />
+                  </label>
+                </div>
+
                 <div className="flex gap-2 mt-4">
                   <Button asChild size="sm" variant="outline" className="flex-1">
                     <Link to="/admin/products/$id" params={{ id: p.id }}>
