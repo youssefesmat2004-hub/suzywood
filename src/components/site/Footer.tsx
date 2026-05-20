@@ -21,7 +21,7 @@ export function Footer() {
           <div className="mt-6 flex justify-center gap-4">
             <a
               aria-label="Instagram"
-              href="https://www.instagram.com/suzywood.creations/"
+              href="https://www.instagram.com/suzywoodofficial?igsh=MWo3MXJjM296aW9oNA=="
               target="_blank"
               rel="noopener noreferrer"
               className="flex h-14 w-14 items-center justify-center rounded-full bg-[oklch(0.62_0.13_150)] text-white shadow-elegant hover:scale-105 transition-transform"
