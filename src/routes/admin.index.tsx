@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ShoppingBag, Package, DollarSign, Clock } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsAdmin } from "@/lib/admin";
+import { LowStockBanner } from "@/components/admin/LowStockBanner";
 
 export const Route = createFileRoute("/admin/")({
   component: Dashboard,
@@ -57,6 +58,7 @@ function Dashboard() {
     <div>
       <h1 className="font-serif text-3xl mb-2">Dashboard</h1>
       <p className="text-sm text-muted-foreground mb-8">Overview of your shop.</p>
+      <LowStockBanner />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map((c) => {
           const Icon = c.icon;
