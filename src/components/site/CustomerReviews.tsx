@@ -16,30 +16,48 @@ interface Testimonial {
 const testimonials: Testimonial[] = [
   {
     id: 1,
-    name: "Nourhan El-Sayed",
-    initials: "NE",
+    name: "Kanzy Badr",
+    initials: "KB",
     avatarBg: "bg-emerald-100 text-emerald-700",
-    date: "2 weeks ago",
+    date: "23 Apr",
     rating: 5,
-    text: "We ordered the Aurora crib for our daughter and it exceeded every expectation. The craftsmanship is remarkable — you can feel the quality in every joint and finish. Suzy was incredibly helpful customizing the dimensions to fit our nursery perfectly. Worth every pound.",
+    text: "Great quality. I customized the stair gates with her and it was wonderful.",
   },
   {
     id: 2,
-    name: "Omar Hesham",
-    initials: "OH",
+    name: "Dena Hussien El-Maghraby",
+    initials: "DH",
     avatarBg: "bg-sky-100 text-sky-700",
-    date: "1 month ago",
+    date: "10 Aug 2025",
     rating: 5,
-    text: "This is our second purchase from Suzy Wood. The toddler bed we bought last year still looks brand new, so coming back was an easy decision. The team communicated every step of the build process and the delivery was seamless. True heirloom quality.",
+    text: "Highly recommend, Excellence in every step. We bought a beautiful drawer unit and even 3.5 years later, after heavy use by our kids, any small issue had nothing to do with the product's quality or durability. Suzy responds quickly, honors appointments, and follows through until everything is perfect.",
   },
   {
     id: 3,
-    name: "Layla Mahmoud",
-    initials: "LM",
+    name: "Malak Ashraf",
+    initials: "MA",
     avatarBg: "bg-rose-100 text-rose-700",
-    date: "2 months ago",
+    date: "13 Oct 2024",
     rating: 5,
-    text: "After searching for months for a non-toxic, solid wood nursery set, I finally found Suzy Wood. The attention to detail is incredible — rounded edges, smooth finish, and the wood grain is absolutely stunning. Our nursery feels like a magazine spread.",
+    text: "Great service and craftsmanship! Perfect finishing and design execution 👏🏼👏🏼 100% recommended.",
+  },
+  {
+    id: 4,
+    name: "Basma Osama Abdou",
+    initials: "BO",
+    avatarBg: "bg-amber-100 text-amber-700",
+    date: "25 Jun 2024",
+    rating: 5,
+    text: "One of the best 🤍 thank you so much.",
+  },
+  {
+    id: 5,
+    name: "هاجر وحيد",
+    initials: "هو",
+    avatarBg: "bg-violet-100 text-violet-700",
+    date: "20 Nov 2025",
+    rating: 5,
+    text: "تجربتي كانت ممتازة جدا، الدولاب طلع أحسن مما توقعت، وشغله متقن جدًا. التعامل معاها راقي ومحترم والالتزام في المواعيد فوق الممتاز.",
   },
 ];
 
@@ -158,7 +176,12 @@ export function CustomerReviews() {
       </div>
 
       {/* Facebook social proof bar */}
-      <div className="mt-10 flex flex-wrap items-center justify-center gap-3 text-sm text-muted-foreground">
+      <a
+        href="https://www.facebook.com/share/1G52ndaFE6/?mibextid=wwXIfr"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-10 flex flex-wrap items-center justify-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-colors group"
+      >
         <div className="flex -space-x-2">
           {testimonials.map((t) => (
             <div
@@ -169,10 +192,12 @@ export function CustomerReviews() {
             </div>
           ))}
         </div>
-        <span>
-          Join <strong className="text-foreground">500+ families</strong> who recommend us on Facebook
+        <span className="inline-flex items-center gap-1.5">
+          <Facebook className="h-4 w-4 text-[#1877F2]" />
+          <strong className="text-foreground">100% recommend</strong> · 257 reviews on Facebook
+          <span className="underline-offset-4 group-hover:underline">— visit our page</span>
         </span>
-      </div>
+      </a>
     </section>
   );
 }
