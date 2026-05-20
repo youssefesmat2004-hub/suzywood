@@ -58,23 +58,18 @@ function TrackOrderPage() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { data, error } = await supabase
-      .from("orders")
-      .select("id,order_number,status,customer_name,customer_phone,total,subtotal,shipping_fee,upfront_amount,remaining_amount,shipping_city,shipping_governorate,created_at")
-      .eq("order_number", orderNumber.trim())
-      .maybeSingle();
+    const { data, error } = await supabase.rpc("lookup_order_for_tracking", {
+      _order_number: orderNumber.trim(),
+      _phone: phone.trim(),
+    });
     setLoading(false);
-    if (error || !data) {
-      toast.error("Order not found", { description: "Check your order number and try again." });
+    const row = Array.isArray(data) ? data[0] : null;
+    if (error || !row) {
+      toast.error("Order not found", { description: "Check your order number and phone, then try again." });
       setOrder(null);
       return;
     }
-    if (normalizePhone(data.customer_phone) !== normalizePhone(phone)) {
-      toast.error("Phone doesn't match this order");
-      setOrder(null);
-      return;
-    }
-    setOrder(data as OrderRow);
+    setOrder({ ...row, customer_phone: phone } as OrderRow);
   };
 
   const currentIdx = order ? Math.max(0, STAGES.findIndex((s) => s.key === order.status)) : -1;
