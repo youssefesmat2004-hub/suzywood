@@ -316,9 +316,37 @@ function Checkout() {
             </div>
             <div className="border-t border-border pt-3 space-y-1 text-sm">
               <div className="flex justify-between"><span>Subtotal</span><span>EGP {subtotal.toLocaleString()}</span></div>
+              {promo && (
+                <div className="flex justify-between text-primary">
+                  <span>Promo ({promo.code})</span>
+                  <span>− EGP {promo.discount.toLocaleString()}</span>
+                </div>
+              )}
               <div className="flex justify-between"><span>Shipping</span><span>EGP {SHIPPING.toLocaleString()}</span></div>
               <div className="flex justify-between font-serif text-lg pt-2"><span>Total</span><span className="text-primary">EGP {total.toLocaleString()}</span></div>
             </div>
+
+            <div className="border-t border-border pt-3">
+              {promo ? (
+                <div className="flex items-center justify-between text-xs">
+                  <span className="inline-flex items-center gap-1.5 text-primary"><Tag className="h-3 w-3" />{promo.code} applied</span>
+                  <button type="button" className="underline text-muted-foreground" onClick={() => { setPromo(null); setPromoCode(""); }}>Remove</button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Promo code"
+                    value={promoCode}
+                    onChange={(e) => setPromoCode(e.target.value)}
+                    className="h-9 text-xs uppercase"
+                  />
+                  <Button type="button" variant="outline" size="sm" onClick={applyPromo} disabled={promoApplying || !promoCode.trim()}>
+                    {promoApplying ? "…" : "Apply"}
+                  </Button>
+                </div>
+              )}
+            </div>
+
             <div className="border-t border-border pt-3 space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Pay now (70%)</span>
