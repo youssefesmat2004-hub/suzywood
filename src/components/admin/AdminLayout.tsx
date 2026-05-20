@@ -1,14 +1,19 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Package, ShoppingBag, FileEdit, LogOut, Menu, X, Tags, Settings, CalendarCheck, Ticket, Mail } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { LayoutDashboard, Package, ShoppingBag, FileEdit, LogOut, Menu, X, Tags, Settings, CalendarCheck, Ticket, Mail, MessageSquare, Hammer, Users, BarChart3 } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useAuth } from "@/lib/auth";
 import { useIsAdmin } from "@/lib/admin";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 
 const nav = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { to: "/admin/orders", label: "Orders", icon: ShoppingBag },
   { to: "/admin/bookings", label: "Bookings", icon: CalendarCheck },
+  { to: "/admin/messages", label: "Messages", icon: MessageSquare },
+  { to: "/admin/custom-builds", label: "Custom Builds", icon: Hammer },
+  { to: "/admin/customers", label: "Customers", icon: Users },
+  { to: "/admin/analytics", label: "Analytics", icon: BarChart3 },
   { to: "/admin/products", label: "Products", icon: Package },
   { to: "/admin/categories", label: "Categories", icon: Tags },
   { to: "/admin/promos", label: "Promo Codes", icon: Ticket },
@@ -23,6 +28,27 @@ export function AdminLayout({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState(false);
+  const [unreadMsgs, setUnreadMsgs] = useState(0);
+  const [newBuilds, setNewBuilds] = useState(0);
+
+  useEffect(() => {
+    if (isCarpenter) return;
+    const load = async () => {
+      const [m, b] = await Promise.all([
+        supabase.from("contact_messages").select("id", { count: "exact", head: true }).eq("is_read", false),
+        supabase.from("custom_build_requests").select("id", { count: "exact", head: true }).eq("status", "new"),
+      ]);
+      setUnreadMsgs(m.count ?? 0);
+      setNewBuilds(b.count ?? 0);
+    };
+    load();
+    const ch = supabase
+      .channel("admin-badges")
+      .on("postgres_changes", { event: "*", schema: "public", table: "contact_messages" }, load)
+      .on("postgres_changes", { event: "*", schema: "public", table: "custom_build_requests" }, load)
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [isCarpenter]);
 
   const handleLogout = async () => {
     await signOut();
@@ -55,6 +81,9 @@ export function AdminLayout({ children }: { children: ReactNode }) {
           {visibleNav.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.to);
+            const badge =
+              item.to === "/admin/messages" ? unreadMsgs :
+              item.to === "/admin/custom-builds" ? newBuilds : 0;
             return (
               <Link
                 key={item.to}
@@ -65,7 +94,12 @@ export function AdminLayout({ children }: { children: ReactNode }) {
                 }`}
               >
                 <Icon className="h-4 w-4" />
-                {item.label}
+                <span className="flex-1">{item.label}</span>
+                {badge > 0 && (
+                  <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${active ? "bg-primary-foreground text-primary" : "bg-primary text-primary-foreground"}`}>
+                    {badge}
+                  </span>
+                )}
               </Link>
             );
           })}
