@@ -95,6 +95,24 @@ function OrderDetailPage() {
     })();
   }, [id]);
 
+  // Realtime: reflect status changes made elsewhere (e.g. carpenter app)
+  useEffect(() => {
+    const channel = supabase
+      .channel(`admin-order-${id}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "orders", filter: `id=eq.${id}` },
+        (payload) => {
+          const n = payload.new as Partial<Order>;
+          setOrder((prev) => (prev ? { ...prev, ...n } : prev));
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [id]);
+
   const updateStatus = async (status: string) => {
     if (!order) return;
     setSaving(true);
