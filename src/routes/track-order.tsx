@@ -45,10 +45,6 @@ const STAGES = [
   { key: "delivered", label: "Delivered", icon: Home },
 ];
 
-function normalizePhone(p: string) {
-  return p.replace(/[^\d]/g, "").replace(/^20/, "").replace(/^0+/, "");
-}
-
 function TrackOrderPage() {
   const [orderNumber, setOrderNumber] = useState("");
   const [phone, setPhone] = useState("");
