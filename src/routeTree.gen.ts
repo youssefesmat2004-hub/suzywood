@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WishlistRouteImport } from './routes/wishlist'
+import { Route as TrackOrderRouteImport } from './routes/track-order'
 import { Route as ThankYouRouteImport } from './routes/thank-you'
 import { Route as ShopRouteImport } from './routes/shop'
 import { Route as PaymentRouteImport } from './routes/payment'
@@ -40,6 +41,11 @@ import { Route as AdminOrdersIdRouteImport } from './routes/admin.orders.$id'
 const WishlistRoute = WishlistRouteImport.update({
   id: '/wishlist',
   path: '/wishlist',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrackOrderRoute = TrackOrderRouteImport.update({
+  id: '/track-order',
+  path: '/track-order',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ThankYouRoute = ThankYouRouteImport.update({
@@ -187,6 +193,7 @@ export interface FileRoutesByFullPath {
   '/payment': typeof PaymentRoute
   '/shop': typeof ShopRouteWithChildren
   '/thank-you': typeof ThankYouRoute
+  '/track-order': typeof TrackOrderRoute
   '/wishlist': typeof WishlistRoute
   '/admin/bookings': typeof AdminBookingsRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -215,6 +222,7 @@ export interface FileRoutesByTo {
   '/payment': typeof PaymentRoute
   '/shop': typeof ShopRouteWithChildren
   '/thank-you': typeof ThankYouRoute
+  '/track-order': typeof TrackOrderRoute
   '/wishlist': typeof WishlistRoute
   '/admin/bookings': typeof AdminBookingsRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -245,6 +253,7 @@ export interface FileRoutesById {
   '/payment': typeof PaymentRoute
   '/shop': typeof ShopRouteWithChildren
   '/thank-you': typeof ThankYouRoute
+  '/track-order': typeof TrackOrderRoute
   '/wishlist': typeof WishlistRoute
   '/admin/bookings': typeof AdminBookingsRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -276,6 +285,7 @@ export interface FileRouteTypes {
     | '/payment'
     | '/shop'
     | '/thank-you'
+    | '/track-order'
     | '/wishlist'
     | '/admin/bookings'
     | '/admin/categories'
@@ -304,6 +314,7 @@ export interface FileRouteTypes {
     | '/payment'
     | '/shop'
     | '/thank-you'
+    | '/track-order'
     | '/wishlist'
     | '/admin/bookings'
     | '/admin/categories'
@@ -333,6 +344,7 @@ export interface FileRouteTypes {
     | '/payment'
     | '/shop'
     | '/thank-you'
+    | '/track-order'
     | '/wishlist'
     | '/admin/bookings'
     | '/admin/categories'
@@ -363,6 +375,7 @@ export interface RootRouteChildren {
   PaymentRoute: typeof PaymentRoute
   ShopRoute: typeof ShopRouteWithChildren
   ThankYouRoute: typeof ThankYouRoute
+  TrackOrderRoute: typeof TrackOrderRoute
   WishlistRoute: typeof WishlistRoute
 }
 
@@ -373,6 +386,13 @@ declare module '@tanstack/react-router' {
       path: '/wishlist'
       fullPath: '/wishlist'
       preLoaderRoute: typeof WishlistRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/track-order': {
+      id: '/track-order'
+      path: '/track-order'
+      fullPath: '/track-order'
+      preLoaderRoute: typeof TrackOrderRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/thank-you': {
@@ -626,8 +646,18 @@ const rootRouteChildren: RootRouteChildren = {
   PaymentRoute: PaymentRoute,
   ShopRoute: ShopRouteWithChildren,
   ThankYouRoute: ThankYouRoute,
+  TrackOrderRoute: TrackOrderRoute,
   WishlistRoute: WishlistRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
