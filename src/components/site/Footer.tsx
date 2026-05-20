@@ -39,7 +39,7 @@ export function Footer() {
             </a>
             <a
               aria-label="WhatsApp"
-              href="https://wa.me/201000000000?text=Hi%20Suzy%20Wood%2C%20I%27d%20like%20to%20ask%20about%20a%20piece."
+              href="https://wa.me/201096313532?text=Hi%20Suzy%20Wood%2C%20I%27d%20like%20to%20ask%20about%20a%20piece."
               target="_blank"
               rel="noopener noreferrer"
               className="flex h-14 w-14 items-center justify-center rounded-full bg-[oklch(0.62_0.13_150)] text-white shadow-elegant hover:scale-105 transition-transform"
