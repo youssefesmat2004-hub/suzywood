@@ -46,14 +46,18 @@ function Contact() {
         <div className="mt-16 grid lg:grid-cols-3 gap-10">
           <div className="space-y-6">
             {[
-              { Icon: MapPin, title: "Studio", body: "12 Road 9, New Cairo\nVisits by appointment" },
-              { Icon: Mail, title: "Email", body: "studio@suzywood.com" },
-              { Icon: Phone, title: "Phone & WhatsApp", body: "+20 100 000 0000\nSun–Thu, 10am–6pm" },
-            ].map(({ Icon, title, body }) => (
+              { Icon: MapPin, title: "Studio", body: "12 Road 9, New Cairo\nVisits by appointment", href: undefined },
+              { Icon: Phone, title: "Phone & WhatsApp", body: "+20 109 631 3532", sub: "Sun–Thu, 10am–6pm", href: "tel:+201096313532" },
+            ].map(({ Icon, title, body, sub, href }) => (
               <div key={title} className="bg-card border border-border rounded-2xl p-5 shadow-soft">
                 <Icon className="h-5 w-5 text-secondary" />
                 <h3 className="font-serif text-xl mt-3">{title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground whitespace-pre-line leading-relaxed">{body}</p>
+                {href ? (
+                  <a href={href} className="mt-2 block text-sm text-muted-foreground hover:text-primary transition-colors">{body}</a>
+                ) : (
+                  <p className="mt-2 text-sm text-muted-foreground whitespace-pre-line leading-relaxed">{body}</p>
+                )}
+                {sub && <p className="mt-1 text-sm text-muted-foreground">{sub}</p>}
               </div>
             ))}
           </div>

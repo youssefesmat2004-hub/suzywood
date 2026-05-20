@@ -5,7 +5,7 @@ import { useSiteContent } from "@/lib/site-content";
 export function Footer() {
   const content = useSiteContent();
   const tagline = content.footer_tagline ?? "Heirloom-quality wooden furniture for nurseries and small humans. Made-to-order in our Cairo workshop.";
-  const phone = content.contact_phone ?? "+20 100 000 0000";
+  const phone = content.contact_phone ?? "+20 109 631 3532";
   const phoneHref = `tel:${phone.replace(/[^+\d]/g, "")}`;
   return (
     <footer className="mt-32 border-t border-border bg-muted/40">
@@ -39,7 +39,7 @@ export function Footer() {
             </a>
             <a
               aria-label="WhatsApp"
-              href="https://wa.me/201000000000?text=Hi%20Suzy%20Wood%2C%20I%27d%20like%20to%20ask%20about%20a%20piece."
+              href="https://wa.me/201096313532?text=Hi%20Suzy%20Wood%2C%20I%27d%20like%20to%20ask%20about%20a%20piece."
               target="_blank"
               rel="noopener noreferrer"
               className="flex h-14 w-14 items-center justify-center rounded-full bg-[oklch(0.62_0.13_150)] text-white shadow-elegant hover:scale-105 transition-transform"
