@@ -11,7 +11,7 @@ export const Route = createFileRoute("/admin")({
 
 function AdminGate() {
   const { user, loading: authLoading } = useAuth();
-  const { isAdmin, loading } = useIsAdmin();
+  const { isStaff, loading } = useIsAdmin();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -20,12 +20,12 @@ function AdminGate() {
       navigate({ to: "/admin/login", replace: true });
       return;
     }
-    if (!loading && isAdmin === false) {
+    if (!loading && !isStaff) {
       navigate({ to: "/admin/login", replace: true });
     }
-  }, [user, authLoading, isAdmin, loading, navigate]);
+  }, [user, authLoading, isStaff, loading, navigate]);
 
-  if (authLoading || loading || !isAdmin) {
+  if (authLoading || loading || !isStaff) {
     return (
       <div className="min-h-screen flex items-center justify-center text-sm text-muted-foreground">
         Checking access…
