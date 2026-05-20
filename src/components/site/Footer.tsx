@@ -5,7 +5,7 @@ import { useSiteContent } from "@/lib/site-content";
 export function Footer() {
   const content = useSiteContent();
   const tagline = content.footer_tagline ?? "Heirloom-quality wooden furniture for nurseries and small humans. Made-to-order in our Cairo workshop.";
-  const phone = content.contact_phone ?? "+20 100 000 0000";
+  const phone = content.contact_phone ?? "+20 109 631 3532";
   const phoneHref = `tel:${phone.replace(/[^+\d]/g, "")}`;
   return (
     <footer className="mt-32 border-t border-border bg-muted/40">
