@@ -161,8 +161,6 @@ function Checkout() {
       return;
     }
     if (promo) {
-      // Best-effort increment; failure is non-blocking.
-      await supabase.rpc("noop").then(() => null).catch(() => null);
       const { data: cur } = await supabase.from("promo_codes").select("used_count").eq("id", promo.id).maybeSingle();
       if (cur) await supabase.from("promo_codes").update({ used_count: (cur.used_count ?? 0) + 1 }).eq("id", promo.id);
     }
