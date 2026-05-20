@@ -69,6 +69,33 @@ function OrdersPage() {
     })();
   }, []);
 
+  // Realtime: sync new orders and status changes instantly
+  useEffect(() => {
+    const channel = supabase
+      .channel("admin-orders")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "orders" },
+        (payload) => {
+          const n = payload.new as Order;
+          setOrders((prev) => (prev.some((o) => o.id === n.id) ? prev : [n, ...prev]));
+          toast.success(`New order ${n.order_number}`);
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "orders" },
+        (payload) => {
+          const n = payload.new as Order;
+          setOrders((prev) => prev.map((o) => (o.id === n.id ? { ...o, ...n } : o)));
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     const fromTs = fromDate ? new Date(fromDate + "T00:00:00").getTime() : null;
