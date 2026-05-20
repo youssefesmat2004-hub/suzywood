@@ -24,7 +24,7 @@ export function Footer() {
               href="https://www.instagram.com/suzywoodofficial?igsh=MWo3MXJjM296aW9oNA=="
               target="_blank"
               rel="noopener noreferrer"
-              className="flex h-14 w-14 items-center justify-center rounded-full bg-[oklch(0.62_0.13_150)] text-white shadow-elegant hover:scale-105 transition-transform"
+              className="flex h-14 w-14 items-center justify-center rounded-full bg-[oklch(0.38_0.055_50)] text-white shadow-elegant hover:scale-105 transition-transform"
             >
               <Instagram className="h-6 w-6" />
             </a>
@@ -33,7 +33,7 @@ export function Footer() {
               href="https://www.facebook.com/share/1G52ndaFE6/?mibextid=wwXIfr"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex h-14 w-14 items-center justify-center rounded-full bg-[oklch(0.62_0.13_150)] text-white shadow-elegant hover:scale-105 transition-transform"
+              className="flex h-14 w-14 items-center justify-center rounded-full bg-[oklch(0.38_0.055_50)] text-white shadow-elegant hover:scale-105 transition-transform"
             >
               <Facebook className="h-6 w-6" />
             </a>
@@ -42,7 +42,7 @@ export function Footer() {
               href="https://wa.me/201096313532?text=Hi%20Suzy%20Wood%2C%20I%27d%20like%20to%20ask%20about%20a%20piece."
               target="_blank"
               rel="noopener noreferrer"
-              className="flex h-14 w-14 items-center justify-center rounded-full bg-[oklch(0.62_0.13_150)] text-white shadow-elegant hover:scale-105 transition-transform"
+              className="flex h-14 w-14 items-center justify-center rounded-full bg-[oklch(0.38_0.055_50)] text-white shadow-elegant hover:scale-105 transition-transform"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
             </a>
