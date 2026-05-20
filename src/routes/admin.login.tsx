@@ -32,9 +32,8 @@ function AdminLogin() {
         .from("user_roles")
         .select("role")
         .eq("user_id", user.id)
-        .eq("role", "admin")
-        .maybeSingle();
-      if (data) navigate({ to: "/admin", replace: true });
+        .in("role", ["admin", "carpenter"] as never);
+      if ((data ?? []).length > 0) navigate({ to: "/admin", replace: true });
     })();
   }, [user, navigate]);
 
@@ -65,12 +64,11 @@ function AdminLogin() {
       .from("user_roles")
       .select("role")
       .eq("user_id", u.user.id)
-      .eq("role", "admin")
-      .maybeSingle();
+      .in("role", ["admin", "carpenter"] as never);
     setLoading(false);
-    if (!role) {
+    if (!role || role.length === 0) {
       await supabase.auth.signOut();
-      setError("This account does not have admin access.");
+      setError("This account does not have admin or staff access.");
       return;
     }
     navigate({ to: "/admin", replace: true });

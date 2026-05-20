@@ -1,8 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ShoppingBag, Package, DollarSign, Clock } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useIsAdmin } from "@/lib/admin";
 
 export const Route = createFileRoute("/admin/")({
   component: Dashboard,
@@ -11,10 +12,20 @@ export const Route = createFileRoute("/admin/")({
 type Stats = { orders: number; pending: number; products: number; revenue: number };
 
 function Dashboard() {
+  const { isCarpenter, loading: roleLoading } = useIsAdmin();
+  const navigate = useNavigate();
   const [stats, setStats] = useState<Stats>({ orders: 0, pending: 0, products: 0, revenue: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!roleLoading && isCarpenter) {
+      navigate({ to: "/admin/orders", replace: true });
+      return;
+    }
+  }, [isCarpenter, roleLoading, navigate]);
+
+  useEffect(() => {
+    if (roleLoading || isCarpenter) return;
     (async () => {
       const [ordersRes, pendingRes, productsRes, revenueRes] = await Promise.all([
         supabase.from("orders").select("id", { count: "exact", head: true }),
@@ -31,7 +42,9 @@ function Dashboard() {
       });
       setLoading(false);
     })();
-  }, []);
+  }, [roleLoading, isCarpenter]);
+
+  if (isCarpenter) return null;
 
   const cards = [
     { label: "Total Orders", value: stats.orders, icon: ShoppingBag, color: "text-blue-600 bg-blue-50" },

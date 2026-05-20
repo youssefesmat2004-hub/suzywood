@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { sendOrderStatusEmail } from "@/lib/order-emails.functions";
+import { useIsAdmin } from "@/lib/admin";
 
 type OrderItem = {
   id: string;
@@ -63,6 +64,7 @@ export const Route = createFileRoute("/admin/orders/$id")({
 });
 
 function OrderDetailPage() {
+  const { isCarpenter } = useIsAdmin();
   const { id } = Route.useParams();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
@@ -174,20 +176,25 @@ function OrderDetailPage() {
                       {it.finish && <> · {it.finish}</>}
                     </p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm">EGP {Number(it.unit_price).toLocaleString()}</p>
-                    <p className="text-xs text-muted-foreground">= EGP {(Number(it.unit_price) * it.quantity).toLocaleString()}</p>
-                  </div>
+                  {!isCarpenter && (
+                    <div className="text-right">
+                      <p className="text-sm">EGP {Number(it.unit_price).toLocaleString()}</p>
+                      <p className="text-xs text-muted-foreground">= EGP {(Number(it.unit_price) * it.quantity).toLocaleString()}</p>
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>
-            <div className="mt-4 pt-4 border-t space-y-1 text-sm">
-              <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>EGP {Number(order.subtotal).toLocaleString()}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Delivery fee</span><span>EGP {Number(order.shipping_fee).toLocaleString()}</span></div>
-              <div className="flex justify-between font-semibold pt-2 border-t mt-2"><span>Total</span><span>EGP {Number(order.total).toLocaleString()}</span></div>
-            </div>
+            {!isCarpenter && (
+              <div className="mt-4 pt-4 border-t space-y-1 text-sm">
+                <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>EGP {Number(order.subtotal).toLocaleString()}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Delivery fee</span><span>EGP {Number(order.shipping_fee).toLocaleString()}</span></div>
+                <div className="flex justify-between font-semibold pt-2 border-t mt-2"><span>Total</span><span>EGP {Number(order.total).toLocaleString()}</span></div>
+              </div>
+            )}
           </section>
 
+          {!isCarpenter && (
           <section className="bg-background border rounded-xl p-6">
             <h2 className="font-serif text-lg mb-4">Payment</h2>
             {order.upfront_amount != null && order.remaining_amount != null ? (
@@ -219,6 +226,7 @@ function OrderDetailPage() {
               <p className="text-sm text-muted-foreground italic">No payment screenshot uploaded.</p>
             )}
           </section>
+          )}
         </div>
 
         <aside className="space-y-6">
