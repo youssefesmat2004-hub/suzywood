@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      bookings: {
+        Row: {
+          contact_method: Database["public"]["Enums"]["booking_contact_method"]
+          created_at: string
+          full_name: string
+          id: string
+          notes: string | null
+          phone: string
+          preferred_day: Database["public"]["Enums"]["booking_day"]
+          status: Database["public"]["Enums"]["booking_status"]
+          time_slot: Database["public"]["Enums"]["booking_time_slot"]
+          updated_at: string
+        }
+        Insert: {
+          contact_method: Database["public"]["Enums"]["booking_contact_method"]
+          created_at?: string
+          full_name: string
+          id?: string
+          notes?: string | null
+          phone: string
+          preferred_day: Database["public"]["Enums"]["booking_day"]
+          status?: Database["public"]["Enums"]["booking_status"]
+          time_slot: Database["public"]["Enums"]["booking_time_slot"]
+          updated_at?: string
+        }
+        Update: {
+          contact_method?: Database["public"]["Enums"]["booking_contact_method"]
+          created_at?: string
+          full_name?: string
+          id?: string
+          notes?: string | null
+          phone?: string
+          preferred_day?: Database["public"]["Enums"]["booking_day"]
+          status?: Database["public"]["Enums"]["booking_status"]
+          time_slot?: Database["public"]["Enums"]["booking_time_slot"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           created_at: string
@@ -517,6 +556,16 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "customer" | "carpenter"
+      booking_contact_method: "whatsapp" | "phone"
+      booking_day:
+        | "saturday"
+        | "sunday"
+        | "monday"
+        | "tuesday"
+        | "wednesday"
+        | "thursday"
+      booking_status: "new" | "contacted" | "done"
+      booking_time_slot: "morning" | "afternoon" | "evening"
       order_status:
         | "pending_payment"
         | "confirmed"
@@ -652,6 +701,17 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "customer", "carpenter"],
+      booking_contact_method: ["whatsapp", "phone"],
+      booking_day: [
+        "saturday",
+        "sunday",
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+      ],
+      booking_status: ["new", "contacted", "done"],
+      booking_time_slot: ["morning", "afternoon", "evening"],
       order_status: [
         "pending_payment",
         "confirmed",
