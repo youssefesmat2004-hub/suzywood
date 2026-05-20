@@ -146,6 +146,30 @@ export type Database = {
         }
         Relationships: []
       }
+      newsletter_subscribers: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          unsubscribed_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id?: string
+          unsubscribed_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          unsubscribed_at?: string | null
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           engraving: string | null
@@ -426,6 +450,48 @@ export type Database = {
         }
         Relationships: []
       }
+      promo_codes: {
+        Row: {
+          code: string
+          created_at: string
+          discount_type: Database["public"]["Enums"]["promo_discount_type"]
+          discount_value: number
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          max_uses: number | null
+          min_subtotal: number
+          updated_at: string
+          used_count: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          discount_type?: Database["public"]["Enums"]["promo_discount_type"]
+          discount_value: number
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          min_subtotal?: number
+          updated_at?: string
+          used_count?: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          discount_type?: Database["public"]["Enums"]["promo_discount_type"]
+          discount_value?: number
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          min_subtotal?: number
+          updated_at?: string
+          used_count?: number
+        }
+        Relationships: []
+      }
       reviews: {
         Row: {
           body: string | null
@@ -553,6 +619,23 @@ export type Database = {
         }
         Returns: boolean
       }
+      lookup_order_for_tracking: {
+        Args: { _order_number: string; _phone: string }
+        Returns: {
+          created_at: string
+          customer_name: string
+          id: string
+          order_number: string
+          remaining_amount: number
+          shipping_city: string
+          shipping_fee: number
+          shipping_governorate: string
+          status: Database["public"]["Enums"]["order_status"]
+          subtotal: number
+          total: number
+          upfront_amount: number
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "customer" | "carpenter"
@@ -573,6 +656,7 @@ export type Database = {
         | "shipped"
         | "delivered"
         | "cancelled"
+      promo_discount_type: "percent" | "fixed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -720,6 +804,7 @@ export const Constants = {
         "delivered",
         "cancelled",
       ],
+      promo_discount_type: ["percent", "fixed"],
     },
   },
 } as const

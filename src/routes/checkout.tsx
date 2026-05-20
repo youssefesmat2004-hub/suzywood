@@ -12,7 +12,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { sendCheckoutPendingEmail } from "@/lib/checkout-emails.functions";
 import { toast } from "sonner";
 import qrImage from "@/assets/instapay-qr.jpeg";
-import { Upload, Check } from "lucide-react";
+import { Upload, Check, Tag } from "lucide-react";
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({ meta: [{ title: "Checkout — Suzy Wood" }] }),
@@ -39,11 +39,36 @@ function Checkout() {
   const [reference, setReference] = useState("");
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [promoCode, setPromoCode] = useState("");
+  const [promoApplying, setPromoApplying] = useState(false);
+  const [promo, setPromo] = useState<{ id: string; code: string; discount: number } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const total = subtotal + SHIPPING;
-  const upfront = Math.round(subtotal * UPFRONT_RATE);
-  const remainingProduct = subtotal - upfront;
+  const discount = promo?.discount ?? 0;
+  const subtotalAfter = Math.max(0, subtotal - discount);
+  const total = subtotalAfter + SHIPPING;
+  const upfront = Math.round(subtotalAfter * UPFRONT_RATE);
+  const remainingProduct = subtotalAfter - upfront;
   const remainingOnDelivery = remainingProduct + SHIPPING;
+
+  const applyPromo = async () => {
+    const code = promoCode.trim().toUpperCase();
+    if (!code) return;
+    setPromoApplying(true);
+    const { data, error } = await supabase
+      .from("promo_codes")
+      .select("id,code,discount_type,discount_value,min_subtotal,max_uses,used_count,expires_at,is_active")
+      .eq("code", code)
+      .maybeSingle();
+    setPromoApplying(false);
+    if (error || !data || !data.is_active) { toast.error("Invalid promo code"); return; }
+    if (data.expires_at && new Date(data.expires_at) < new Date()) { toast.error("This code has expired"); return; }
+    if (data.max_uses && data.used_count >= data.max_uses) { toast.error("This code is fully used"); return; }
+    if (subtotal < Number(data.min_subtotal)) { toast.error(`Minimum subtotal EGP ${Number(data.min_subtotal).toLocaleString()} required`); return; }
+    const value = Number(data.discount_value);
+    const d = data.discount_type === "percent" ? Math.round((subtotal * value) / 100) : Math.round(value);
+    setPromo({ id: data.id, code: data.code, discount: Math.min(d, subtotal) });
+    toast.success(`Code ${data.code} applied — EGP ${d.toLocaleString()} off`);
+  };
 
   const onDetailsSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -97,7 +122,7 @@ function Checkout() {
         shipping_city: details.city,
         shipping_governorate: details.governorate,
         shipping_notes: details.notes || null,
-        subtotal,
+        subtotal: subtotalAfter,
         shipping_fee: SHIPPING,
         total,
         upfront_amount: upfront,
@@ -105,6 +130,7 @@ function Checkout() {
         payment_method: "instapay",
         instapay_reference: reference.trim(),
         payment_proof_url: proofUrl,
+        internal_notes: promo ? `Promo: ${promo.code} (-EGP ${promo.discount})` : null,
       })
       .select()
       .single();
@@ -133,6 +159,10 @@ function Checkout() {
     if (itemsError) {
       toast.error("Couldn't save your items", { description: itemsError.message });
       return;
+    }
+    if (promo) {
+      const { data: cur } = await supabase.from("promo_codes").select("used_count").eq("id", promo.id).maybeSingle();
+      if (cur) await supabase.from("promo_codes").update({ used_count: (cur.used_count ?? 0) + 1 }).eq("id", promo.id);
     }
     clear();
     // Fire-and-forget confirmation email
@@ -286,9 +316,37 @@ function Checkout() {
             </div>
             <div className="border-t border-border pt-3 space-y-1 text-sm">
               <div className="flex justify-between"><span>Subtotal</span><span>EGP {subtotal.toLocaleString()}</span></div>
+              {promo && (
+                <div className="flex justify-between text-primary">
+                  <span>Promo ({promo.code})</span>
+                  <span>− EGP {promo.discount.toLocaleString()}</span>
+                </div>
+              )}
               <div className="flex justify-between"><span>Shipping</span><span>EGP {SHIPPING.toLocaleString()}</span></div>
               <div className="flex justify-between font-serif text-lg pt-2"><span>Total</span><span className="text-primary">EGP {total.toLocaleString()}</span></div>
             </div>
+
+            <div className="border-t border-border pt-3">
+              {promo ? (
+                <div className="flex items-center justify-between text-xs">
+                  <span className="inline-flex items-center gap-1.5 text-primary"><Tag className="h-3 w-3" />{promo.code} applied</span>
+                  <button type="button" className="underline text-muted-foreground" onClick={() => { setPromo(null); setPromoCode(""); }}>Remove</button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Promo code"
+                    value={promoCode}
+                    onChange={(e) => setPromoCode(e.target.value)}
+                    className="h-9 text-xs uppercase"
+                  />
+                  <Button type="button" variant="outline" size="sm" onClick={applyPromo} disabled={promoApplying || !promoCode.trim()}>
+                    {promoApplying ? "…" : "Apply"}
+                  </Button>
+                </div>
+              )}
+            </div>
+
             <div className="border-t border-border pt-3 space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Pay now (70%)</span>
