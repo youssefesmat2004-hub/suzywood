@@ -47,8 +47,7 @@ function Contact() {
           <div className="space-y-6">
             {[
               { Icon: MapPin, title: "Studio", body: "12 Road 9, New Cairo\nVisits by appointment" },
-              { Icon: Mail, title: "Email", body: "studio@suzywood.com" },
-              { Icon: Phone, title: "Phone & WhatsApp", body: "+20 100 000 0000\nSun–Thu, 10am–6pm" },
+              { Icon: Phone, title: "Phone & WhatsApp", body: "+20 109 631 3532\nSun–Thu, 10am–6pm" },
             ].map(({ Icon, title, body }) => (
               <div key={title} className="bg-card border border-border rounded-2xl p-5 shadow-soft">
                 <Icon className="h-5 w-5 text-secondary" />
