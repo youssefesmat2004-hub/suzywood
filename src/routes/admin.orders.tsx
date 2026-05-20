@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type Order = {
   id: string;
@@ -149,9 +150,15 @@ function OrdersPage() {
               </tr>
             </thead>
             <tbody>
-              {loading && (
-                <tr><td colSpan={5} className="px-4 py-12 text-center text-muted-foreground">Loading…</td></tr>
-              )}
+              {loading && Array.from({ length: 5 }).map((_, i) => (
+                <tr key={`sk-${i}`} className="border-t">
+                  <td className="px-4 py-3"><Skeleton className="h-4 w-24" /></td>
+                  <td className="px-4 py-3"><Skeleton className="h-4 w-32" /><Skeleton className="h-3 w-40 mt-1" /></td>
+                  <td className="px-4 py-3"><Skeleton className="h-4 w-20" /></td>
+                  <td className="px-4 py-3"><Skeleton className="h-4 w-16 ml-auto" /></td>
+                  <td className="px-4 py-3"><Skeleton className="h-6 w-24" /></td>
+                </tr>
+              ))}
               {!loading && filtered.length === 0 && (
                 <tr><td colSpan={5} className="px-4 py-12 text-center text-muted-foreground">No orders found.</td></tr>
               )}
