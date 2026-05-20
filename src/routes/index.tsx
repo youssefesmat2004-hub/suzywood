@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Layout } from "@/components/site/Layout";
 import { ValueBar } from "@/components/site/ValueBar";
+import { CustomerReviews } from "@/components/site/CustomerReviews";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import type { Product } from "@/lib/types";
@@ -149,6 +150,8 @@ function Index() {
           ))}
         </div>
       </section>
+
+      <CustomerReviews />
 
       <section className="container mx-auto px-6 lg:px-10 py-16">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
