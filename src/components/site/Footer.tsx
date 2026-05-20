@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Instagram, Facebook, Phone } from "lucide-react";
 import { useSiteContent } from "@/lib/site-content";
+import { NewsletterForm } from "./NewsletterForm";
 
 export function Footer() {
   const content = useSiteContent();
@@ -47,6 +48,22 @@ export function Footer() {
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
             </a>
           </div>
+
+          <div className="mt-10">
+            <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground mb-3">Join our newsletter</p>
+            <NewsletterForm variant="footer" />
+          </div>
+
+          <nav className="mt-10 flex flex-wrap justify-center gap-x-6 gap-y-2 text-xs text-muted-foreground">
+            <Link to="/shop" className="hover:text-primary">Shop</Link>
+            <Link to="/our-craft" className="hover:text-primary">Our Craft</Link>
+            <Link to="/book" className="hover:text-primary">Book a Session</Link>
+            <Link to="/track-order" className="hover:text-primary">Track Order</Link>
+            <Link to="/faq" className="hover:text-primary">FAQ</Link>
+            <Link to="/contact" className="hover:text-primary">Contact</Link>
+            <Link to="/terms" className="hover:text-primary">Terms</Link>
+            <Link to="/privacy" className="hover:text-primary">Privacy</Link>
+          </nav>
         </div>
       </div>
       <div className="border-t border-border">
