@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useIsAdmin } from "@/lib/admin";
 
 type Order = {
   id: string;
@@ -48,6 +49,7 @@ export const Route = createFileRoute("/admin/orders")({
 });
 
 function OrdersPage() {
+  const { isCarpenter } = useIsAdmin();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -145,7 +147,7 @@ function OrdersPage() {
                 <th className="text-left px-4 py-3">Order</th>
                 <th className="text-left px-4 py-3">Customer</th>
                 <th className="text-left px-4 py-3">Date</th>
-                <th className="text-right px-4 py-3">Total</th>
+                {!isCarpenter && <th className="text-right px-4 py-3">Total</th>}
                 <th className="text-left px-4 py-3">Status</th>
               </tr>
             </thead>
@@ -155,12 +157,12 @@ function OrdersPage() {
                   <td className="px-4 py-3"><Skeleton className="h-4 w-24" /></td>
                   <td className="px-4 py-3"><Skeleton className="h-4 w-32" /><Skeleton className="h-3 w-40 mt-1" /></td>
                   <td className="px-4 py-3"><Skeleton className="h-4 w-20" /></td>
-                  <td className="px-4 py-3"><Skeleton className="h-4 w-16 ml-auto" /></td>
+                  {!isCarpenter && <td className="px-4 py-3"><Skeleton className="h-4 w-16 ml-auto" /></td>}
                   <td className="px-4 py-3"><Skeleton className="h-6 w-24" /></td>
                 </tr>
               ))}
               {!loading && filtered.length === 0 && (
-                <tr><td colSpan={5} className="px-4 py-12 text-center text-muted-foreground">No orders found.</td></tr>
+                <tr><td colSpan={isCarpenter ? 4 : 5} className="px-4 py-12 text-center text-muted-foreground">No orders found.</td></tr>
               )}
               {filtered.map((o) => (
                 <tr key={o.id} className="border-t hover:bg-muted/40 cursor-pointer">
@@ -178,11 +180,13 @@ function OrdersPage() {
                       {new Date(o.created_at).toLocaleDateString("en-GB")}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-right font-medium">
-                    <Link to="/admin/orders/$id" params={{ id: o.id }} className="block">
-                      EGP {Number(o.total).toLocaleString()}
-                    </Link>
-                  </td>
+                  {!isCarpenter && (
+                    <td className="px-4 py-3 text-right font-medium">
+                      <Link to="/admin/orders/$id" params={{ id: o.id }} className="block">
+                        EGP {Number(o.total).toLocaleString()}
+                      </Link>
+                    </td>
+                  )}
                   <td className="px-4 py-3">
                     <Link to="/admin/orders/$id" params={{ id: o.id }}>
                       <span className={`text-xs rounded-md border px-2 py-1 inline-block ${statusColor[o.status] ?? ""}`}>
