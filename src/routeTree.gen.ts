@@ -15,6 +15,7 @@ import { Route as ThankYouRouteImport } from './routes/thank-you'
 import { Route as ShopRouteImport } from './routes/shop'
 import { Route as PaymentRouteImport } from './routes/payment'
 import { Route as OurCraftRouteImport } from './routes/our-craft'
+import { Route as FaqRouteImport } from './routes/faq'
 import { Route as CustomBuildsRouteImport } from './routes/custom-builds'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CheckoutRouteImport } from './routes/checkout'
@@ -66,6 +67,11 @@ const PaymentRoute = PaymentRouteImport.update({
 const OurCraftRoute = OurCraftRouteImport.update({
   id: '/our-craft',
   path: '/our-craft',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FaqRoute = FaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CustomBuildsRoute = CustomBuildsRouteImport.update({
@@ -189,6 +195,7 @@ export interface FileRoutesByFullPath {
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
   '/custom-builds': typeof CustomBuildsRoute
+  '/faq': typeof FaqRoute
   '/our-craft': typeof OurCraftRoute
   '/payment': typeof PaymentRoute
   '/shop': typeof ShopRouteWithChildren
@@ -218,6 +225,7 @@ export interface FileRoutesByTo {
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
   '/custom-builds': typeof CustomBuildsRoute
+  '/faq': typeof FaqRoute
   '/our-craft': typeof OurCraftRoute
   '/payment': typeof PaymentRoute
   '/shop': typeof ShopRouteWithChildren
@@ -249,6 +257,7 @@ export interface FileRoutesById {
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
   '/custom-builds': typeof CustomBuildsRoute
+  '/faq': typeof FaqRoute
   '/our-craft': typeof OurCraftRoute
   '/payment': typeof PaymentRoute
   '/shop': typeof ShopRouteWithChildren
@@ -281,6 +290,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/contact'
     | '/custom-builds'
+    | '/faq'
     | '/our-craft'
     | '/payment'
     | '/shop'
@@ -310,6 +320,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/contact'
     | '/custom-builds'
+    | '/faq'
     | '/our-craft'
     | '/payment'
     | '/shop'
@@ -340,6 +351,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/contact'
     | '/custom-builds'
+    | '/faq'
     | '/our-craft'
     | '/payment'
     | '/shop'
@@ -371,6 +383,7 @@ export interface RootRouteChildren {
   CheckoutRoute: typeof CheckoutRoute
   ContactRoute: typeof ContactRoute
   CustomBuildsRoute: typeof CustomBuildsRoute
+  FaqRoute: typeof FaqRoute
   OurCraftRoute: typeof OurCraftRoute
   PaymentRoute: typeof PaymentRoute
   ShopRoute: typeof ShopRouteWithChildren
@@ -421,6 +434,13 @@ declare module '@tanstack/react-router' {
       path: '/our-craft'
       fullPath: '/our-craft'
       preLoaderRoute: typeof OurCraftRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/faq': {
+      id: '/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof FaqRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/custom-builds': {
@@ -642,6 +662,7 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutRoute: CheckoutRoute,
   ContactRoute: ContactRoute,
   CustomBuildsRoute: CustomBuildsRoute,
+  FaqRoute: FaqRoute,
   OurCraftRoute: OurCraftRoute,
   PaymentRoute: PaymentRoute,
   ShopRoute: ShopRouteWithChildren,
