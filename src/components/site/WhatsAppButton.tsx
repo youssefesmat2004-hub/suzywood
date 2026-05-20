@@ -1,6 +1,6 @@
 import { MessageCircle } from "lucide-react";
 
-const PHONE = "201000000000"; // E.164 without +
+const PHONE = "201096313532"; // E.164 without +
 const MESSAGE = "Hi Suzy Wood, I'd like to ask about a piece.";
 
 export function WhatsAppButton() {
