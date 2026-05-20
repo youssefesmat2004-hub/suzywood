@@ -1,5 +1,5 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Package, ShoppingBag, FileEdit, LogOut, Menu, X, Tags } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingBag, FileEdit, LogOut, Menu, X, Tags, Settings } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ const nav = [
   { to: "/admin/products", label: "Products", icon: Package },
   { to: "/admin/categories", label: "Categories", icon: Tags },
   { to: "/admin/content", label: "Edit Content", icon: FileEdit },
+  { to: "/admin/settings", label: "Settings", icon: Settings },
 ] as const;
 
 export function AdminLayout({ children }: { children: ReactNode }) {

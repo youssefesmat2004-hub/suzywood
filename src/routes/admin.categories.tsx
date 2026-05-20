@@ -14,6 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type CategoryRow = {
   id: string;
@@ -116,7 +117,19 @@ function CategoriesPage() {
       </div>
 
       {loading ? (
-        <div className="text-muted-foreground">Loading…</div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="bg-background border rounded-xl p-4 flex gap-4">
+              <Skeleton className="h-20 w-20 rounded-lg shrink-0" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-5 w-3/4" />
+                <Skeleton className="h-3 w-1/2" />
+                <Skeleton className="h-3 w-1/3" />
+                <Skeleton className="h-8 w-24 mt-2" />
+              </div>
+            </div>
+          ))}
+        </div>
       ) : items.length === 0 ? (
         <div className="bg-background border rounded-xl p-12 text-center text-muted-foreground">
           No categories yet. Create your first one.

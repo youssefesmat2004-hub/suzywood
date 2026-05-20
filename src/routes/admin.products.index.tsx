@@ -7,6 +7,7 @@ import { Plus, Pencil, Trash2, Search, Star, AlertTriangle } from "lucide-react"
 import { resolveImage } from "@/lib/images";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type ProductRow = {
   id: string;
@@ -92,7 +93,22 @@ function ProductsPage() {
       </div>
 
       {loading ? (
-        <div className="text-muted-foreground">Loading…</div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="bg-background border rounded-xl overflow-hidden">
+              <Skeleton className="aspect-square w-full" />
+              <div className="p-4 space-y-3">
+                <Skeleton className="h-5 w-3/4" />
+                <Skeleton className="h-4 w-1/3" />
+                <Skeleton className="h-4 w-1/2" />
+                <div className="space-y-2 pt-2">
+                  <Skeleton className="h-6 w-full" />
+                  <Skeleton className="h-6 w-full" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((p) => (
