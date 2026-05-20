@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ShoppingBag, Package, DollarSign, Clock } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/admin/")({
   component: Dashboard,
@@ -52,7 +53,11 @@ function Dashboard() {
                 <Icon className="h-5 w-5" />
               </div>
               <p className="text-xs uppercase tracking-wider text-muted-foreground mt-4">{c.label}</p>
-              <p className="font-serif text-2xl mt-1">{loading ? "…" : c.value}</p>
+              {loading ? (
+                <Skeleton className="h-8 w-20 mt-2" />
+              ) : (
+                <p className="font-serif text-2xl mt-1">{c.value}</p>
+              )}
             </div>
           );
         })}
