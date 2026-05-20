@@ -33,10 +33,14 @@ import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminPromosRouteImport } from './routes/admin.promos'
 import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
 import { Route as AdminNewsletterRouteImport } from './routes/admin.newsletter'
+import { Route as AdminMessagesRouteImport } from './routes/admin.messages'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
+import { Route as AdminCustomersRouteImport } from './routes/admin.customers'
+import { Route as AdminCustomBuildsRouteImport } from './routes/admin.custom-builds'
 import { Route as AdminContentRouteImport } from './routes/admin.content'
 import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AdminBookingsRouteImport } from './routes/admin.bookings'
+import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
 import { Route as AdminProductsIndexRouteImport } from './routes/admin.products.index'
 import { Route as ShopCategorySlugRouteImport } from './routes/shop.category.$slug'
 import { Route as AdminProductsNewRouteImport } from './routes/admin.products.new'
@@ -163,9 +167,24 @@ const AdminNewsletterRoute = AdminNewsletterRouteImport.update({
   path: '/newsletter',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminMessagesRoute = AdminMessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminLoginRoute = AdminLoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCustomersRoute = AdminCustomersRouteImport.update({
+  id: '/customers',
+  path: '/customers',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCustomBuildsRoute = AdminCustomBuildsRouteImport.update({
+  id: '/custom-builds',
+  path: '/custom-builds',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminContentRoute = AdminContentRouteImport.update({
@@ -181,6 +200,11 @@ const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
 const AdminBookingsRoute = AdminBookingsRouteImport.update({
   id: '/bookings',
   path: '/bookings',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminProductsIndexRoute = AdminProductsIndexRouteImport.update({
@@ -228,10 +252,14 @@ export interface FileRoutesByFullPath {
   '/thank-you': typeof ThankYouRoute
   '/track-order': typeof TrackOrderRoute
   '/wishlist': typeof WishlistRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/bookings': typeof AdminBookingsRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/content': typeof AdminContentRoute
+  '/admin/custom-builds': typeof AdminCustomBuildsRoute
+  '/admin/customers': typeof AdminCustomersRoute
   '/admin/login': typeof AdminLoginRoute
+  '/admin/messages': typeof AdminMessagesRoute
   '/admin/newsletter': typeof AdminNewsletterRoute
   '/admin/orders': typeof AdminOrdersRouteWithChildren
   '/admin/promos': typeof AdminPromosRoute
@@ -262,10 +290,14 @@ export interface FileRoutesByTo {
   '/thank-you': typeof ThankYouRoute
   '/track-order': typeof TrackOrderRoute
   '/wishlist': typeof WishlistRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/bookings': typeof AdminBookingsRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/content': typeof AdminContentRoute
+  '/admin/custom-builds': typeof AdminCustomBuildsRoute
+  '/admin/customers': typeof AdminCustomersRoute
   '/admin/login': typeof AdminLoginRoute
+  '/admin/messages': typeof AdminMessagesRoute
   '/admin/newsletter': typeof AdminNewsletterRoute
   '/admin/orders': typeof AdminOrdersRouteWithChildren
   '/admin/promos': typeof AdminPromosRoute
@@ -298,10 +330,14 @@ export interface FileRoutesById {
   '/thank-you': typeof ThankYouRoute
   '/track-order': typeof TrackOrderRoute
   '/wishlist': typeof WishlistRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/bookings': typeof AdminBookingsRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/content': typeof AdminContentRoute
+  '/admin/custom-builds': typeof AdminCustomBuildsRoute
+  '/admin/customers': typeof AdminCustomersRoute
   '/admin/login': typeof AdminLoginRoute
+  '/admin/messages': typeof AdminMessagesRoute
   '/admin/newsletter': typeof AdminNewsletterRoute
   '/admin/orders': typeof AdminOrdersRouteWithChildren
   '/admin/promos': typeof AdminPromosRoute
@@ -335,10 +371,14 @@ export interface FileRouteTypes {
     | '/thank-you'
     | '/track-order'
     | '/wishlist'
+    | '/admin/analytics'
     | '/admin/bookings'
     | '/admin/categories'
     | '/admin/content'
+    | '/admin/custom-builds'
+    | '/admin/customers'
     | '/admin/login'
+    | '/admin/messages'
     | '/admin/newsletter'
     | '/admin/orders'
     | '/admin/promos'
@@ -369,10 +409,14 @@ export interface FileRouteTypes {
     | '/thank-you'
     | '/track-order'
     | '/wishlist'
+    | '/admin/analytics'
     | '/admin/bookings'
     | '/admin/categories'
     | '/admin/content'
+    | '/admin/custom-builds'
+    | '/admin/customers'
     | '/admin/login'
+    | '/admin/messages'
     | '/admin/newsletter'
     | '/admin/orders'
     | '/admin/promos'
@@ -404,10 +448,14 @@ export interface FileRouteTypes {
     | '/thank-you'
     | '/track-order'
     | '/wishlist'
+    | '/admin/analytics'
     | '/admin/bookings'
     | '/admin/categories'
     | '/admin/content'
+    | '/admin/custom-builds'
+    | '/admin/customers'
     | '/admin/login'
+    | '/admin/messages'
     | '/admin/newsletter'
     | '/admin/orders'
     | '/admin/promos'
@@ -612,11 +660,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminNewsletterRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/messages': {
+      id: '/admin/messages'
+      path: '/messages'
+      fullPath: '/admin/messages'
+      preLoaderRoute: typeof AdminMessagesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/login': {
       id: '/admin/login'
       path: '/login'
       fullPath: '/admin/login'
       preLoaderRoute: typeof AdminLoginRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/customers': {
+      id: '/admin/customers'
+      path: '/customers'
+      fullPath: '/admin/customers'
+      preLoaderRoute: typeof AdminCustomersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/custom-builds': {
+      id: '/admin/custom-builds'
+      path: '/custom-builds'
+      fullPath: '/admin/custom-builds'
+      preLoaderRoute: typeof AdminCustomBuildsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/content': {
@@ -638,6 +707,13 @@ declare module '@tanstack/react-router' {
       path: '/bookings'
       fullPath: '/admin/bookings'
       preLoaderRoute: typeof AdminBookingsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/analytics': {
+      id: '/admin/analytics'
+      path: '/analytics'
+      fullPath: '/admin/analytics'
+      preLoaderRoute: typeof AdminAnalyticsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/products/': {
@@ -691,10 +767,14 @@ const AdminOrdersRouteWithChildren = AdminOrdersRoute._addFileChildren(
 )
 
 interface AdminRouteChildren {
+  AdminAnalyticsRoute: typeof AdminAnalyticsRoute
   AdminBookingsRoute: typeof AdminBookingsRoute
   AdminCategoriesRoute: typeof AdminCategoriesRoute
   AdminContentRoute: typeof AdminContentRoute
+  AdminCustomBuildsRoute: typeof AdminCustomBuildsRoute
+  AdminCustomersRoute: typeof AdminCustomersRoute
   AdminLoginRoute: typeof AdminLoginRoute
+  AdminMessagesRoute: typeof AdminMessagesRoute
   AdminNewsletterRoute: typeof AdminNewsletterRoute
   AdminOrdersRoute: typeof AdminOrdersRouteWithChildren
   AdminPromosRoute: typeof AdminPromosRoute
@@ -706,10 +786,14 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminAnalyticsRoute: AdminAnalyticsRoute,
   AdminBookingsRoute: AdminBookingsRoute,
   AdminCategoriesRoute: AdminCategoriesRoute,
   AdminContentRoute: AdminContentRoute,
+  AdminCustomBuildsRoute: AdminCustomBuildsRoute,
+  AdminCustomersRoute: AdminCustomersRoute,
   AdminLoginRoute: AdminLoginRoute,
+  AdminMessagesRoute: AdminMessagesRoute,
   AdminNewsletterRoute: AdminNewsletterRoute,
   AdminOrdersRoute: AdminOrdersRouteWithChildren,
   AdminPromosRoute: AdminPromosRoute,
