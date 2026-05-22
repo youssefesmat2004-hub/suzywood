@@ -94,7 +94,17 @@ function CategoriesPage() {
   }, []);
 
   const startNew = () => {
-    setEditing({ id: "", name: "", slug: "", description: "", image_url: null, sort_order: items.length });
+    setEditing({
+      id: "",
+      name: "",
+      slug: "",
+      description: "",
+      image_url: null,
+      sort_order: items.length,
+      custom_size_enabled: false,
+      custom_size_surcharge: 0,
+      custom_size_note: null,
+    });
     setOpen(true);
   };
 
