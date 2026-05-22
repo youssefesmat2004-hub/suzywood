@@ -2,6 +2,9 @@ import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/r
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/lib/auth";
 import { CartProvider } from "@/lib/cart";
+import { BrandLoader } from "@/components/site/BrandLoader";
+import { WhatsAppWidget } from "@/components/site/WhatsAppWidget";
+import { useReveal } from "@/hooks/use-reveal";
 
 import appCss from "../styles.css?url";
 
@@ -56,10 +59,13 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
+  useReveal();
   return (
     <AuthProvider>
       <CartProvider>
+        <BrandLoader />
         <Outlet />
+        <WhatsAppWidget />
         <Toaster />
       </CartProvider>
     </AuthProvider>
