@@ -16,7 +16,7 @@ import { useCart } from "@/lib/cart";
 import { toast } from "sonner";
 import craft from "@/assets/craft-story.jpg";
 import { useSiteContent } from "@/lib/site-content";
-import { useWishlist } from "@/lib/wishlist";
+import { useState } from "react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -44,7 +44,7 @@ function Index() {
   const { featured } = Route.useLoaderData() as { featured: Product[] };
   const content = useSiteContent();
   const cart = useCart();
-  const wishlist = useWishlist();
+  const [wished, setWished] = useState<Set<string>>(new Set());
   const heroTitle = content.hero_title;
   const heroSubtitle = content.hero_subtitle || "Handmade wooden baby furniture, built to last a lifetime.";
 
@@ -76,7 +76,11 @@ function Index() {
   const toggleWish = (e: React.MouseEvent, p: Product) => {
     e.preventDefault();
     e.stopPropagation();
-    wishlist.toggle(p.id);
+    setWished((prev) => {
+      const next = new Set(prev);
+      if (next.has(p.id)) next.delete(p.id); else next.add(p.id);
+      return next;
+    });
   };
 
   return (
@@ -100,7 +104,7 @@ function Index() {
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {featured.map((p, i) => {
-            const isWished = wishlist.has(p.id);
+            const isWished = wished.has(p.id);
             return (
               <Link
                 key={p.id}
