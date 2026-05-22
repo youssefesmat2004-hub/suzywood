@@ -32,7 +32,12 @@ function Cart() {
                   <img src={it.image} alt={it.name} className="h-24 w-24 rounded-xl object-cover" />
                   <div className="flex-1">
                     <p className="font-serif text-lg">{it.name}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{it.sizeLabel} · {it.finishLabel}{it.engraving && ` · "${it.engraving}"`}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {it.sizeLabel}
+                      {it.finishLabel && ` · ${it.finishLabel}`}
+                      {it.engraving && ` · "${it.engraving}"`}
+                      {it.customSize && ` (+EGP ${it.customSize.surcharge.toLocaleString()} custom)`}
+                    </p>
                     <div className="mt-3 flex items-center gap-3">
                       <input type="number" min={1} value={it.quantity} onChange={(e) => setQuantity(idx, Number(e.target.value) || 1)} className="w-16 h-8 rounded-md border border-input px-2 text-sm" />
                       <button onClick={() => remove(idx)} aria-label="Remove" className="text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></button>
