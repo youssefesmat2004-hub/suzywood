@@ -31,7 +31,7 @@ export const Route = createFileRoute("/shop/$slug")({
     const { data } = await supabase.from("products").select("*").eq("slug", params.slug).eq("is_active", true).maybeSingle();
     if (!data) throw notFound();
     const product = data as Product;
-    const [{ data: variants }, { data: related }] = await Promise.all([
+    const [{ data: variants }, { data: related }, { data: cat }] = await Promise.all([
       supabase
         .from("product_variants")
         .select("*")
@@ -45,11 +45,21 @@ export const Route = createFileRoute("/shop/$slug")({
         .eq("category_id", product.category_id)
         .neq("id", product.id)
         .limit(4),
+      supabase
+        .from("categories")
+        .select("custom_size_enabled,custom_size_surcharge,custom_size_note")
+        .eq("id", product.category_id)
+        .maybeSingle(),
     ]);
     return {
       product,
       variants: (variants ?? []) as Variant[],
       related: (related ?? []) as Product[],
+      category: (cat ?? null) as {
+        custom_size_enabled: boolean;
+        custom_size_surcharge: number;
+        custom_size_note: string | null;
+      } | null,
     };
   },
   head: ({ loaderData }) => {
