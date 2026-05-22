@@ -145,6 +145,28 @@ function ProductPage() {
 
   const addToCart = () => {
     if (soldOut) return;
+    if (customMode) {
+      const w = Number(customWidth);
+      const l = Number(customLength);
+      if (!w || !l || w <= 0 || l <= 0) {
+        toast.error("Enter width and length in cm");
+        return;
+      }
+      const customLabel = `Custom: ${w} x ${l} cm`;
+      cart.add({
+        productId: product.id,
+        slug: product.slug,
+        name: product.name + ` · ${customLabel}`,
+        image: resolveImage(product.image_url),
+        size: customLabel, sizeLabel: customLabel, finish: "", finishLabel: "",
+        engraving: engraving.slice(0, 20),
+        unitPrice,
+        quantity: qty,
+        customSize: { widthCm: w, lengthCm: l, surcharge: customSurcharge },
+      });
+      toast.success("Added to cart", { description: `${product.name} · ${customLabel} × ${qty}` });
+      return;
+    }
     const sizeLabel = sizes.find((s) => s.value === size)?.label ?? "";
     const finishLabel = finishes.find((f) => f.value === finish)?.label ?? "";
     const variantSuffix = selectedVariant ? ` · ${selectedVariant.name}` : "";
@@ -204,24 +226,55 @@ function ProductPage() {
             <div className="space-y-5 pt-2 border-t border-border">
               {variants.length > 0 && (
                 <div className="space-y-2 pt-5">
-                  <Label>Variant</Label>
+                  <Label>Select Size</Label>
                   <div className="flex flex-wrap gap-2">
                     {variants.map((v) => {
-                      const isSel = v.id === variantId;
+                      const isSel = !customMode && v.id === variantId;
                       const out = v.stock_quantity <= 0;
                       return (
                         <button
                           key={v.id}
                           type="button"
-                          onClick={() => { setVariantId(v.id); setActive(0); }}
+                          onClick={() => { setVariantId(v.id); setCustomMode(false); setActive(0); }}
                           disabled={out}
                           className={`px-4 py-2 rounded-full border text-sm transition-colors ${isSel ? "border-primary bg-primary text-primary-foreground" : "border-border hover:border-primary"} ${out ? "opacity-50 line-through cursor-not-allowed" : ""}`}
                         >
-                          {v.name}
+                          {v.name} — EGP {Number(v.price).toLocaleString()}{out ? " (Out of stock)" : ""}
                         </button>
                       );
                     })}
+                    {customEnabled && (
+                      <button
+                        type="button"
+                        onClick={() => setCustomMode(true)}
+                        className={`px-4 py-2 rounded-full border text-sm transition-colors ${customMode ? "border-primary bg-primary text-primary-foreground" : "border-dashed border-border hover:border-primary"}`}
+                      >
+                        ✏️ Custom Size — +{customSurcharge.toLocaleString()} EGP
+                      </button>
+                    )}
                   </div>
+                  {customMode && (
+                    <div className="mt-3 rounded-xl border border-dashed border-primary/40 bg-muted/30 p-4 space-y-3">
+                      <div className="grid sm:grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <Label className="text-xs">Width (cm)</Label>
+                          <Input type="number" min={1} value={customWidth} onChange={(e) => setCustomWidth(e.target.value)} placeholder="e.g. 110" />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">Length (cm)</Label>
+                          <Input type="number" min={1} value={customLength} onChange={(e) => setCustomLength(e.target.value)} placeholder="e.g. 55" />
+                        </div>
+                      </div>
+                      {category?.custom_size_note && (
+                        <p className="text-xs text-muted-foreground italic">{category.custom_size_note}</p>
+                      )}
+                      {customWidth && customLength && (
+                        <p className="text-xs">
+                          Custom size: <strong>{customWidth} x {customLength} cm</strong> — Additional charge: <strong>{customSurcharge.toLocaleString()} EGP</strong>
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
               {sizes.length > 0 && (
