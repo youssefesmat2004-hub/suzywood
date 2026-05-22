@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Mail, Phone, MapPin } from "lucide-react";
+import { Mail, Phone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -13,7 +13,7 @@ export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
       { title: "Contact — Suzy Wood" },
-      { name: "description", content: "Visit the Suzy Wood studio in Cairo or get in touch about your nursery project." },
+      { name: "description", content: "Get in touch with Suzy Wood about your nursery project." },
     ],
   }),
   component: Contact,
