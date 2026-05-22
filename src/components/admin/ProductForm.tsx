@@ -9,8 +9,9 @@ import { resolveImage } from "@/lib/images";
 import { Trash2, Upload, Plus, X, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
+import { getSizePreset } from "@/lib/category-presets";
 
-type Category = { id: string; name: string };
+type Category = { id: string; name: string; slug: string };
 type Variant = {
   id?: string;
   name: string;
@@ -89,7 +90,7 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
   const galleryInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    supabase.from("categories").select("id,name").order("sort_order").then(({ data }) => {
+    supabase.from("categories").select("id,name,slug").order("sort_order").then(({ data }) => {
       setCategories((data ?? []) as Category[]);
       if (!initial && data && data.length && !v.category_id) {
         setV((cur) => ({ ...cur, category_id: data[0].id }));
@@ -105,6 +106,32 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productId]);
+
+  // Auto-fill variants from category preset (only on NEW products when no
+  // variants have been added yet — never overwrite existing/edited variants).
+  useEffect(() => {
+    if (productId) return;
+    if (!v.category_id) return;
+    const cat = categories.find((c) => c.id === v.category_id);
+    const preset = getSizePreset(cat?.slug);
+    if (preset.length === 0) return;
+    const liveVariants = variants.filter((x) => !x._delete);
+    const isEmptyOrPresetMatch =
+      liveVariants.length === 0 ||
+      liveVariants.every((x) => !x.id && x.stock_quantity === 0 && (!x.name.trim() || preset.includes(x.name)));
+    if (!isEmptyOrPresetMatch) return;
+    setVariants(
+      preset.map((name, i) => ({
+        name,
+        price: v.starting_price,
+        stock_quantity: 0,
+        image_url: null,
+        sort_order: i,
+        is_active: true,
+      })),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [v.category_id, categories, productId]);
 
   const handleMainUpload = async (file: File) => {
     setUploadingMain(true);
@@ -338,7 +365,9 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
         <div className="flex items-center justify-between">
           <div>
             <h2 className="font-serif text-xl">Variants</h2>
-            <p className="text-xs text-muted-foreground mt-1">e.g. "Size: M", "Color: Walnut" — each with own price, stock, image.</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Sizes auto-load from the selected category. Each variant has its own price, stock, and optional image.
+            </p>
           </div>
           <Button type="button" variant="outline" size="sm" onClick={addVariant}>
             <Plus className="h-3.5 w-3.5 mr-1.5" /> Add Variant
