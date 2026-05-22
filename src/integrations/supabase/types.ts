@@ -120,6 +120,7 @@ export type Database = {
           email: string
           full_name: string
           id: string
+          inspiration_image_url: string | null
           phone: string
           room_type: string
           status: string
@@ -131,6 +132,7 @@ export type Database = {
           email: string
           full_name: string
           id?: string
+          inspiration_image_url?: string | null
           phone: string
           room_type: string
           status?: string
@@ -142,6 +144,7 @@ export type Database = {
           email?: string
           full_name?: string
           id?: string
+          inspiration_image_url?: string | null
           phone?: string
           room_type?: string
           status?: string
