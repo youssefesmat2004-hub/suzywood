@@ -89,10 +89,15 @@ export const Route = createFileRoute("/shop/$slug")({
 });
 
 function ProductPage() {
-  const { product, variants, related } = Route.useLoaderData() as {
+  const { product, variants, related, category } = Route.useLoaderData() as {
     product: Product;
     variants: Variant[];
     related: Product[];
+    category: {
+      custom_size_enabled: boolean;
+      custom_size_surcharge: number;
+      custom_size_note: string | null;
+    } | null;
   };
   const navigate = useNavigate();
   const cart = useCart();
@@ -103,12 +108,15 @@ function ProductPage() {
   const [finish, setFinish] = useState(finishes[0]?.value ?? "");
   const [engraving, setEngraving] = useState("");
   const [variantId, setVariantId] = useState<string>(variants[0]?.id ?? "");
+  const [customMode, setCustomMode] = useState(false);
+  const [customWidth, setCustomWidth] = useState<string>("");
+  const [customLength, setCustomLength] = useState<string>("");
   const [qty, setQty] = useState(1);
   const [active, setActive] = useState(0);
 
   const selectedVariant = useMemo(
-    () => variants.find((v) => v.id === variantId) ?? null,
-    [variants, variantId],
+    () => (customMode ? null : variants.find((v) => v.id === variantId) ?? null),
+    [variants, variantId, customMode],
   );
 
   // Combine product gallery with variant image (variant image leads when selected)
@@ -121,9 +129,13 @@ function ProductPage() {
     return base;
   }, [gallery, selectedVariant, product.image_url]);
 
-  const stock = selectedVariant ? selectedVariant.stock_quantity : (product.stock_quantity ?? 99);
-  const soldOut = stock <= 0;
-  const unitPrice = selectedVariant ? selectedVariant.price : product.starting_price;
+  const customSurcharge = Number(category?.custom_size_surcharge ?? 0);
+  const customEnabled = !!category?.custom_size_enabled;
+  const stock = customMode ? 99 : (selectedVariant ? selectedVariant.stock_quantity : (product.stock_quantity ?? 99));
+  const soldOut = !customMode && stock <= 0;
+  const unitPrice = customMode
+    ? product.starting_price + customSurcharge
+    : (selectedVariant ? selectedVariant.price : product.starting_price);
 
   const stockBadge = soldOut
     ? { label: "Sold out", className: "bg-destructive/10 text-destructive" }
