@@ -222,6 +222,25 @@ function CategoryDialog({
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [sizes, setSizes] = useState<SizeRow[]>([]);
+  const [sizesLoading, setSizesLoading] = useState(false);
+
+  useEffect(() => {
+    if (!open || !value?.id) {
+      setSizes([]);
+      return;
+    }
+    setSizesLoading(true);
+    supabase
+      .from("category_sizes")
+      .select("*")
+      .eq("category_id", value.id)
+      .order("sort_order")
+      .then(({ data }) => {
+        setSizes(((data ?? []) as SizeRow[]).map((s) => ({ ...s, price: Number(s.price) })));
+        setSizesLoading(false);
+      });
+  }, [open, value?.id]);
 
   if (!value) return null;
   const isNew = !value.id;
@@ -238,14 +257,19 @@ function CategoryDialog({
       description: value.description || null,
       image_url: value.image_url,
       sort_order: value.sort_order,
+      custom_size_enabled: value.custom_size_enabled,
+      custom_size_surcharge: Number(value.custom_size_surcharge) || 0,
+      custom_size_note: value.custom_size_note || null,
     };
+    let catId = value.id;
     if (isNew) {
-      const { error } = await supabase.from("categories").insert(payload);
-      if (error) {
+      const { data, error } = await supabase.from("categories").insert(payload).select("id").single();
+      if (error || !data) {
         toast.error(error.message);
         setSaving(false);
         return;
       }
+      catId = data.id;
       toast.success("Category created");
     } else {
       const { error } = await supabase.from("categories").update(payload).eq("id", value.id);
@@ -256,6 +280,31 @@ function CategoryDialog({
       }
       toast.success("Category updated");
     }
+
+    // Sync size rows
+    for (const s of sizes) {
+      if (s._delete && s.id) {
+        await supabase.from("category_sizes").delete().eq("id", s.id);
+      } else if (s._delete) {
+        continue;
+      } else if (s.id) {
+        await supabase.from("category_sizes").update({
+          label: s.label,
+          price: Number(s.price) || 0,
+          sort_order: s.sort_order,
+          is_active: s.is_active,
+        }).eq("id", s.id);
+      } else if (s.label.trim()) {
+        await supabase.from("category_sizes").insert({
+          category_id: catId,
+          label: s.label.trim(),
+          price: Number(s.price) || 0,
+          sort_order: s.sort_order,
+          is_active: s.is_active,
+        });
+      }
+    }
+
     setSaving(false);
     onSaved();
   };
@@ -269,11 +318,18 @@ function CategoryDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isNew ? "New Category" : "Edit Category"}</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4">
+        <Tabs defaultValue="details">
+          <TabsList className="grid grid-cols-3 w-full">
+            <TabsTrigger value="details">Details</TabsTrigger>
+            <TabsTrigger value="sizes" disabled={isNew}>Sizes & Pricing</TabsTrigger>
+            <TabsTrigger value="custom" disabled={isNew}>Custom Size</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="details" className="space-y-4 mt-4">
           <div className="space-y-1.5">
             <Label>Name *</Label>
             <Input
@@ -325,7 +381,115 @@ function CategoryDialog({
               </div>
             </div>
           </div>
-        </div>
+          {isNew && (
+            <p className="text-xs text-muted-foreground italic">
+              Save this category first, then you can add sizes & custom-size options.
+            </p>
+          )}
+          </TabsContent>
+
+          <TabsContent value="sizes" className="space-y-3 mt-4">
+            <p className="text-xs text-muted-foreground">
+              These sizes are offered to customers on every product in this category. New products auto-load these as variants with the default price.
+            </p>
+            {sizesLoading ? (
+              <Skeleton className="h-20 w-full" />
+            ) : (
+              <div className="space-y-2">
+                {sizes.filter((s) => !s._delete).length === 0 && (
+                  <p className="text-sm text-muted-foreground py-4 text-center border rounded-lg">No sizes yet.</p>
+                )}
+                {sizes.map((s, idx) =>
+                  s._delete ? null : (
+                    <div key={s.id ?? `new-${idx}`} className="flex items-center gap-2 border rounded-lg p-2">
+                      <div className="flex flex-col">
+                        <button type="button" className="text-muted-foreground hover:text-foreground" onClick={() => {
+                          if (idx === 0) return;
+                          setSizes((prev) => {
+                            const next = [...prev];
+                            [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
+                            return next.map((x, i) => ({ ...x, sort_order: i }));
+                          });
+                        }}><ArrowUp className="h-3 w-3" /></button>
+                        <button type="button" className="text-muted-foreground hover:text-foreground" onClick={() => {
+                          setSizes((prev) => {
+                            if (idx >= prev.length - 1) return prev;
+                            const next = [...prev];
+                            [next[idx + 1], next[idx]] = [next[idx], next[idx + 1]];
+                            return next.map((x, i) => ({ ...x, sort_order: i }));
+                          });
+                        }}><ArrowDown className="h-3 w-3" /></button>
+                      </div>
+                      <GripVertical className="h-4 w-4 text-muted-foreground" />
+                      <Input
+                        className="flex-1"
+                        placeholder="e.g. 120 x 60 cm"
+                        value={s.label}
+                        onChange={(e) => setSizes((p) => p.map((x, i) => i === idx ? { ...x, label: e.target.value } : x))}
+                      />
+                      <div className="flex items-center gap-1">
+                        <Input
+                          type="number"
+                          min={0}
+                          step="0.01"
+                          className="w-28"
+                          placeholder="Price"
+                          value={s.price}
+                          onChange={(e) => setSizes((p) => p.map((x, i) => i === idx ? { ...x, price: Number(e.target.value) } : x))}
+                        />
+                        <span className="text-xs text-muted-foreground">EGP</span>
+                      </div>
+                      <Switch
+                        checked={s.is_active}
+                        onCheckedChange={(c) => setSizes((p) => p.map((x, i) => i === idx ? { ...x, is_active: c } : x))}
+                      />
+                      <Button type="button" variant="ghost" size="icon" onClick={() => setSizes((p) => p.map((x, i) => i === idx ? { ...x, _delete: true } : x))}>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
+                  ),
+                )}
+              </div>
+            )}
+            <Button type="button" variant="outline" size="sm" onClick={() => setSizes((p) => [...p, { label: "", price: 0, sort_order: p.length, is_active: true }])}>
+              <Plus className="h-3.5 w-3.5 mr-1.5" /> Add size
+            </Button>
+          </TabsContent>
+
+          <TabsContent value="custom" className="space-y-4 mt-4">
+            <div className="flex items-center justify-between border rounded-lg p-3">
+              <div>
+                <p className="font-medium text-sm">Enable custom size option</p>
+                <p className="text-xs text-muted-foreground">Lets customers request bespoke dimensions for products in this category.</p>
+              </div>
+              <Switch
+                checked={value.custom_size_enabled}
+                onCheckedChange={(c) => onChange({ ...value, custom_size_enabled: c })}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Surcharge for custom size (EGP)</Label>
+              <Input
+                type="number"
+                min={0}
+                step="0.01"
+                value={value.custom_size_surcharge}
+                onChange={(e) => onChange({ ...value, custom_size_surcharge: Number(e.target.value) })}
+                placeholder="e.g. 200"
+              />
+              <p className="text-xs text-muted-foreground">Added on top of the product's base price.</p>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Note shown to customers</Label>
+              <Textarea
+                rows={3}
+                value={value.custom_size_note ?? ""}
+                onChange={(e) => onChange({ ...value, custom_size_note: e.target.value })}
+                placeholder="e.g. Our carpenter will build this to your exact measurements"
+              />
+            </div>
+          </TabsContent>
+        </Tabs>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
           <Button onClick={save} disabled={saving}>{saving ? "Saving…" : "Save"}</Button>
