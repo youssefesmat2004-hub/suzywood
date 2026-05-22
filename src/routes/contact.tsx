@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Mail, Phone } from "lucide-react";
+import { Phone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -47,7 +47,6 @@ function Contact() {
           <div className="space-y-6">
             {[
               { Icon: Phone, title: "Phone & WhatsApp", body: "+20 109 631 3532", sub: "Sun–Thu, 10am–6pm", href: "tel:+201096313532" },
-              { Icon: Mail, title: "Email", body: "hello@suzywood.com", href: "mailto:hello@suzywood.com" },
             ].map(({ Icon, title, body, sub, href }) => (
               <div key={title} className="bg-card border border-border rounded-2xl p-5 shadow-soft">
                 <Icon className="h-5 w-5 text-secondary" />
