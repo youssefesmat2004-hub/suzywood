@@ -65,7 +65,7 @@ export function CustomBuildForm() {
     if (error) {
       toast.error("Couldn't send your request", { description: error.message });
     } else {
-      toast.success("Request received", { description: "Our studio will reach out within two working days." });
+      toast.success("Request received", { description: "Our team will reach out within two working days." });
       (e.target as HTMLFormElement).reset();
       clearFile();
     }
