@@ -9,9 +9,8 @@ import { resolveImage } from "@/lib/images";
 import { Trash2, Upload, Plus, X, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
-import { getSizePreset } from "@/lib/category-presets";
-
 type Category = { id: string; name: string; slug: string };
+type CategorySize = { label: string; price: number };
 type Variant = {
   id?: string;
   name: string;
@@ -83,6 +82,7 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
     },
   );
   const [variants, setVariants] = useState<Variant[]>([]);
+  const [categorySizes, setCategorySizes] = useState<CategorySize[]>([]);
   const [saving, setSaving] = useState(false);
   const [uploadingMain, setUploadingMain] = useState(false);
   const [uploadingGallery, setUploadingGallery] = useState(false);
@@ -107,23 +107,38 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productId]);
 
-  // Auto-fill variants from category preset (only on NEW products when no
+  // Load size catalog for the selected category from the DB.
+  useEffect(() => {
+    if (!v.category_id) {
+      setCategorySizes([]);
+      return;
+    }
+    supabase
+      .from("category_sizes")
+      .select("label,price,is_active")
+      .eq("category_id", v.category_id)
+      .eq("is_active", true)
+      .order("sort_order")
+      .then(({ data }) => {
+        setCategorySizes(((data ?? []) as Array<{ label: string; price: number }>).map((r) => ({ label: r.label, price: Number(r.price) })));
+      });
+  }, [v.category_id]);
+
+  // Auto-fill variants from category sizes (only on NEW products when no
   // variants have been added yet — never overwrite existing/edited variants).
   useEffect(() => {
     if (productId) return;
-    if (!v.category_id) return;
-    const cat = categories.find((c) => c.id === v.category_id);
-    const preset = getSizePreset(cat?.slug);
-    if (preset.length === 0) return;
+    if (categorySizes.length === 0) return;
     const liveVariants = variants.filter((x) => !x._delete);
+    const presetLabels = categorySizes.map((s) => s.label);
     const isEmptyOrPresetMatch =
       liveVariants.length === 0 ||
-      liveVariants.every((x) => !x.id && x.stock_quantity === 0 && (!x.name.trim() || preset.includes(x.name)));
+      liveVariants.every((x) => !x.id && x.stock_quantity === 0 && (!x.name.trim() || presetLabels.includes(x.name)));
     if (!isEmptyOrPresetMatch) return;
     setVariants(
-      preset.map((name, i) => ({
-        name,
-        price: v.starting_price,
+      categorySizes.map((s, i) => ({
+        name: s.label,
+        price: s.price || v.starting_price,
         stock_quantity: 0,
         image_url: null,
         sort_order: i,
@@ -131,7 +146,7 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
       })),
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [v.category_id, categories, productId]);
+  }, [categorySizes, productId]);
 
   const handleMainUpload = async (file: File) => {
     setUploadingMain(true);
