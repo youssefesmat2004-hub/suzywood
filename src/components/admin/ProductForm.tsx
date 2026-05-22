@@ -365,7 +365,9 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
         <div className="flex items-center justify-between">
           <div>
             <h2 className="font-serif text-xl">Variants</h2>
-            <p className="text-xs text-muted-foreground mt-1">e.g. "Size: M", "Color: Walnut" — each with own price, stock, image.</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Sizes auto-load from the selected category. Each variant has its own price, stock, and optional image.
+            </p>
           </div>
           <Button type="button" variant="outline" size="sm" onClick={addVariant}>
             <Plus className="h-3.5 w-3.5 mr-1.5" /> Add Variant
