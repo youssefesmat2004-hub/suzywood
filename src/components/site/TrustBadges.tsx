@@ -1,9 +1,9 @@
-import { TreePine, Hammer, Truck, Star } from "lucide-react";
+import { TreePine, Hammer, Shield, Star } from "lucide-react";
 
 const items = [
   { Icon: TreePine, label: "100% Natural Wood", sub: "Solid timber only" },
   { Icon: Hammer, label: "Handcrafted in Egypt", sub: "Made to order in Cairo" },
-  { Icon: Truck, label: "Fast Delivery", sub: "Across all governorates" },
+  { Icon: Shield, label: "Safe & Sturdy", sub: "Built for little ones" },
   { Icon: Star, label: "5-Star Rated", sub: "Loved by Egyptian moms" },
 ];
 
