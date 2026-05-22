@@ -12,6 +12,11 @@ export type CartItem = {
   engraving: string;
   unitPrice: number;
   quantity: number;
+  customSize?: {
+    widthCm: number;
+    lengthCm: number;
+    surcharge: number;
+  };
 };
 
 type CartCtx = {
@@ -47,8 +52,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const add = useCallback((item: CartItem) => {
     setItems((curr) => {
+      const customKey = item.customSize
+        ? `${item.customSize.widthCm}x${item.customSize.lengthCm}`
+        : "";
       const idx = curr.findIndex(
-        (i) => i.productId === item.productId && i.size === item.size && i.finish === item.finish && i.engraving === item.engraving,
+        (i) =>
+          i.productId === item.productId &&
+          i.size === item.size &&
+          i.finish === item.finish &&
+          i.engraving === item.engraving &&
+          (i.customSize ? `${i.customSize.widthCm}x${i.customSize.lengthCm}` : "") === customKey,
       );
       if (idx >= 0) {
         const next = [...curr];
