@@ -4,7 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Pencil, Trash2, Upload, X, ImageIcon } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Plus, Pencil, Trash2, Upload, X, ImageIcon, GripVertical, ArrowUp, ArrowDown } from "lucide-react";
 import { toast } from "sonner";
 import { resolveImage } from "@/lib/images";
 import {
@@ -23,7 +26,19 @@ type CategoryRow = {
   description: string | null;
   image_url: string | null;
   sort_order: number;
+  custom_size_enabled: boolean;
+  custom_size_surcharge: number;
+  custom_size_note: string | null;
   product_count?: number;
+};
+
+type SizeRow = {
+  id?: string;
+  label: string;
+  price: number;
+  sort_order: number;
+  is_active: boolean;
+  _delete?: boolean;
 };
 
 export const Route = createFileRoute("/admin/categories")({
