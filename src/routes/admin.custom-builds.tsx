@@ -21,6 +21,7 @@ type CB = {
   description: string;
   status: string;
   created_at: string;
+  inspiration_image_url: string | null;
 };
 
 const STATUSES = ["new", "contacted", "accepted", "declined", "completed"];
@@ -139,6 +140,20 @@ function AdminCustomBuilds() {
                 </button>
                 {row.description}
               </div>
+              {row.inspiration_image_url && (
+                <a
+                  href={row.inspiration_image_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 inline-block"
+                >
+                  <img
+                    src={row.inspiration_image_url}
+                    alt="Customer inspiration reference"
+                    className="h-32 w-32 object-cover rounded-lg border border-border hover:opacity-80 transition-opacity"
+                  />
+                </a>
+              )}
             </div>
           ))}
         </div>
