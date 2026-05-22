@@ -31,7 +31,7 @@ export const Route = createFileRoute("/shop/$slug")({
     const { data } = await supabase.from("products").select("*").eq("slug", params.slug).eq("is_active", true).maybeSingle();
     if (!data) throw notFound();
     const product = data as Product;
-    const [{ data: variants }, { data: related }] = await Promise.all([
+    const [{ data: variants }, { data: related }, { data: cat }] = await Promise.all([
       supabase
         .from("product_variants")
         .select("*")
@@ -45,11 +45,21 @@ export const Route = createFileRoute("/shop/$slug")({
         .eq("category_id", product.category_id)
         .neq("id", product.id)
         .limit(4),
+      supabase
+        .from("categories")
+        .select("custom_size_enabled,custom_size_surcharge,custom_size_note")
+        .eq("id", product.category_id)
+        .maybeSingle(),
     ]);
     return {
       product,
       variants: (variants ?? []) as Variant[],
       related: (related ?? []) as Product[],
+      category: (cat ?? null) as {
+        custom_size_enabled: boolean;
+        custom_size_surcharge: number;
+        custom_size_note: string | null;
+      } | null,
     };
   },
   head: ({ loaderData }) => {
@@ -79,10 +89,15 @@ export const Route = createFileRoute("/shop/$slug")({
 });
 
 function ProductPage() {
-  const { product, variants, related } = Route.useLoaderData() as {
+  const { product, variants, related, category } = Route.useLoaderData() as {
     product: Product;
     variants: Variant[];
     related: Product[];
+    category: {
+      custom_size_enabled: boolean;
+      custom_size_surcharge: number;
+      custom_size_note: string | null;
+    } | null;
   };
   const navigate = useNavigate();
   const cart = useCart();
@@ -93,12 +108,15 @@ function ProductPage() {
   const [finish, setFinish] = useState(finishes[0]?.value ?? "");
   const [engraving, setEngraving] = useState("");
   const [variantId, setVariantId] = useState<string>(variants[0]?.id ?? "");
+  const [customMode, setCustomMode] = useState(false);
+  const [customWidth, setCustomWidth] = useState<string>("");
+  const [customLength, setCustomLength] = useState<string>("");
   const [qty, setQty] = useState(1);
   const [active, setActive] = useState(0);
 
   const selectedVariant = useMemo(
-    () => variants.find((v) => v.id === variantId) ?? null,
-    [variants, variantId],
+    () => (customMode ? null : variants.find((v) => v.id === variantId) ?? null),
+    [variants, variantId, customMode],
   );
 
   // Combine product gallery with variant image (variant image leads when selected)
@@ -111,9 +129,13 @@ function ProductPage() {
     return base;
   }, [gallery, selectedVariant, product.image_url]);
 
-  const stock = selectedVariant ? selectedVariant.stock_quantity : (product.stock_quantity ?? 99);
-  const soldOut = stock <= 0;
-  const unitPrice = selectedVariant ? selectedVariant.price : product.starting_price;
+  const customSurcharge = Number(category?.custom_size_surcharge ?? 0);
+  const customEnabled = !!category?.custom_size_enabled;
+  const stock = customMode ? 99 : (selectedVariant ? selectedVariant.stock_quantity : (product.stock_quantity ?? 99));
+  const soldOut = !customMode && stock <= 0;
+  const unitPrice = customMode
+    ? product.starting_price + customSurcharge
+    : (selectedVariant ? selectedVariant.price : product.starting_price);
 
   const stockBadge = soldOut
     ? { label: "Sold out", className: "bg-destructive/10 text-destructive" }
@@ -123,6 +145,28 @@ function ProductPage() {
 
   const addToCart = () => {
     if (soldOut) return;
+    if (customMode) {
+      const w = Number(customWidth);
+      const l = Number(customLength);
+      if (!w || !l || w <= 0 || l <= 0) {
+        toast.error("Enter width and length in cm");
+        return;
+      }
+      const customLabel = `Custom: ${w} x ${l} cm`;
+      cart.add({
+        productId: product.id,
+        slug: product.slug,
+        name: product.name + ` · ${customLabel}`,
+        image: resolveImage(product.image_url),
+        size: customLabel, sizeLabel: customLabel, finish: "", finishLabel: "",
+        engraving: engraving.slice(0, 20),
+        unitPrice,
+        quantity: qty,
+        customSize: { widthCm: w, lengthCm: l, surcharge: customSurcharge },
+      });
+      toast.success("Added to cart", { description: `${product.name} · ${customLabel} × ${qty}` });
+      return;
+    }
     const sizeLabel = sizes.find((s) => s.value === size)?.label ?? "";
     const finishLabel = finishes.find((f) => f.value === finish)?.label ?? "";
     const variantSuffix = selectedVariant ? ` · ${selectedVariant.name}` : "";
@@ -182,24 +226,55 @@ function ProductPage() {
             <div className="space-y-5 pt-2 border-t border-border">
               {variants.length > 0 && (
                 <div className="space-y-2 pt-5">
-                  <Label>Variant</Label>
+                  <Label>Select Size</Label>
                   <div className="flex flex-wrap gap-2">
                     {variants.map((v) => {
-                      const isSel = v.id === variantId;
+                      const isSel = !customMode && v.id === variantId;
                       const out = v.stock_quantity <= 0;
                       return (
                         <button
                           key={v.id}
                           type="button"
-                          onClick={() => { setVariantId(v.id); setActive(0); }}
+                          onClick={() => { setVariantId(v.id); setCustomMode(false); setActive(0); }}
                           disabled={out}
                           className={`px-4 py-2 rounded-full border text-sm transition-colors ${isSel ? "border-primary bg-primary text-primary-foreground" : "border-border hover:border-primary"} ${out ? "opacity-50 line-through cursor-not-allowed" : ""}`}
                         >
-                          {v.name}
+                          {v.name} — EGP {Number(v.price).toLocaleString()}{out ? " (Out of stock)" : ""}
                         </button>
                       );
                     })}
+                    {customEnabled && (
+                      <button
+                        type="button"
+                        onClick={() => setCustomMode(true)}
+                        className={`px-4 py-2 rounded-full border text-sm transition-colors ${customMode ? "border-primary bg-primary text-primary-foreground" : "border-dashed border-border hover:border-primary"}`}
+                      >
+                        ✏️ Custom Size — +{customSurcharge.toLocaleString()} EGP
+                      </button>
+                    )}
                   </div>
+                  {customMode && (
+                    <div className="mt-3 rounded-xl border border-dashed border-primary/40 bg-muted/30 p-4 space-y-3">
+                      <div className="grid sm:grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <Label className="text-xs">Width (cm)</Label>
+                          <Input type="number" min={1} value={customWidth} onChange={(e) => setCustomWidth(e.target.value)} placeholder="e.g. 110" />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">Length (cm)</Label>
+                          <Input type="number" min={1} value={customLength} onChange={(e) => setCustomLength(e.target.value)} placeholder="e.g. 55" />
+                        </div>
+                      </div>
+                      {category?.custom_size_note && (
+                        <p className="text-xs text-muted-foreground italic">{category.custom_size_note}</p>
+                      )}
+                      {customWidth && customLength && (
+                        <p className="text-xs">
+                          Custom size: <strong>{customWidth} x {customLength} cm</strong> — Additional charge: <strong>{customSurcharge.toLocaleString()} EGP</strong>
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
               {sizes.length > 0 && (

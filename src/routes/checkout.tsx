@@ -152,6 +152,9 @@ function Checkout() {
         unit_price: it.unitPrice,
         quantity: it.quantity,
         line_total: it.unitPrice * it.quantity,
+        custom_width_cm: it.customSize?.widthCm ?? null,
+        custom_length_cm: it.customSize?.lengthCm ?? null,
+        custom_surcharge: it.customSize?.surcharge ?? null,
       })),
     );
 
