@@ -1,67 +1,57 @@
-# Phase 2 — Admin Operations & CRM
+# Suzy Wood — World-Class Redesign Plan
 
-Build the five admin features so you can run day-to-day operations without touching the database.
+The scope is large, so I'll ship it in 5 focused phases. Each phase ends in a working, reviewable state.
 
-## 1. Contact Messages Admin (`/admin/messages`)
+---
 
-- Migration: add `is_read boolean default false` to `contact_messages` + admin UPDATE policy.
-- New page lists messages newest-first with unread badge, full message preview, and one-click WhatsApp / email / phone reply buttons.
-- Mark as read/unread toggle; realtime subscription so new messages appear instantly.
-- Sidebar entry with unread count.
+## Phase 1 — Design system foundation
+- Rewrite `src/styles.css` tokens to your palette:
+  - cream `#FDF6EC`, wood brown `#A0522D`, beige `#E8D5B7`, walnut `#3E1F00`, sage `#8FAF8A` (all as `oklch`)
+  - new gradients, soft shadows, larger border radii
+- Add Playfair Display (serif headings) + Inter (body) via `<link>` in `__root.tsx`
+- Add scroll-triggered fade/lift utilities + `scroll-behavior: smooth` globally
+- Add a brand loading screen that fades out on first mount
+- Refresh Button variants (soft glow on hover), Card (lift + shadow)
 
-## 2. Custom Build Requests Admin (`/admin/custom-builds`)
+## Phase 2 — Homepage rebuild
+- Announcement bar with shimmer
+- Full-screen hero with parallax background + floating crib illustration
+- 4 trust badges
+- "Our Most Loved Pieces" featured grid (entrance fade-in, hover lift, image zoom, wishlist heart)
+- "How It Works" 3-step
+- Testimonials auto-scrolling carousel
+- Instagram strip (6-tile grid with hover overlay → links to existing IG)
+- Final CTA banner → /book
 
-- Uses existing `custom_build_requests` table (already has admin UPDATE policy).
-- Table view with: name, phone, room type, description, status dropdown (new → contacted → accepted → declined → completed).
-- WhatsApp customer button + copy-to-clipboard for description.
-- Sidebar entry with "new" count badge.
+## Phase 3 — Global UX
+- Sticky WhatsApp button (pulse) + delayed dismissible "Need help?" popup
+- Smooth page transitions (fade + slight rise on route change)
+- Lazy-load all product/CMS images, skeleton loaders on Shop & PDP
+- Mobile polish pass on every page
 
-## 3. Customers CRM (`/admin/customers`)
+## Phase 4 — Shop & Product upgrades
+- Shop: wood-texture banner header, sticky filter sidebar (desktop), "New" + "Best Seller" badges, empty state with reset
+- Product page: sticky Add-to-Cart on scroll, mobile bottom Add-to-Cart bar, swipeable image gallery, trust badges, wood-grain divider, "You might also like" section
 
-- Server function `getCustomers` (admin-only, uses `supabaseAdmin`) that aggregates from `orders` + `profiles`:
-  - name, email, phone, total orders, total spent, last order date, has account (y/n).
-- Searchable/sortable table; click a row to see that customer's full order history in a drawer.
-- Export CSV button.
+## Phase 5 — AI Product Recommender quiz
+- 3-question wizard (age / type / budget) with progress bar + smooth step transitions
+- Full-screen on mobile, modal on desktop
+- Recommends top 2–3 matching products from existing catalog with Add to Cart
+- Entry points: homepage hero secondary CTA + shop page banner
 
-## 4. Sales Analytics (`/admin/analytics`)
+---
 
-- Add `recharts` dependency.
-- Server function aggregating last 30/90/365 days:
-  - Revenue line chart (daily)
-  - Orders by status (donut)
-  - Top 5 products by revenue (bar)
-  - Bookings funnel (new → contacted → scheduled → completed)
-  - KPI cards: total revenue, AOV, orders, conversion (orders / bookings)
-- Date-range toggle (30 / 90 / 365 days).
+## Notes / decisions
+- **"Best Seller" badge** will derive from actual `orders` data (top N most-ordered SKUs in last 90 days) so it stays truthful — not hardcoded.
+- **"New" badge** = product created in last 30 days.
+- **Testimonials**: you asked for 3 fake reviews, but you already have a real `reviews` table seeded. I'll use the highest-rated real reviews instead (more trustworthy + you control them from admin). Tell me if you'd rather I seed 3 generic ones.
+- **Loading screen**: shown only on first visit per session (sessionStorage flag) so it doesn't get annoying.
+- **Parallax**: pure CSS `translateY` on scroll — no heavy library, keeps mobile smooth.
+- **No new dependencies** needed — framer-motion is already installed.
 
-## 5. Low-Stock Alerts
+## What I need from you
+1. **Approve the plan** (or tell me to reorder/drop phases).
+2. **Hero image**: do you have a photo, or should I generate one (warm nursery with a wooden crib)?
+3. **Instagram strip**: real IG photos require a token. OK if I use 6 of your existing product photos with an IG-style overlay that links to your IG account?
 
-- New server function `getLowStock(threshold=3)` returning products + variants below threshold.
-- Banner at top of `/admin` dashboard listing low/out-of-stock items with quick links.
-- Red highlight rows in `/admin/products` when stock ≤ threshold; "Out of stock" pill when 0.
-- Sidebar dashboard badge showing the count.
-
-## Technical notes (for reference)
-
-- All data fetching via `createServerFn` with `requireSupabaseAuth` + admin role check; `supabaseAdmin` used only where aggregation needs to bypass per-user RLS (CRM, analytics).
-- Reuse existing `AdminLayout` sidebar; add 4 new entries with lucide icons (MessageSquare, Hammer, Users, BarChart3).
-- Charts: `recharts` (lightweight, already common in shadcn stacks).
-- Realtime for messages via Supabase channel on `contact_messages` table (enable in publication).
-
-## Files to be created (~9)
-
-- `supabase/migrations/<ts>_phase_2.sql`
-- `src/routes/admin.messages.tsx`
-- `src/routes/admin.custom-builds.tsx`
-- `src/routes/admin.customers.tsx`
-- `src/routes/admin.analytics.tsx`
-- `src/lib/admin.functions.ts` (customers, analytics, low-stock aggregations)
-- `src/components/admin/LowStockBanner.tsx`
-
-## Files to be edited (~3)
-
-- `src/components/admin/AdminLayout.tsx` — 4 new sidebar links + unread/low-stock badges
-- `src/routes/admin.index.tsx` — embed LowStockBanner + quick KPI tiles
-- `src/routes/admin.products.tsx` — red rows for low stock
-
-Approve and I'll build it.
+Once you confirm, I'll start Phase 1 and ship phase-by-phase.
