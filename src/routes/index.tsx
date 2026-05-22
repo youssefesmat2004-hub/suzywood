@@ -42,7 +42,7 @@ function Index() {
   const content = useSiteContent();
   const cart = useCart();
   const heroTitle = content.hero_title || "Crafting safe, beautiful spaces for your little ones.";
-  const heroSubtitle = content.hero_subtitle || "Solid-wood nursery and toddler furniture, hand-built to order in our studio — designed to live with your family for years, not seasons.";
+  const heroSubtitle = content.hero_subtitle || "Solid-wood nursery and toddler furniture, hand-built to order by our craftsmen — designed to live with your family for years, not seasons.";
 
   const quickAdd = (e: React.MouseEvent, p: Product) => {
     e.preventDefault();

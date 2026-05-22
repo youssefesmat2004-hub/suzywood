@@ -5,7 +5,7 @@ import { NewsletterForm } from "./NewsletterForm";
 
 export function Footer() {
   const content = useSiteContent();
-  const tagline = content.footer_tagline ?? "Heirloom-quality wooden furniture for nurseries and small humans. Made-to-order in our Cairo workshop.";
+  const tagline = content.footer_tagline ?? "Heirloom-quality wooden furniture for nurseries and small humans. Made-to-order with care.";
   const phone = content.contact_phone ?? "+20 109 631 3532";
   const phoneHref = `tel:${phone.replace(/[^+\d]/g, "")}`;
   return (

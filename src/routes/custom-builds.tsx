@@ -26,7 +26,7 @@ function CustomBuilds() {
             </h1>
             <p className="text-muted-foreground leading-relaxed">
               Tell us about the piece you've been imagining — a fitted wardrobe, a reading nook, a one-of-a-kind crib.
-              Our studio team will sketch a proposal and quote within two working days.
+              Our design team will sketch a proposal and quote within two working days.
             </p>
             <ul className="space-y-3 pt-2 text-sm">
               {[
