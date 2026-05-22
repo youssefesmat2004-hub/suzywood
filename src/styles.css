@@ -133,4 +133,49 @@
   .shadow-card { box-shadow: var(--shadow-card); }
   .shadow-elegant { box-shadow: var(--shadow-elegant); }
   .text-balance { text-wrap: balance; }
+  .bg-gradient-warm { background-image: var(--gradient-warm); }
+  .bg-gradient-wood { background-image: var(--gradient-wood); }
+  .bg-gradient-hero { background-image: var(--gradient-hero); }
+
+  [data-reveal] { opacity: 0; transform: translateY(24px); transition: opacity .9s cubic-bezier(.2,.7,.2,1), transform .9s cubic-bezier(.2,.7,.2,1); }
+  [data-reveal].is-visible { opacity: 1; transform: none; }
+
+  @keyframes sw-shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+  .animate-shimmer {
+    background-image: linear-gradient(90deg, transparent 0%, oklch(1 0 0 / 0.35) 50%, transparent 100%);
+    background-size: 200% 100%;
+    animation: sw-shimmer 6s linear infinite;
+  }
+  @keyframes sw-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+  .animate-float { animation: sw-float 5s ease-in-out infinite; }
+
+  @keyframes sw-pulse-glow {
+    0%, 100% { box-shadow: 0 0 0 0 oklch(0.55 0.125 47 / 0.55); }
+    50% { box-shadow: 0 0 0 14px oklch(0.55 0.125 47 / 0); }
+  }
+  .pulse-glow { animation: sw-pulse-glow 2.4s ease-in-out infinite; }
+
+  @keyframes sw-pulse-green {
+    0%, 100% { box-shadow: 0 0 0 0 oklch(0.65 0.18 145 / 0.55); }
+    50% { box-shadow: 0 0 0 14px oklch(0.65 0.18 145 / 0); }
+  }
+  .pulse-green { animation: sw-pulse-green 2s ease-in-out infinite; }
+
+  .hover-lift { transition: transform .35s cubic-bezier(.2,.7,.2,1), box-shadow .35s ease; }
+  .hover-lift:hover { transform: translateY(-6px); box-shadow: var(--shadow-card); }
+
+  .img-zoom { overflow: hidden; }
+  .img-zoom > * { transition: transform .9s cubic-bezier(.2,.7,.2,1); }
+  .img-zoom:hover > * { transform: scale(1.06); }
+
+  .wood-grain {
+    height: 8px;
+    background-image:
+      repeating-linear-gradient(90deg, oklch(0.27 0.055 50 / 0.08) 0 1px, transparent 1px 7px),
+      linear-gradient(90deg, var(--beige), var(--beige-deep), var(--beige));
+    border-radius: 999px;
+  }
+
+  @keyframes sw-fade-out { to { opacity: 0; visibility: hidden; } }
+  .loading-fade-out { animation: sw-fade-out .6s ease-out forwards; }
 }
