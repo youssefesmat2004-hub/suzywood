@@ -56,6 +56,9 @@ export type Database = {
       categories: {
         Row: {
           created_at: string
+          custom_size_enabled: boolean
+          custom_size_note: string | null
+          custom_size_surcharge: number
           description: string | null
           id: string
           image_url: string | null
@@ -65,6 +68,9 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          custom_size_enabled?: boolean
+          custom_size_note?: string | null
+          custom_size_surcharge?: number
           description?: string | null
           id?: string
           image_url?: string | null
@@ -74,6 +80,9 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          custom_size_enabled?: boolean
+          custom_size_note?: string | null
+          custom_size_surcharge?: number
           description?: string | null
           id?: string
           image_url?: string | null
@@ -82,6 +91,47 @@ export type Database = {
           sort_order?: number
         }
         Relationships: []
+      }
+      category_sizes: {
+        Row: {
+          category_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          label: string
+          price: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label: string
+          price?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label?: string
+          price?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "category_sizes_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       contact_messages: {
         Row: {
@@ -178,6 +228,9 @@ export type Database = {
       }
       order_items: {
         Row: {
+          custom_length_cm: number | null
+          custom_surcharge: number | null
+          custom_width_cm: number | null
           engraving: string | null
           finish: string | null
           id: string
@@ -190,6 +243,9 @@ export type Database = {
           unit_price: number
         }
         Insert: {
+          custom_length_cm?: number | null
+          custom_surcharge?: number | null
+          custom_width_cm?: number | null
           engraving?: string | null
           finish?: string | null
           id?: string
@@ -202,6 +258,9 @@ export type Database = {
           unit_price: number
         }
         Update: {
+          custom_length_cm?: number | null
+          custom_surcharge?: number | null
+          custom_width_cm?: number | null
           engraving?: string | null
           finish?: string | null
           id?: string
