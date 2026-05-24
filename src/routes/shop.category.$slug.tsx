@@ -14,7 +14,13 @@ export const Route = createFileRoute("/shop/category/$slug")({
       .eq("category_id", cat.id)
       .eq("is_active", true)
       .order("created_at", { ascending: false });
-    return { category: cat as Category, products: (products ?? []) as Product[] };
+    const ids = (products ?? []).map((p) => p.id);
+    const { data: vRows } = ids.length
+      ? await supabase.from("product_variants").select("product_id").in("product_id", ids).eq("is_active", true)
+      : { data: [] as { product_id: string }[] };
+    const withVariants = new Set((vRows ?? []).map((r) => r.product_id));
+    const annotated = (products ?? []).map((p) => ({ ...(p as Product), has_variants: withVariants.has(p.id) }));
+    return { category: cat as Category, products: annotated as Product[] };
   },
   head: ({ loaderData }) => ({
     meta: [
