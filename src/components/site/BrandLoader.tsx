@@ -24,7 +24,7 @@ export function BrandLoader() {
   return (
     <div
       aria-hidden="true"
-      className={`fixed inset-0 z-[100] flex items-center justify-center bg-gradient-warm ${leaving ? "loading-fade-out" : ""}`}
+      className={`fixed inset-0 z-[100] flex items-center justify-center bg-gradient-warm pointer-events-none ${leaving ? "loading-fade-out" : ""}`}
     >
       <div className="flex flex-col items-center gap-5 animate-float">
         <div className="font-serif text-5xl md:text-6xl text-primary tracking-tight">
