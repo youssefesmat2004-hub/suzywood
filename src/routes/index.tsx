@@ -115,6 +115,7 @@ function Index() {
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {featured.map((p, i) => {
             const isWished = wished.has(p.id);
+            const hasVariants = !!p.has_variants || asOptions(p.sizes).length > 1 || asOptions(p.finishes).length > 1;
             return (
               <Link
                 key={p.id}
@@ -142,10 +143,10 @@ function Index() {
                   <button
                     type="button"
                     onClick={(e) => quickAdd(e, p)}
-                    aria-label={`Add ${p.name} to cart`}
+                    aria-label={hasVariants ? `Choose size for ${p.name}` : `Add ${p.name} to cart`}
                     className="absolute bottom-3 left-3 right-3 inline-flex items-center justify-center gap-1.5 rounded-full bg-primary px-4 py-2.5 text-xs font-medium text-primary-foreground shadow-elegant opacity-0 translate-y-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0 hover:bg-wood focus:opacity-100 focus:translate-y-0"
                   >
-                    <Plus className="h-3.5 w-3.5" /> Add to Cart
+                    <Plus className="h-3.5 w-3.5" /> {hasVariants ? "Select Size" : "Add to Cart"}
                   </button>
                 </div>
                 <div className="p-5">
