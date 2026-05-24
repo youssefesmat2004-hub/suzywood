@@ -35,7 +35,13 @@ export const Route = createFileRoute("/")({
       .order("is_featured", { ascending: false })
       .order("starting_price")
       .limit(8);
-    return { featured: (data ?? []) as Product[] };
+    const ids = (data ?? []).map((p) => p.id);
+    const { data: vRows } = ids.length
+      ? await supabase.from("product_variants").select("product_id").in("product_id", ids).eq("is_active", true)
+      : { data: [] as { product_id: string }[] };
+    const withVariants = new Set((vRows ?? []).map((r) => r.product_id));
+    const featured = (data ?? []).map((p) => ({ ...(p as Product), has_variants: withVariants.has(p.id) }));
+    return { featured: featured as Product[] };
   },
   component: Index,
 });
@@ -49,10 +55,14 @@ function Index() {
   const heroSubtitle = content.hero_subtitle || "Handmade wooden baby furniture, built to last a lifetime.";
 
   const quickAdd = (e: React.MouseEvent, p: Product) => {
-    e.preventDefault();
-    e.stopPropagation();
     const sizes = asOptions(p.sizes);
     const finishes = asOptions(p.finishes);
+    const hasVariants = !!p.has_variants || sizes.length > 1 || finishes.length > 1;
+    // If the product has size variants, let the parent <Link> navigate so the
+    // customer can pick a size on the product page.
+    if (hasVariants) return;
+    e.preventDefault();
+    e.stopPropagation();
     const size = sizes[0];
     const finish = finishes[0];
     cart.add({
@@ -105,6 +115,7 @@ function Index() {
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {featured.map((p, i) => {
             const isWished = wished.has(p.id);
+            const hasVariants = !!p.has_variants || asOptions(p.sizes).length > 1 || asOptions(p.finishes).length > 1;
             return (
               <Link
                 key={p.id}
@@ -132,10 +143,10 @@ function Index() {
                   <button
                     type="button"
                     onClick={(e) => quickAdd(e, p)}
-                    aria-label={`Add ${p.name} to cart`}
+                    aria-label={hasVariants ? `Choose size for ${p.name}` : `Add ${p.name} to cart`}
                     className="absolute bottom-3 left-3 right-3 inline-flex items-center justify-center gap-1.5 rounded-full bg-primary px-4 py-2.5 text-xs font-medium text-primary-foreground shadow-elegant opacity-0 translate-y-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0 hover:bg-wood focus:opacity-100 focus:translate-y-0"
                   >
-                    <Plus className="h-3.5 w-3.5" /> Add to Cart
+                    <Plus className="h-3.5 w-3.5" /> {hasVariants ? "Select Size" : "Add to Cart"}
                   </button>
                 </div>
                 <div className="p-5">

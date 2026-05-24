@@ -32,6 +32,7 @@ export type Product = {
   is_featured: boolean;
   is_active: boolean;
   stock_quantity?: number;
+  has_variants?: boolean;
 };
 
 export type Review = {

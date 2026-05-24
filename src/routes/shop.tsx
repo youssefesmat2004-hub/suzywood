@@ -22,9 +22,15 @@ export const Route = createFileRoute("/shop")({
       supabase.from("categories").select("*").order("sort_order"),
       supabase.from("products").select("*").eq("is_active", true).order("created_at", { ascending: false }),
     ]);
+    const { data: vRows } = await supabase
+      .from("product_variants")
+      .select("product_id")
+      .eq("is_active", true);
+    const withVariants = new Set((vRows ?? []).map((r) => r.product_id));
+    const annotated = (products ?? []).map((p) => ({ ...(p as Product), has_variants: withVariants.has(p.id) }));
     return {
       categories: (categories ?? []) as Category[],
-      products: (products ?? []) as Product[],
+      products: annotated as Product[],
     };
   },
   component: Shop,
