@@ -7,9 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Pencil, Trash2, Upload, X, ImageIcon, GripVertical, ArrowUp, ArrowDown } from "lucide-react";
+import { Plus, Pencil, Trash2, Upload, X, ImageIcon, GripVertical, ArrowUp, ArrowDown, Crop as CropIcon } from "lucide-react";
 import { toast } from "sonner";
 import { resolveImage } from "@/lib/images";
+import { useImageCropper } from "@/hooks/use-image-cropper";
 import {
   Dialog,
   DialogContent,
@@ -48,12 +49,15 @@ export const Route = createFileRoute("/admin/categories")({
 const slugify = (s: string) =>
   s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
-async function uploadImage(file: File): Promise<string | null> {
-  const ext = file.name.split(".").pop();
+async function uploadImage(file: File | Blob, originalName?: string): Promise<string | null> {
+  const fromName = originalName?.split(".").pop();
+  const fromType = file.type?.split("/")[1];
+  const ext = (fromName || fromType || "jpg").toLowerCase();
   const path = `categories/${crypto.randomUUID()}.${ext}`;
   const { error } = await supabase.storage.from("product-images").upload(path, file, {
     cacheControl: "3600",
     upsert: false,
+    contentType: file.type || "image/jpeg",
   });
   if (error) {
     toast.error(error.message);
@@ -224,6 +228,7 @@ function CategoryDialog({
   const fileRef = useRef<HTMLInputElement>(null);
   const [sizes, setSizes] = useState<SizeRow[]>([]);
   const [sizesLoading, setSizesLoading] = useState(false);
+  const cropper = useImageCropper();
 
   useEffect(() => {
     if (!open || !value?.id) {
@@ -310,8 +315,19 @@ function CategoryDialog({
   };
 
   const handleUpload = async (file: File) => {
+    const cropped = await cropper.open(file, { title: "Crop category image" });
     setUploading(true);
-    const url = await uploadImage(file);
+    const url = await uploadImage(cropped ?? file, file.name);
+    setUploading(false);
+    if (url) onChange({ ...value, image_url: url });
+  };
+
+  const recrop = async () => {
+    if (!value.image_url) return;
+    const cropped = await cropper.open(resolveImage(value.image_url), { title: "Re-crop category image" });
+    if (!cropped) return;
+    setUploading(true);
+    const url = await uploadImage(cropped);
     setUploading(false);
     if (url) onChange({ ...value, image_url: url });
   };
@@ -319,6 +335,7 @@ function CategoryDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        {cropper.dialog}
         <DialogHeader>
           <DialogTitle>{isNew ? "New Category" : "Edit Category"}</DialogTitle>
         </DialogHeader>
@@ -374,9 +391,14 @@ function CategoryDialog({
                   <Upload className="h-3.5 w-3.5 mr-2" /> {uploading ? "Uploading…" : "Upload"}
                 </Button>
                 {value.image_url && (
-                  <Button type="button" variant="ghost" size="sm" onClick={() => onChange({ ...value, image_url: null })}>
-                    <X className="h-3.5 w-3.5 mr-2" /> Remove
-                  </Button>
+                  <>
+                    <Button type="button" variant="ghost" size="sm" onClick={recrop} disabled={uploading}>
+                      <CropIcon className="h-3.5 w-3.5 mr-2" /> Crop
+                    </Button>
+                    <Button type="button" variant="ghost" size="sm" onClick={() => onChange({ ...value, image_url: null })}>
+                      <X className="h-3.5 w-3.5 mr-2" /> Remove
+                    </Button>
+                  </>
                 )}
               </div>
             </div>

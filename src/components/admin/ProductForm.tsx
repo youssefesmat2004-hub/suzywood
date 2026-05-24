@@ -6,9 +6,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { resolveImage } from "@/lib/images";
-import { Trash2, Upload, Plus, X, Image as ImageIcon } from "lucide-react";
+import { Trash2, Upload, Plus, X, Image as ImageIcon, Crop as CropIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
+import { useImageCropper } from "@/hooks/use-image-cropper";
 type Category = { id: string; name: string; slug: string };
 type CategorySize = { label: string; price: number };
 type Variant = {
@@ -44,12 +45,15 @@ export type ProductFormValue = {
 const slugify = (s: string) =>
   s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
-async function uploadImage(file: File): Promise<string | null> {
-  const ext = file.name.split(".").pop();
+async function uploadImage(file: File | Blob, originalName?: string): Promise<string | null> {
+  const fromName = originalName?.split(".").pop();
+  const fromType = file.type?.split("/")[1];
+  const ext = (fromName || fromType || "jpg").toLowerCase();
   const path = `${crypto.randomUUID()}.${ext}`;
   const { error } = await supabase.storage.from("product-images").upload(path, file, {
     cacheControl: "3600",
     upsert: false,
+    contentType: file.type || "image/jpeg",
   });
   if (error) {
     toast.error(error.message);
@@ -61,6 +65,7 @@ async function uploadImage(file: File): Promise<string | null> {
 
 export function ProductForm({ initial, productId }: { initial?: ProductFormValue; productId?: string }) {
   const navigate = useNavigate();
+  const cropper = useImageCropper();
   const [categories, setCategories] = useState<Category[]>([]);
   const [v, setV] = useState<ProductFormValue>(
     initial ?? {
@@ -150,7 +155,18 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
 
   const handleMainUpload = async (file: File) => {
     setUploadingMain(true);
-    const url = await uploadImage(file);
+    const cropped = await cropper.open(file, { title: "Crop main image" });
+    const url = await uploadImage(cropped ?? file, file.name);
+    setUploadingMain(false);
+    if (url) setV({ ...v, image_url: url });
+  };
+
+  const recropMain = async () => {
+    if (!v.image_url) return;
+    const cropped = await cropper.open(resolveImage(v.image_url), { title: "Re-crop main image" });
+    if (!cropped) return;
+    setUploadingMain(true);
+    const url = await uploadImage(cropped);
     setUploadingMain(false);
     if (url) setV({ ...v, image_url: url });
   };
@@ -159,18 +175,38 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
     setUploadingGallery(true);
     const urls: string[] = [];
     for (const f of Array.from(files)) {
-      const u = await uploadImage(f);
+      const cropped = await cropper.open(f, { title: "Crop gallery image" });
+      const u = await uploadImage(cropped ?? f, f.name);
       if (u) urls.push(u);
     }
     setUploadingGallery(false);
     setV({ ...v, gallery: [...v.gallery, ...urls] });
   };
 
+  const recropGallery = async (idx: number) => {
+    const current = v.gallery[idx];
+    if (!current) return;
+    const cropped = await cropper.open(resolveImage(current), { title: "Re-crop gallery image" });
+    if (!cropped) return;
+    const url = await uploadImage(cropped);
+    if (url) setV({ ...v, gallery: v.gallery.map((u, i) => (i === idx ? url : u)) });
+  };
+
   const handleVariantImage = async (idx: number, file: File) => {
-    const url = await uploadImage(file);
+    const cropped = await cropper.open(file, { title: "Crop variant image" });
+    const url = await uploadImage(cropped ?? file, file.name);
     if (url) {
       setVariants((prev) => prev.map((x, i) => (i === idx ? { ...x, image_url: url } : x)));
     }
+  };
+
+  const recropVariant = async (idx: number) => {
+    const current = variants[idx]?.image_url;
+    if (!current) return;
+    const cropped = await cropper.open(resolveImage(current), { title: "Re-crop variant image" });
+    if (!cropped) return;
+    const url = await uploadImage(cropped);
+    if (url) setVariants((prev) => prev.map((x, i) => (i === idx ? { ...x, image_url: url } : x)));
   };
 
   const addVariant = () => {
@@ -255,6 +291,7 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
 
   return (
     <form onSubmit={submit} className="space-y-8 max-w-4xl">
+      {cropper.dialog}
       <section className="bg-background border rounded-xl p-6 space-y-4">
         <h2 className="font-serif text-xl">Basics</h2>
         <div className="grid sm:grid-cols-2 gap-4">
@@ -334,9 +371,14 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
                 <Upload className="h-3.5 w-3.5 mr-2" /> {uploadingMain ? "Uploading…" : "Upload"}
               </Button>
               {v.image_url && (
-                <Button type="button" variant="ghost" size="sm" onClick={() => setV({ ...v, image_url: null })}>
-                  <X className="h-3.5 w-3.5 mr-2" /> Remove
-                </Button>
+                <>
+                  <Button type="button" variant="ghost" size="sm" onClick={recropMain} disabled={uploadingMain}>
+                    <CropIcon className="h-3.5 w-3.5 mr-2" /> Crop
+                  </Button>
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setV({ ...v, image_url: null })}>
+                    <X className="h-3.5 w-3.5 mr-2" /> Remove
+                  </Button>
+                </>
               )}
             </div>
           </div>
@@ -346,12 +388,21 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
           <Label>Gallery</Label>
           <div className="mt-2 flex flex-wrap gap-3">
             {v.gallery.map((url, i) => (
-              <div key={i} className="relative h-24 w-24 rounded-lg overflow-hidden border">
+              <div key={i} className="relative h-24 w-24 rounded-lg overflow-hidden border group">
                 <img src={resolveImage(url)} alt="" className="w-full h-full object-cover" />
+                <button
+                  type="button"
+                  onClick={() => recropGallery(i)}
+                  className="absolute top-1 left-1 h-5 w-5 rounded-full bg-background/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                  title="Crop"
+                >
+                  <CropIcon className="h-3 w-3" />
+                </button>
                 <button
                   type="button"
                   onClick={() => setV({ ...v, gallery: v.gallery.filter((_, j) => j !== i) })}
                   className="absolute top-1 right-1 h-5 w-5 rounded-full bg-background/90 flex items-center justify-center"
+                  title="Remove"
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -395,7 +446,12 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
           {variants.map((variant, idx) =>
             variant._delete ? null : (
               <div key={variant.id ?? `new-${idx}`} className="border rounded-lg p-4 grid sm:grid-cols-12 gap-3 items-start">
-                <VariantImage variant={variant} onUpload={(f) => handleVariantImage(idx, f)} onClear={() => setVariants((p) => p.map((x, i) => i === idx ? { ...x, image_url: null } : x))} />
+                <VariantImage
+                  variant={variant}
+                  onUpload={(f) => handleVariantImage(idx, f)}
+                  onClear={() => setVariants((p) => p.map((x, i) => i === idx ? { ...x, image_url: null } : x))}
+                  onRecrop={() => recropVariant(idx)}
+                />
                 <div className="sm:col-span-4 space-y-1">
                   <Label className="text-xs">Variant name</Label>
                   <Input
@@ -431,7 +487,7 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
   );
 }
 
-function VariantImage({ variant, onUpload, onClear }: { variant: Variant; onUpload: (f: File) => void; onClear: () => void }) {
+function VariantImage({ variant, onUpload, onClear, onRecrop }: { variant: Variant; onUpload: (f: File) => void; onClear: () => void; onRecrop: () => void }) {
   const ref = useRef<HTMLInputElement>(null);
   return (
     <div className="sm:col-span-2">
@@ -440,9 +496,14 @@ function VariantImage({ variant, onUpload, onClear }: { variant: Variant; onUplo
         {variant.image_url ? (
           <>
             <img src={resolveImage(variant.image_url)} alt="" className="w-full h-full object-cover" />
-            <button type="button" onClick={onClear} className="absolute inset-0 bg-black/50 text-white text-xs opacity-0 group-hover:opacity-100 flex items-center justify-center">
-              Clear
-            </button>
+            <div className="absolute inset-0 bg-black/50 text-white text-[10px] opacity-0 group-hover:opacity-100 flex items-center justify-center gap-1">
+              <button type="button" onClick={onRecrop} className="px-1.5 py-0.5 rounded bg-white/20 hover:bg-white/30">
+                Crop
+              </button>
+              <button type="button" onClick={onClear} className="px-1.5 py-0.5 rounded bg-white/20 hover:bg-white/30">
+                Clear
+              </button>
+            </div>
           </>
         ) : (
           <button type="button" onClick={() => ref.current?.click()} className="w-full h-full flex items-center justify-center text-muted-foreground">
