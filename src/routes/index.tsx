@@ -35,7 +35,13 @@ export const Route = createFileRoute("/")({
       .order("is_featured", { ascending: false })
       .order("starting_price")
       .limit(8);
-    return { featured: (data ?? []) as Product[] };
+    const ids = (data ?? []).map((p) => p.id);
+    const { data: vRows } = ids.length
+      ? await supabase.from("product_variants").select("product_id").in("product_id", ids).eq("is_active", true)
+      : { data: [] as { product_id: string }[] };
+    const withVariants = new Set((vRows ?? []).map((r) => r.product_id));
+    const featured = (data ?? []).map((p) => ({ ...(p as Product), has_variants: withVariants.has(p.id) }));
+    return { featured: featured as Product[] };
   },
   component: Index,
 });
