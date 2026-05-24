@@ -10,13 +10,16 @@ export function ProductCard({ product }: { product: Product }) {
   const cart = useCart();
   const sizes = asOptions(product.sizes);
   const finishes = asOptions(product.finishes);
-  const hasVariants = sizes.length > 1 || finishes.length > 1;
+  const hasVariants = !!product.has_variants || sizes.length > 1 || finishes.length > 1;
   const soldOut = (product.stock_quantity ?? 1) <= 0;
 
   const quickAdd = (e: React.MouseEvent) => {
+    if (soldOut) return;
+    // If the product has size variants, let the parent <Link> navigate to the
+    // product page so the customer can pick a size first.
+    if (hasVariants) return;
     e.preventDefault();
     e.stopPropagation();
-    if (soldOut) return;
     const size = sizes[0];
     const finish = finishes[0];
     cart.add({
@@ -59,10 +62,10 @@ export function ProductCard({ product }: { product: Product }) {
           <button
             type="button"
             onClick={quickAdd}
-            aria-label={`Quick add ${product.name} to cart`}
+            aria-label={hasVariants ? `Choose size for ${product.name}` : `Quick add ${product.name} to cart`}
             className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-2 text-xs font-medium text-primary-foreground shadow-elegant opacity-0 translate-y-1 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0 hover:bg-primary/90 focus:opacity-100 focus:translate-y-0"
           >
-            <Plus className="h-3.5 w-3.5" /> Add to cart
+            <Plus className="h-3.5 w-3.5" /> {hasVariants ? "Select size" : "Add to cart"}
           </button>
         )}
       </div>
