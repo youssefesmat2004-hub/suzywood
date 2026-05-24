@@ -55,10 +55,14 @@ function Index() {
   const heroSubtitle = content.hero_subtitle || "Handmade wooden baby furniture, built to last a lifetime.";
 
   const quickAdd = (e: React.MouseEvent, p: Product) => {
-    e.preventDefault();
-    e.stopPropagation();
     const sizes = asOptions(p.sizes);
     const finishes = asOptions(p.finishes);
+    const hasVariants = !!p.has_variants || sizes.length > 1 || finishes.length > 1;
+    // If the product has size variants, let the parent <Link> navigate so the
+    // customer can pick a size on the product page.
+    if (hasVariants) return;
+    e.preventDefault();
+    e.stopPropagation();
     const size = sizes[0];
     const finish = finishes[0];
     cart.add({
