@@ -1,4 +1,4 @@
-import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, useNavigate, useRouter } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Layout } from "@/components/site/Layout";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,33 @@ type Variant = {
   is_active: boolean;
   sort_order: number;
 };
+
+function ProductError({ error, reset }: { error: Error; reset: () => void }) {
+  const router = useRouter();
+
+  return (
+    <Layout>
+      <div className="container mx-auto px-6 py-32 text-center">
+        <h1 className="font-serif text-4xl">This product could not load</h1>
+        <p className="mx-auto mt-3 max-w-md text-sm text-muted-foreground">Please try again in a moment.</p>
+        {import.meta.env.DEV && <p className="mt-3 text-xs text-destructive">{error.message}</p>}
+        <div className="mt-6 flex items-center justify-center gap-4">
+          <button
+            type="button"
+            onClick={() => {
+              router.invalidate();
+              reset();
+            }}
+            className="inline-flex items-center justify-center rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          >
+            Try again
+          </button>
+          <Link to="/shop" className="text-primary border-b border-primary">Back to collection</Link>
+        </div>
+      </div>
+    </Layout>
+  );
+}
 
 export const Route = createFileRoute("/shop/$slug")({
   loader: async ({ params }) => {
@@ -78,6 +105,7 @@ export const Route = createFileRoute("/shop/$slug")({
     };
   },
   component: ProductPage,
+  errorComponent: ProductError,
   notFoundComponent: () => (
     <Layout>
       <div className="container mx-auto px-6 py-32 text-center">
