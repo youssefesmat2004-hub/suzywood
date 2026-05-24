@@ -7,16 +7,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
-import { ImagePlus, X } from "lucide-react";
+import { ImagePlus, X, Crop as CropIcon } from "lucide-react";
+import { useImageCropper } from "@/hooks/use-image-cropper";
 
 export function CustomBuildForm() {
   const { user } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   const [room, setRoom] = useState("nursery");
-  const [file, setFile] = useState<File | null>(null);
+  const [file, setFile] = useState<File | Blob | null>(null);
+  const [fileName, setFileName] = useState<string>("inspo.jpg");
   const [preview, setPreview] = useState<string | null>(null);
+  const cropper = useImageCropper();
 
-  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0] ?? null;
     if (!f) { setFile(null); setPreview(null); return; }
     if (!f.type.startsWith("image/")) {
@@ -25,11 +28,23 @@ export function CustomBuildForm() {
     if (f.size > 5 * 1024 * 1024) {
       toast.error("Image must be under 5MB"); return;
     }
-    setFile(f);
-    setPreview(URL.createObjectURL(f));
+    const cropped = await cropper.open(f, { title: "Crop inspiration photo" });
+    const finalFile = cropped ?? f;
+    setFile(finalFile);
+    setFileName(f.name);
+    setPreview(URL.createObjectURL(finalFile));
+    e.target.value = "";
   };
 
   const clearFile = () => { setFile(null); setPreview(null); };
+
+  const recrop = async () => {
+    if (!file) return;
+    const cropped = await cropper.open(file, { title: "Re-crop inspiration photo" });
+    if (!cropped) return;
+    setFile(cropped);
+    setPreview(URL.createObjectURL(cropped));
+  };
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -38,11 +53,11 @@ export function CustomBuildForm() {
 
     let inspiration_image_url: string | null = null;
     if (file) {
-      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const ext = (fileName.split(".").pop() || file.type.split("/")[1] || "jpg").toLowerCase();
       const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
       const { error: upErr } = await supabase.storage
         .from("inspiration-images")
-        .upload(path, file, { contentType: file.type, upsert: false });
+        .upload(path, file, { contentType: file.type || "image/jpeg", upsert: false });
       if (upErr) {
         setSubmitting(false);
         toast.error("Couldn't upload image", { description: upErr.message });
@@ -73,6 +88,7 @@ export function CustomBuildForm() {
 
   return (
     <form onSubmit={onSubmit} className="space-y-5">
+      {cropper.dialog}
       <div className="grid gap-5 sm:grid-cols-2">
         <div className="space-y-2"><Label htmlFor="name">Full name</Label><Input id="name" name="name" required maxLength={100} /></div>
         <div className="space-y-2"><Label htmlFor="email">Email</Label><Input id="email" type="email" name="email" required maxLength={255} /></div>
@@ -98,6 +114,9 @@ export function CustomBuildForm() {
         {preview ? (
           <div className="relative inline-block">
             <img src={preview} alt="Inspiration preview" className="h-40 w-40 object-cover rounded-xl border border-border" />
+            <button type="button" onClick={recrop} className="absolute -top-2 -left-2 h-7 w-7 rounded-full bg-foreground text-background flex items-center justify-center shadow-card" aria-label="Crop image">
+              <CropIcon className="h-4 w-4" />
+            </button>
             <button type="button" onClick={clearFile} className="absolute -top-2 -right-2 h-7 w-7 rounded-full bg-foreground text-background flex items-center justify-center shadow-card" aria-label="Remove image">
               <X className="h-4 w-4" />
             </button>
