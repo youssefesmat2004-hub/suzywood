@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { Layout } from "@/components/site/Layout";
@@ -9,6 +9,41 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import type { Category, Product } from "@/lib/types";
+
+function ShopError({ error, reset }: { error: Error; reset: () => void }) {
+  const router = useRouter();
+
+  return (
+    <Layout>
+      <div className="container mx-auto px-6 py-32 text-center">
+        <h1 className="font-serif text-4xl">The collection could not load</h1>
+        <p className="mx-auto mt-3 max-w-md text-sm text-muted-foreground">Please try again in a moment.</p>
+        {import.meta.env.DEV && <p className="mt-3 text-xs text-destructive">{error.message}</p>}
+        <button
+          type="button"
+          onClick={() => {
+            router.invalidate();
+            reset();
+          }}
+          className="mt-6 inline-flex items-center justify-center rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+        >
+          Try again
+        </button>
+      </div>
+    </Layout>
+  );
+}
+
+function ShopNotFound() {
+  return (
+    <Layout>
+      <div className="container mx-auto px-6 py-32 text-center">
+        <h1 className="font-serif text-4xl">Collection not found</h1>
+        <Link to="/" className="mt-6 inline-block text-primary border-b border-primary">Return home</Link>
+      </div>
+    </Layout>
+  );
+}
 
 export const Route = createFileRoute("/shop/")({
   head: () => ({
@@ -34,6 +69,8 @@ export const Route = createFileRoute("/shop/")({
     };
   },
   component: Shop,
+  errorComponent: ShopError,
+  notFoundComponent: ShopNotFound,
 });
 
 type SortKey = "newest" | "price_asc" | "price_desc";
