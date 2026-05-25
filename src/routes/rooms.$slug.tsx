@@ -2,7 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { Layout } from "@/components/site/Layout";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
-import { getRoom, rooms } from "@/lib/rooms";
+import { getRoom, rooms, type Room } from "@/lib/rooms";
 
 export const Route = createFileRoute("/rooms/$slug")({
   loader: ({ params }) => {
@@ -45,7 +45,7 @@ export const Route = createFileRoute("/rooms/$slug")({
 });
 
 function RoomPage() {
-  const { room } = Route.useLoaderData();
+  const { room } = Route.useLoaderData() as { room: Room };
   const others = rooms.filter((r) => r.slug !== room.slug);
 
   return (
