@@ -6,6 +6,7 @@ import { HowItWorks } from "@/components/site/HowItWorks";
 import { InstagramStrip } from "@/components/site/InstagramStrip";
 import { FinalCTA } from "@/components/site/FinalCTA";
 import { CustomerReviews } from "@/components/site/CustomerReviews";
+import { WholeRooms } from "@/components/site/WholeRooms";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import type { Product } from "@/lib/types";
@@ -164,6 +165,8 @@ function Index() {
       <HowItWorks />
 
       <CustomerReviews />
+
+      <WholeRooms />
 
       {/* Our craft story */}
       <section className="container mx-auto px-6 lg:px-10 py-20 md:py-24">
