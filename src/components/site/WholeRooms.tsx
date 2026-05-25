@@ -14,10 +14,16 @@ import b2 from "@/assets/whole-rooms/room-b/img-2.jpeg";
 import b3 from "@/assets/whole-rooms/room-b/img-3.jpeg";
 import b4 from "@/assets/whole-rooms/room-b/img-4.jpeg";
 import b5 from "@/assets/whole-rooms/room-b/img-5.jpeg";
+import c1 from "@/assets/whole-rooms/room-c/img-1.jpeg";
+import c2 from "@/assets/whole-rooms/room-c/img-2.jpeg";
+import c3 from "@/assets/whole-rooms/room-c/img-3.jpeg";
+import c4 from "@/assets/whole-rooms/room-c/img-4.jpeg";
+import c5 from "@/assets/whole-rooms/room-c/img-5.jpeg";
 
 const rooms: { name: string; images: string[] }[] = [
   { name: "Room One", images: [r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11] },
   { name: "Room Two", images: [b1, b2, b3, b4, b5] },
+  { name: "Room Three", images: [c1, c2, c3, c4, c5] },
 ];
 
 export function WholeRooms() {
