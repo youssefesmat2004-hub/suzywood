@@ -62,11 +62,11 @@ function renderEmail(opts: {
           <h3 style="margin:16px 0 4px;font-size:14px;color:#777;text-transform:uppercase;letter-spacing:1px;font-family:Arial,sans-serif;font-weight:600;">Payment summary</h3>
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-family:Arial,sans-serif;">
             <tr>
-              <td style="padding:8px 0;color:#222;font-size:14px;">Paid upfront (70%)</td>
+              <td style="padding:8px 0;color:#222;font-size:14px;">Paid upfront (75%)</td>
               <td style="padding:8px 0;color:#1a1a1a;font-size:14px;text-align:right;font-weight:600;">EGP ${Number(opts.upfront).toLocaleString()}</td>
             </tr>
             <tr>
-              <td style="padding:8px 0;color:#222;font-size:14px;border-bottom:1px solid #eee;">Due on delivery (30% + delivery fees)</td>
+              <td style="padding:8px 0;color:#222;font-size:14px;border-bottom:1px solid #eee;">Due on delivery (25% + delivery fees)</td>
               <td style="padding:8px 0;color:#1a1a1a;font-size:14px;text-align:right;border-bottom:1px solid #eee;">EGP ${Number(opts.remaining).toLocaleString()}</td>
             </tr>
           </table>

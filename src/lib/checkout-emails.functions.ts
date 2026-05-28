@@ -64,7 +64,7 @@ export const sendCheckoutPendingEmail = createServerFn({ method: "POST" })
           <h2 style="margin:0 0 8px;font-size:20px;color:#1a1a1a;font-weight:normal;">Thank you! Your order is confirmed.</h2>
           <p style="margin:0 0 4px;color:#555;font-size:14px;font-family:Arial,sans-serif;">Hi ${escapeHtml(order.customer_name)},</p>
           <p style="margin:8px 0 16px;color:#555;font-size:14px;line-height:1.6;font-family:Arial,sans-serif;">
-            We've received your order <strong>${escapeHtml(order.order_number)}</strong> and the 70% upfront payment
+            We've received your order <strong>${escapeHtml(order.order_number)}</strong> and the 75% upfront payment
             ${order.instapay_reference ? `(InstaPay reference <strong>${escapeHtml(order.instapay_reference)}</strong>)` : ""}.
             Our team will contact you shortly to arrange delivery.
           </p>
@@ -73,11 +73,11 @@ export const sendCheckoutPendingEmail = createServerFn({ method: "POST" })
           <h3 style="margin:16px 0 4px;font-size:14px;color:#777;text-transform:uppercase;letter-spacing:1px;font-family:Arial,sans-serif;font-weight:600;">Payment summary</h3>
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-family:Arial,sans-serif;">
             <tr>
-              <td style="padding:8px 0;color:#222;font-size:14px;">Amount paid upfront (70%)</td>
+              <td style="padding:8px 0;color:#222;font-size:14px;">Amount paid upfront (75%)</td>
               <td style="padding:8px 0;color:#1a1a1a;font-size:14px;text-align:right;font-weight:600;">EGP ${upfront.toLocaleString()}</td>
             </tr>
             <tr>
-              <td style="padding:8px 0;color:#222;font-size:14px;border-bottom:1px solid #eee;">Remaining on delivery (30% + delivery fees)</td>
+              <td style="padding:8px 0;color:#222;font-size:14px;border-bottom:1px solid #eee;">Remaining on delivery (25% + delivery fees)</td>
               <td style="padding:8px 0;color:#1a1a1a;font-size:14px;text-align:right;border-bottom:1px solid #eee;">EGP ${remaining.toLocaleString()}</td>
             </tr>
           </table>
