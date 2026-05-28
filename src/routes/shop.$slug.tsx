@@ -74,7 +74,7 @@ export const Route = createFileRoute("/shop/$slug")({
         .limit(4),
       supabase
         .from("categories")
-        .select("custom_size_enabled,custom_size_surcharge,custom_size_note")
+        .select("custom_size_enabled,custom_size_surcharge,custom_size_note,name_engraving_enabled,name_engraving_surcharge,name_engraving_note,finish_label")
         .eq("id", product.category_id)
         .maybeSingle(),
     ]);
@@ -86,6 +86,10 @@ export const Route = createFileRoute("/shop/$slug")({
         custom_size_enabled: boolean;
         custom_size_surcharge: number;
         custom_size_note: string | null;
+        name_engraving_enabled: boolean;
+        name_engraving_surcharge: number;
+        name_engraving_note: string | null;
+        finish_label: string | null;
       } | null,
     };
   },
@@ -125,6 +129,10 @@ function ProductPage() {
       custom_size_enabled: boolean;
       custom_size_surcharge: number;
       custom_size_note: string | null;
+      name_engraving_enabled: boolean;
+      name_engraving_surcharge: number;
+      name_engraving_note: string | null;
+      finish_label: string | null;
     } | null;
   };
   const navigate = useNavigate();
@@ -159,11 +167,16 @@ function ProductPage() {
 
   const customSurcharge = Number(category?.custom_size_surcharge ?? 0);
   const customEnabled = !!category?.custom_size_enabled;
+  const engravingEnabled = !!category?.name_engraving_enabled;
+  const engravingSurcharge = Number(category?.name_engraving_surcharge ?? 0);
+  const engravingApplied = engravingEnabled && engraving.trim().length > 0;
+  const finishLabel = category?.finish_label?.trim() || "Wood Finish";
   const stock = customMode ? 99 : (selectedVariant ? selectedVariant.stock_quantity : (product.stock_quantity ?? 99));
   const soldOut = !customMode && stock <= 0;
-  const unitPrice = customMode
+  const basePrice = customMode
     ? product.starting_price + customSurcharge
     : (selectedVariant ? selectedVariant.price : product.starting_price);
+  const unitPrice = basePrice + (engravingApplied ? engravingSurcharge : 0);
 
   const stockBadge = soldOut
     ? { label: "Sold out", className: "bg-destructive/10 text-destructive" }
@@ -324,7 +337,7 @@ function ProductPage() {
               )}
               {finishes.length > 0 && (
                 <div className="space-y-2">
-                  <Label>Wood Finish</Label>
+                  <Label>{finishLabel}</Label>
                   <div className="flex flex-wrap gap-2">
                     {finishes.map((f) => (
                       <button
@@ -340,8 +353,18 @@ function ProductPage() {
                 </div>
               )}
               <div className="space-y-2">
-                <Label htmlFor="engrave">Add baby's name for custom engraving (optional)</Label>
+                <Label htmlFor="engrave">
+                  Add baby's name for custom engraving (optional)
+                  {engravingEnabled && engravingSurcharge > 0 && (
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      +{engravingSurcharge.toLocaleString()} EGP
+                    </span>
+                  )}
+                </Label>
                 <Input id="engrave" value={engraving} onChange={(e) => setEngraving(e.target.value)} maxLength={20} placeholder="e.g. Layla" />
+                {engravingEnabled && category?.name_engraving_note && (
+                  <p className="text-xs text-muted-foreground italic">{category.name_engraving_note}</p>
+                )}
               </div>
 
               <div className="space-y-2">
