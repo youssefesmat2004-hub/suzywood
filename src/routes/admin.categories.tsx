@@ -273,6 +273,10 @@ function CategoryDialog({
       custom_size_enabled: value.custom_size_enabled,
       custom_size_surcharge: Number(value.custom_size_surcharge) || 0,
       custom_size_note: value.custom_size_note || null,
+      name_engraving_enabled: value.name_engraving_enabled,
+      name_engraving_surcharge: Number(value.name_engraving_surcharge) || 0,
+      name_engraving_note: value.name_engraving_note || null,
+      finish_label: value.finish_label?.trim() || null,
     };
     let catId = value.id;
     if (isNew) {
