@@ -352,10 +352,11 @@ function CategoryDialog({
           <DialogTitle>{isNew ? "New Category" : "Edit Category"}</DialogTitle>
         </DialogHeader>
         <Tabs defaultValue="details">
-          <TabsList className="grid grid-cols-3 w-full">
+          <TabsList className="grid grid-cols-4 w-full">
             <TabsTrigger value="details">Details</TabsTrigger>
             <TabsTrigger value="sizes" disabled={isNew}>Sizes & Pricing</TabsTrigger>
             <TabsTrigger value="custom" disabled={isNew}>Custom Size</TabsTrigger>
+            <TabsTrigger value="engraving" disabled={isNew}>Engraving</TabsTrigger>
           </TabsList>
 
           <TabsContent value="details" className="space-y-4 mt-4">
@@ -380,6 +381,15 @@ function CategoryDialog({
               onChange={(e) => onChange({ ...value, slug: slugify(e.target.value) })}
               placeholder="cribs-cradles"
             />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Colour / Finish picker label (optional)</Label>
+            <Input
+              value={value.finish_label ?? ""}
+              onChange={(e) => onChange({ ...value, finish_label: e.target.value })}
+              placeholder="e.g. Pompom Colour"
+            />
+            <p className="text-xs text-muted-foreground">Overrides the default "Wood Finish" label on product pages.</p>
           </div>
           <div className="space-y-1.5">
             <Label>Image / Icon (optional)</Label>
