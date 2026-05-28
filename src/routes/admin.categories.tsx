@@ -30,6 +30,10 @@ type CategoryRow = {
   custom_size_enabled: boolean;
   custom_size_surcharge: number;
   custom_size_note: string | null;
+  name_engraving_enabled: boolean;
+  name_engraving_surcharge: number;
+  name_engraving_note: string | null;
+  finish_label: string | null;
   product_count?: number;
 };
 
@@ -108,6 +112,10 @@ function CategoriesPage() {
       custom_size_enabled: false,
       custom_size_surcharge: 0,
       custom_size_note: null,
+      name_engraving_enabled: false,
+      name_engraving_surcharge: 0,
+      name_engraving_note: null,
+      finish_label: null,
     });
     setOpen(true);
   };
