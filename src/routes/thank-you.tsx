@@ -51,11 +51,11 @@ function ThankYou() {
           <div className="mt-8 mx-auto max-w-md text-left bg-muted/40 border border-border rounded-2xl p-6 space-y-3">
             <h2 className="font-serif text-xl text-center mb-2">Payment summary</h2>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Amount paid now (70%)</span>
+              <span className="text-muted-foreground">Amount paid now (75%)</span>
               <span className="font-medium text-primary">EGP {Number(data.upfront_amount).toLocaleString()}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Due on delivery (30% + delivery fees)</span>
+              <span className="text-muted-foreground">Due on delivery (25% + delivery fees)</span>
               <span className="font-medium">EGP {Number(data.remaining_amount).toLocaleString()}</span>
             </div>
           </div>

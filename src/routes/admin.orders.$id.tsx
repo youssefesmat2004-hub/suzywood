@@ -218,11 +218,11 @@ function OrderDetailPage() {
             {order.upfront_amount != null && order.remaining_amount != null ? (
               <div className="grid sm:grid-cols-2 gap-4 mb-4">
                 <div className="rounded-lg border p-4 bg-emerald-50/50">
-                  <p className="text-xs uppercase tracking-wider text-muted-foreground">Paid upfront (70%)</p>
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground">Paid upfront (75%)</p>
                   <p className="text-xl font-medium mt-1">EGP {Number(order.upfront_amount).toLocaleString()}</p>
                 </div>
                 <div className="rounded-lg border p-4 bg-amber-50/50">
-                  <p className="text-xs uppercase tracking-wider text-muted-foreground">Due on delivery (30% + delivery)</p>
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground">Due on delivery (25% + delivery)</p>
                   <p className="text-xl font-medium mt-1">EGP {Number(order.remaining_amount).toLocaleString()}</p>
                 </div>
               </div>

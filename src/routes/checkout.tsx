@@ -22,7 +22,7 @@ export const Route = createFileRoute("/checkout")({
 const SHIPPING = 1000;
 const INSTAPAY_NUMBER = "01096313532";
 const INSTAPAY_HANDLE = "axady@instapay";
-const UPFRONT_RATE = 0.7;
+const UPFRONT_RATE = 0.75;
 
 type Details = {
   name: string; email: string; phone: string;
@@ -212,13 +212,13 @@ function Checkout() {
             <div className="space-y-1"><Label htmlFor="notes">Delivery notes (optional)</Label><Textarea id="notes" name="notes" maxLength={500} rows={2} defaultValue={details?.notes ?? ""} /></div>
 
             <div className="rounded-xl bg-muted/50 border border-border p-4 text-sm text-muted-foreground">
-              Next step: pay <strong>EGP {upfront.toLocaleString()} (70%)</strong> upfront via{" "}
+              Next step: pay <strong>EGP {upfront.toLocaleString()} (75%)</strong> upfront via{" "}
               <strong>InstaPay</strong> to confirm your order. The remaining{" "}
-              <strong>EGP {remainingOnDelivery.toLocaleString()}</strong> (30% + delivery) is paid on delivery.
+              <strong>EGP {remainingOnDelivery.toLocaleString()}</strong> (25% + delivery) is paid on delivery.
             </div>
 
             <Button type="submit" size="lg" className="w-full">
-              Continue to payment — Pay 70% now (EGP {upfront.toLocaleString()})
+              Continue to payment — Pay 75% now (EGP {upfront.toLocaleString()})
             </Button>
           </form>
           ) : (
@@ -226,10 +226,10 @@ function Checkout() {
             <div>
               <h2 className="font-serif text-2xl mb-1">Pay with InstaPay</h2>
               <p className="text-sm text-muted-foreground">
-                Send exactly <strong className="text-foreground">EGP {upfront.toLocaleString()} (70%)</strong>{" "}
+                Send exactly <strong className="text-foreground">EGP {upfront.toLocaleString()} (75%)</strong>{" "}
                 using the QR below to confirm your order, then enter your transaction ID and upload a screenshot.
                 The remaining <strong className="text-foreground">EGP {remainingOnDelivery.toLocaleString()}</strong>{" "}
-                (30% + delivery fees) is paid in cash or InstaPay on delivery.
+                (25% + delivery fees) is paid in cash or InstaPay on delivery.
               </p>
             </div>
 
@@ -237,7 +237,7 @@ function Checkout() {
               <img src={qrImage} alt="Suzy Wood InstaPay QR code" className="w-full max-w-[200px] rounded-lg" />
               <div className="space-y-3 text-sm">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Pay now (70%)</p>
+                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Pay now (75%)</p>
                   <p className="font-serif text-2xl text-primary">EGP {upfront.toLocaleString()}</p>
                   <p className="text-xs text-muted-foreground mt-1">
                     Order total EGP {subtotal.toLocaleString()} · Remaining on delivery EGP {remainingOnDelivery.toLocaleString()}
@@ -255,7 +255,7 @@ function Checkout() {
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="reference">InstaPay transaction ID for the 70% payment *</Label>
+              <Label htmlFor="reference">InstaPay transaction ID for the 75% payment *</Label>
               <Input
                 id="reference"
                 value={reference}
@@ -267,7 +267,7 @@ function Checkout() {
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="proof">Screenshot of the 70% payment (optional but recommended)</Label>
+              <Label htmlFor="proof">Screenshot of the 75% payment (optional but recommended)</Label>
               <input
                 ref={fileInputRef}
                 id="proof"
@@ -352,11 +352,11 @@ function Checkout() {
 
             <div className="border-t border-border pt-3 space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Pay now (70%)</span>
+                <span className="text-muted-foreground">Pay now (75%)</span>
                 <span className="font-medium text-primary">EGP {upfront.toLocaleString()}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Due on delivery (30% + shipping)</span>
+                <span className="text-muted-foreground">Due on delivery (25% + shipping)</span>
                 <span className="font-medium">EGP {remainingOnDelivery.toLocaleString()}</span>
               </div>
             </div>
