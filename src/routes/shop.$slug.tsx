@@ -352,20 +352,22 @@ function ProductPage() {
                   </div>
                 </div>
               )}
-              <div className="space-y-2">
-                <Label htmlFor="engrave">
-                  Add baby's name for custom engraving (optional)
-                  {engravingEnabled && engravingSurcharge > 0 && (
-                    <span className="ml-2 text-xs text-muted-foreground">
-                      +{engravingSurcharge.toLocaleString()} EGP
-                    </span>
+              {engravingEnabled && (
+                <div className="space-y-2">
+                  <Label htmlFor="engrave">
+                    Add child's name for custom engraving (optional)
+                    {engravingSurcharge > 0 && (
+                      <span className="ml-2 text-xs text-muted-foreground">
+                        +{engravingSurcharge.toLocaleString()} EGP
+                      </span>
+                    )}
+                  </Label>
+                  <Input id="engrave" value={engraving} onChange={(e) => setEngraving(e.target.value)} maxLength={20} placeholder="e.g. Layla" />
+                  {category?.name_engraving_note && (
+                    <p className="text-xs text-muted-foreground italic">{category.name_engraving_note}</p>
                   )}
-                </Label>
-                <Input id="engrave" value={engraving} onChange={(e) => setEngraving(e.target.value)} maxLength={20} placeholder="e.g. Layla" />
-                {engravingEnabled && category?.name_engraving_note && (
-                  <p className="text-xs text-muted-foreground italic">{category.name_engraving_note}</p>
-                )}
-              </div>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label>Quantity</Label>
