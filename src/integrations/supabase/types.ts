@@ -60,9 +60,13 @@ export type Database = {
           custom_size_note: string | null
           custom_size_surcharge: number
           description: string | null
+          finish_label: string | null
           id: string
           image_url: string | null
           name: string
+          name_engraving_enabled: boolean
+          name_engraving_note: string | null
+          name_engraving_surcharge: number
           slug: string
           sort_order: number
         }
@@ -72,9 +76,13 @@ export type Database = {
           custom_size_note?: string | null
           custom_size_surcharge?: number
           description?: string | null
+          finish_label?: string | null
           id?: string
           image_url?: string | null
           name: string
+          name_engraving_enabled?: boolean
+          name_engraving_note?: string | null
+          name_engraving_surcharge?: number
           slug: string
           sort_order?: number
         }
@@ -84,9 +92,13 @@ export type Database = {
           custom_size_note?: string | null
           custom_size_surcharge?: number
           description?: string | null
+          finish_label?: string | null
           id?: string
           image_url?: string | null
           name?: string
+          name_engraving_enabled?: boolean
+          name_engraving_note?: string | null
+          name_engraving_surcharge?: number
           slug?: string
           sort_order?: number
         }

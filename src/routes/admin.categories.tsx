@@ -30,6 +30,10 @@ type CategoryRow = {
   custom_size_enabled: boolean;
   custom_size_surcharge: number;
   custom_size_note: string | null;
+  name_engraving_enabled: boolean;
+  name_engraving_surcharge: number;
+  name_engraving_note: string | null;
+  finish_label: string | null;
   product_count?: number;
 };
 
@@ -108,6 +112,10 @@ function CategoriesPage() {
       custom_size_enabled: false,
       custom_size_surcharge: 0,
       custom_size_note: null,
+      name_engraving_enabled: false,
+      name_engraving_surcharge: 0,
+      name_engraving_note: null,
+      finish_label: null,
     });
     setOpen(true);
   };
@@ -265,6 +273,10 @@ function CategoryDialog({
       custom_size_enabled: value.custom_size_enabled,
       custom_size_surcharge: Number(value.custom_size_surcharge) || 0,
       custom_size_note: value.custom_size_note || null,
+      name_engraving_enabled: value.name_engraving_enabled,
+      name_engraving_surcharge: Number(value.name_engraving_surcharge) || 0,
+      name_engraving_note: value.name_engraving_note || null,
+      finish_label: value.finish_label?.trim() || null,
     };
     let catId = value.id;
     if (isNew) {
@@ -340,10 +352,11 @@ function CategoryDialog({
           <DialogTitle>{isNew ? "New Category" : "Edit Category"}</DialogTitle>
         </DialogHeader>
         <Tabs defaultValue="details">
-          <TabsList className="grid grid-cols-3 w-full">
+          <TabsList className="grid grid-cols-4 w-full">
             <TabsTrigger value="details">Details</TabsTrigger>
             <TabsTrigger value="sizes" disabled={isNew}>Sizes & Pricing</TabsTrigger>
             <TabsTrigger value="custom" disabled={isNew}>Custom Size</TabsTrigger>
+            <TabsTrigger value="engraving" disabled={isNew}>Engraving</TabsTrigger>
           </TabsList>
 
           <TabsContent value="details" className="space-y-4 mt-4">
@@ -368,6 +381,15 @@ function CategoryDialog({
               onChange={(e) => onChange({ ...value, slug: slugify(e.target.value) })}
               placeholder="cribs-cradles"
             />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Colour / Finish picker label (optional)</Label>
+            <Input
+              value={value.finish_label ?? ""}
+              onChange={(e) => onChange({ ...value, finish_label: e.target.value })}
+              placeholder="e.g. Pompom Colour"
+            />
+            <p className="text-xs text-muted-foreground">Overrides the default "Wood Finish" label on product pages.</p>
           </div>
           <div className="space-y-1.5">
             <Label>Image / Icon (optional)</Label>
@@ -508,6 +530,40 @@ function CategoryDialog({
                 value={value.custom_size_note ?? ""}
                 onChange={(e) => onChange({ ...value, custom_size_note: e.target.value })}
                 placeholder="e.g. Our carpenter will build this to your exact measurements"
+              />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="engraving" className="space-y-4 mt-4">
+            <div className="flex items-center justify-between border rounded-lg p-3">
+              <div>
+                <p className="font-medium text-sm">Offer name engraving</p>
+                <p className="text-xs text-muted-foreground">Lets customers add a child's name for an extra fee.</p>
+              </div>
+              <Switch
+                checked={value.name_engraving_enabled}
+                onCheckedChange={(c) => onChange({ ...value, name_engraving_enabled: c })}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Surcharge for name engraving (EGP)</Label>
+              <Input
+                type="number"
+                min={0}
+                step="0.01"
+                value={value.name_engraving_surcharge}
+                onChange={(e) => onChange({ ...value, name_engraving_surcharge: Number(e.target.value) })}
+                placeholder="e.g. 250"
+              />
+              <p className="text-xs text-muted-foreground">Added on top of the product's price when a name is entered.</p>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Note shown to customers</Label>
+              <Textarea
+                rows={3}
+                value={value.name_engraving_note ?? ""}
+                onChange={(e) => onChange({ ...value, name_engraving_note: e.target.value })}
+                placeholder="e.g. Embroidered by hand. Allow 1 extra week."
               />
             </div>
           </TabsContent>
