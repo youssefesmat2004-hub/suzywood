@@ -533,6 +533,40 @@ function CategoryDialog({
               />
             </div>
           </TabsContent>
+
+          <TabsContent value="engraving" className="space-y-4 mt-4">
+            <div className="flex items-center justify-between border rounded-lg p-3">
+              <div>
+                <p className="font-medium text-sm">Offer name engraving</p>
+                <p className="text-xs text-muted-foreground">Lets customers add a child's name for an extra fee.</p>
+              </div>
+              <Switch
+                checked={value.name_engraving_enabled}
+                onCheckedChange={(c) => onChange({ ...value, name_engraving_enabled: c })}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Surcharge for name engraving (EGP)</Label>
+              <Input
+                type="number"
+                min={0}
+                step="0.01"
+                value={value.name_engraving_surcharge}
+                onChange={(e) => onChange({ ...value, name_engraving_surcharge: Number(e.target.value) })}
+                placeholder="e.g. 250"
+              />
+              <p className="text-xs text-muted-foreground">Added on top of the product's price when a name is entered.</p>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Note shown to customers</Label>
+              <Textarea
+                rows={3}
+                value={value.name_engraving_note ?? ""}
+                onChange={(e) => onChange({ ...value, name_engraving_note: e.target.value })}
+                placeholder="e.g. Embroidered by hand. Allow 1 extra week."
+              />
+            </div>
+          </TabsContent>
         </Tabs>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
