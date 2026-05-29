@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ShoppingBag, Package, DollarSign, Clock } from "lucide-react";
+import { ShoppingBag, Package, DollarSign, Clock, TrendingUp } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsAdmin } from "@/lib/admin";
 import { LowStockBanner } from "@/components/admin/LowStockBanner";
@@ -9,6 +9,8 @@ import { LowStockBanner } from "@/components/admin/LowStockBanner";
 export const Route = createFileRoute("/admin/")({
   component: Dashboard,
 });
+
+const PROFIT_MARGIN = 0.25;
 
 type Stats = { orders: number; pending: number; products: number; revenue: number };
 
@@ -47,9 +49,14 @@ function Dashboard() {
 
   if (isCarpenter) return null;
 
+  const profit = Math.round(stats.revenue * PROFIT_MARGIN);
+  const cost = Math.round(stats.revenue * (1 - PROFIT_MARGIN));
+
   const cards = [
     { label: "Total Orders", value: stats.orders, icon: ShoppingBag, color: "text-blue-600 bg-blue-50" },
     { label: "Total Revenue (EGP)", value: stats.revenue.toLocaleString(), icon: DollarSign, color: "text-purple-600 bg-purple-50" },
+    { label: "Profit 25% (EGP)", value: profit.toLocaleString(), icon: TrendingUp, color: "text-green-600 bg-green-50" },
+    { label: "Cost 75% (EGP)", value: cost.toLocaleString(), icon: DollarSign, color: "text-slate-600 bg-slate-50" },
     { label: "Total Products", value: stats.products, icon: Package, color: "text-emerald-600 bg-emerald-50" },
     { label: "Pending Orders", value: stats.pending, icon: Clock, color: "text-amber-600 bg-amber-50" },
   ];
