@@ -67,6 +67,7 @@ function OrderDetailPage() {
   const { isCarpenter } = useIsAdmin();
   const { id } = Route.useParams();
   const [order, setOrder] = useState<Order | null>(null);
+  const [proofSignedUrl, setProofSignedUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const sendEmail = useServerFn(sendOrderStatusEmail);
@@ -94,6 +95,21 @@ function OrderDetailPage() {
       setLoading(false);
     })();
   }, [id]);
+
+  // Resolve payment proof: legacy rows store a full public URL, new rows store a storage path.
+  useEffect(() => {
+    const v = order?.payment_proof_url;
+    if (!v) { setProofSignedUrl(null); return; }
+    if (/^https?:\/\//i.test(v)) { setProofSignedUrl(v); return; }
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase.storage
+        .from("payment-proofs")
+        .createSignedUrl(v, 60 * 10);
+      if (!cancelled) setProofSignedUrl(data?.signedUrl ?? null);
+    })();
+    return () => { cancelled = true; };
+  }, [order?.payment_proof_url]);
 
   // Realtime: reflect status changes made elsewhere (e.g. carpenter app)
   useEffect(() => {
@@ -235,11 +251,13 @@ function OrderDetailPage() {
                   : <span className="text-muted-foreground italic">none</span>}
               </p>
             </div>
-            {order.payment_proof_url ? (
-              <a href={order.payment_proof_url} target="_blank" rel="noreferrer" className="inline-block">
-                <img src={order.payment_proof_url} alt="Payment screenshot" className="max-h-80 rounded-md border object-cover hover:opacity-90" />
+            {order.payment_proof_url && proofSignedUrl ? (
+              <a href={proofSignedUrl} target="_blank" rel="noreferrer" className="inline-block">
+                <img src={proofSignedUrl} alt="Payment screenshot" className="max-h-80 rounded-md border object-cover hover:opacity-90" />
                 <span className="block text-xs text-primary mt-1 underline">Open full size</span>
               </a>
+            ) : order.payment_proof_url ? (
+              <p className="text-sm text-muted-foreground italic">Loading payment screenshot…</p>
             ) : (
               <p className="text-sm text-muted-foreground italic">No payment screenshot uploaded.</p>
             )}
