@@ -128,9 +128,9 @@ function Checkout() {
       })),
       _shipping_fee: SHIPPING,
       _upfront_rate: UPFRONT_RATE,
-      _promo_code: promo?.code ?? null,
+      _promo_code: promo?.code ?? "",
       _instapay_reference: reference.trim(),
-      _payment_proof_path: proofPath,
+      _payment_proof_path: proofPath ?? "",
     });
 
     setSubmitting(false);
