@@ -1,23 +1,34 @@
 ## Problem
 
-`src/lib/rooms.ts` imports 10 image files that don't exist:
-- `@/assets/whole-rooms/room-b/img-1..5.jpeg`
-- `@/assets/whole-rooms/room-c/img-1..5.jpeg`
+When submitting the order, Postgres throws `column reference "id" is ambiguous`. The error surfaces to the user as "reference number is ambiguous" via the toast description.
 
-Only `room-1.jpeg`…`room-11.jpeg` exist in `src/assets/whole-rooms/`. Vite throws `ERR_MODULE_NOT_FOUND`, which surfaces in the preview as **"Lovable proxy error (500)"** whenever the `/rooms/$slug` route (Room Two / Room Three) is loaded.
+## Root cause
+
+`create_order_with_items` declares `RETURNS TABLE(id uuid, order_number text)`. Those become OUT parameters named `id` and `order_number` inside the function body. Inside the loop:
+
+```sql
+SELECT id, starting_price, is_active
+  INTO v_product
+  FROM public.products
+ WHERE id = (v_item->>'product_id')::uuid;
+```
+
+Both `id` in the SELECT list and `id` in the WHERE clause are ambiguous between the OUT parameter `id` and `products.id`. Postgres rejects the call before any order row is created.
 
 ## Fix
 
-Reuse the existing 11 room images across all three rooms so the file resolves and the page renders. Update `src/lib/rooms.ts`:
+Create a new migration that replaces `create_order_with_items` with a version where every column reference is fully qualified:
 
-1. Remove the 10 broken `b1..b5` and `c1..c5` imports.
-2. Split the existing `r1..r11` across the three rooms, e.g.:
-   - Room One: `r1, r2, r3, r4`
-   - Room Two: `r5, r6, r7`
-   - Room Three: `r8, r9, r10, r11`
+- `SELECT products.id, products.starting_price, products.is_active ... WHERE products.id = ...`
+- Also qualify the final assignments (`id := v_order_id; order_number := v_order_number;`) — these are fine but keep clean.
+- No other behavior changes: 75% upfront rate, promo handling, line totals, insert into `orders` + `order_items` all stay identical.
 
-No other files change. This restores the route immediately.
+No client code changes needed; signature stays the same.
 
-## Alternative (only if you want unique images per room)
+## Files
 
-If you'd rather keep separate photo sets per room, you'd need to upload the missing `room-b/img-1..5.jpeg` and `room-c/img-1..5.jpeg` files into `src/assets/whole-rooms/`. Let me know if you'd prefer that path — otherwise I'll proceed with the reuse fix above.
+- New: `supabase/migrations/<timestamp>_fix_create_order_ambiguous.sql` — `CREATE OR REPLACE FUNCTION public.create_order_with_items(...)` with qualified column references.
+
+## Verification
+
+After applying, retry checkout end-to-end with a real cart + reference number. Order should be created and the thank-you page should load.
