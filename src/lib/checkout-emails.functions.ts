@@ -24,7 +24,7 @@ export const sendCheckoutPendingEmail = createServerFn({ method: "POST" })
     const { data: order, error } = await supabaseAdmin
       .from("orders")
       .select(
-        "id, order_number, customer_name, customer_email, total, upfront_amount, remaining_amount, instapay_reference, order_items(product_name, quantity, unit_price, size, finish)",
+        "id, order_number, customer_name, customer_email, total, upfront_amount, remaining_amount, instapay_reference, created_at, confirmation_email_sent_at, order_items(product_name, quantity, unit_price, size, finish)",
       )
       .eq("id", data.orderId)
       .single();
@@ -32,6 +32,27 @@ export const sendCheckoutPendingEmail = createServerFn({ method: "POST" })
     if (error || !order) {
       console.error("Failed to load order for checkout email", error);
       return { ok: false };
+    }
+
+    // Anti-spam guard: only send once, and only for orders placed in the last 30 min.
+    if (order.confirmation_email_sent_at) {
+      return { ok: true, skipped: "already_sent" };
+    }
+    const createdMs = new Date(order.created_at as string).getTime();
+    if (Number.isFinite(createdMs) && Date.now() - createdMs > 30 * 60 * 1000) {
+      return { ok: false, skipped: "too_old" };
+    }
+
+    // Atomically claim the right to send (prevents concurrent duplicates).
+    const { data: claim, error: claimErr } = await supabaseAdmin
+      .from("orders")
+      .update({ confirmation_email_sent_at: new Date().toISOString() })
+      .eq("id", order.id)
+      .is("confirmation_email_sent_at", null)
+      .select("id")
+      .maybeSingle();
+    if (claimErr || !claim) {
+      return { ok: true, skipped: "race" };
     }
 
     const itemsRows = (order.order_items ?? [])

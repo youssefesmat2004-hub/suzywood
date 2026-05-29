@@ -58,18 +58,12 @@ function Checkout() {
     if (!code) return;
     setPromoApplying(true);
     const { data, error } = await supabase
-      .from("promo_codes")
-      .select("id,code,discount_type,discount_value,min_subtotal,max_uses,used_count,expires_at,is_active")
-      .eq("code", code)
+      .rpc("validate_promo_code", { _code: code, _subtotal: subtotal })
       .maybeSingle();
     setPromoApplying(false);
-    if (error || !data || !data.is_active) { toast.error("Invalid promo code"); return; }
-    if (data.expires_at && new Date(data.expires_at) < new Date()) { toast.error("This code has expired"); return; }
-    if (data.max_uses && data.used_count >= data.max_uses) { toast.error("This code is fully used"); return; }
-    if (subtotal < Number(data.min_subtotal)) { toast.error(`Minimum subtotal EGP ${Number(data.min_subtotal).toLocaleString()} required`); return; }
-    const value = Number(data.discount_value);
-    const d = data.discount_type === "percent" ? Math.round((subtotal * value) / 100) : Math.round(value);
-    setPromo({ id: data.id, code: data.code, discount: Math.min(d, subtotal) });
+    if (error || !data) { toast.error("Invalid or expired promo code"); return; }
+    const d = Number(data.discount_amount ?? 0);
+    setPromo({ id: data.id, code: data.code, discount: d });
     toast.success(`Code ${data.code} applied — EGP ${d.toLocaleString()} off`);
   };
 
@@ -98,7 +92,7 @@ function Checkout() {
     }
     setSubmitting(true);
 
-    let proofUrl: string | null = null;
+    let proofPath: string | null = null;
     if (proofFile) {
       const ext = proofFile.name.split(".").pop()?.toLowerCase() ?? "jpg";
       const path = `${crypto.randomUUID()}.${ext}`;
@@ -111,64 +105,39 @@ function Checkout() {
         toast.error("Couldn't upload screenshot", { description: up.error.message });
         return;
       }
-      proofUrl = supabase.storage.from("payment-proofs").getPublicUrl(path).data.publicUrl;
+      proofPath = path;
     }
 
-    const { data: order, error } = await supabase
-      .from("orders")
-      .insert({
-        user_id: user?.id ?? null,
-        customer_name: details.name,
-        customer_email: details.email,
-        customer_phone: details.phone,
-        shipping_address: details.address,
-        shipping_city: details.city,
-        shipping_governorate: details.governorate,
-        shipping_notes: details.notes || null,
-        subtotal: subtotalAfter,
-        shipping_fee: SHIPPING,
-        total,
-        upfront_amount: upfront,
-        remaining_amount: remainingOnDelivery,
-        payment_method: "instapay",
-        instapay_reference: reference.trim(),
-        payment_proof_url: proofUrl,
-        internal_notes: promo ? `Promo: ${promo.code} (-EGP ${promo.discount})` : null,
-      })
-      .select()
-      .single();
-
-    if (error || !order) {
-      setSubmitting(false);
-      toast.error("Couldn't place your order", { description: error?.message });
-      return;
-    }
-
-    const { error: itemsError } = await supabase.from("order_items").insert(
-      items.map((it) => ({
-        order_id: order.id,
+    const { data: rpc, error } = await supabase.rpc("create_order_with_items", {
+      _details: {
+        name: details.name, email: details.email, phone: details.phone,
+        address: details.address, city: details.city,
+        governorate: details.governorate, notes: details.notes,
+      },
+      _items: items.map((it) => ({
         product_id: it.productId,
         product_name: it.name,
         size: it.sizeLabel,
         finish: it.finishLabel,
-        engraving: it.engraving || null,
+        engraving: it.engraving || "",
         unit_price: it.unitPrice,
         quantity: it.quantity,
-        line_total: it.unitPrice * it.quantity,
-        custom_width_cm: it.customSize?.widthCm ?? null,
-        custom_length_cm: it.customSize?.lengthCm ?? null,
-        custom_surcharge: it.customSize?.surcharge ?? null,
+        custom_width_cm: it.customSize?.widthCm ?? "",
+        custom_length_cm: it.customSize?.lengthCm ?? "",
+        custom_surcharge: it.customSize?.surcharge ?? "",
       })),
-    );
+      _shipping_fee: SHIPPING,
+      _upfront_rate: UPFRONT_RATE,
+      _promo_code: promo?.code ?? "",
+      _instapay_reference: reference.trim(),
+      _payment_proof_path: proofPath ?? "",
+    });
 
     setSubmitting(false);
-    if (itemsError) {
-      toast.error("Couldn't save your items", { description: itemsError.message });
+    const order = Array.isArray(rpc) ? rpc[0] : rpc;
+    if (error || !order) {
+      toast.error("Couldn't place your order", { description: error?.message });
       return;
-    }
-    if (promo) {
-      const { data: cur } = await supabase.from("promo_codes").select("used_count").eq("id", promo.id).maybeSingle();
-      if (cur) await supabase.from("promo_codes").update({ used_count: (cur.used_count ?? 0) + 1 }).eq("id", promo.id);
     }
     clear();
     // Fire-and-forget confirmation email

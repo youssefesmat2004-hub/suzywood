@@ -303,6 +303,7 @@ export type Database = {
       }
       orders: {
         Row: {
+          confirmation_email_sent_at: string | null
           created_at: string
           customer_email: string
           customer_name: string
@@ -327,6 +328,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          confirmation_email_sent_at?: string | null
           created_at?: string
           customer_email: string
           customer_name: string
@@ -351,6 +353,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          confirmation_email_sent_at?: string | null
           created_at?: string
           customer_email?: string
           customer_name?: string
@@ -689,6 +692,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_order_with_items: {
+        Args: {
+          _details: Json
+          _instapay_reference: string
+          _items: Json
+          _payment_proof_path: string
+          _promo_code: string
+          _shipping_fee: number
+          _upfront_rate: number
+        }
+        Returns: {
+          id: string
+          order_number: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -696,6 +714,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_promo_usage: { Args: { _promo_id: string }; Returns: undefined }
       lookup_order_for_tracking: {
         Args: { _order_number: string; _phone: string }
         Returns: {
@@ -711,6 +730,16 @@ export type Database = {
           subtotal: number
           total: number
           upfront_amount: number
+        }[]
+      }
+      validate_promo_code: {
+        Args: { _code: string; _subtotal: number }
+        Returns: {
+          code: string
+          discount_amount: number
+          discount_type: Database["public"]["Enums"]["promo_discount_type"]
+          discount_value: number
+          id: string
         }[]
       }
     }
