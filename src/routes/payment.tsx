@@ -37,9 +37,9 @@ function PaymentPage() {
         <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Payment</p>
         <h1 className="font-serif text-4xl sm:text-5xl mt-3">Pay with Instapay</h1>
         <p className="mt-4 text-muted-foreground leading-relaxed">
-          Send your order total to the Instapay account below. Scan the QR with any
-          banking app that supports Instapay, or transfer to the number / handle directly.
-          Once you've paid, send us the receipt on WhatsApp and we'll confirm your order.
+          At checkout, the app automatically calculates your payment split: pay 75% of the
+          furniture total upfront by Instapay, then pay the remaining 25% plus delivery on delivery.
+          Scan the QR or transfer to the number / handle below.
         </p>
 
         <div className="mt-10 grid md:grid-cols-2 gap-8 items-start">
@@ -78,7 +78,7 @@ function PaymentPage() {
 
             <div className="rounded-2xl border border-border p-5 text-sm text-muted-foreground leading-relaxed">
               <p className="font-medium text-foreground mb-2">After you pay</p>
-              Send the transfer screenshot to us on WhatsApp with your order number.
+              Send the 75% upfront transfer screenshot to us on WhatsApp with your order number.
               We'll confirm receipt and start preparing your piece.
               <div className="mt-4 flex gap-3">
                 <Button asChild variant="default" size="sm">

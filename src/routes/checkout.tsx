@@ -50,7 +50,7 @@ function Checkout() {
   const subtotalAfter = Math.max(0, subtotal - discount);
   const total = subtotalAfter + SHIPPING;
   const upfront = Math.round(subtotalAfter * UPFRONT_RATE);
-  const remainingProduct = subtotalAfter - upfront;
+  const remainingProduct = Math.max(0, subtotalAfter - upfront);
   const remainingOnDelivery = remainingProduct + SHIPPING;
 
   const applyPromo = async () => {
@@ -184,9 +184,10 @@ function Checkout() {
             <div className="space-y-1"><Label htmlFor="notes">Delivery notes (optional)</Label><Textarea id="notes" name="notes" maxLength={500} rows={2} defaultValue={details?.notes ?? ""} /></div>
 
             <div className="rounded-xl bg-muted/50 border border-border p-4 text-sm text-muted-foreground">
-              Next step: pay <strong>EGP {upfront.toLocaleString()} ({UPFRONT_PERCENT}%)</strong> upfront via{" "}
-              <strong>InstaPay</strong> to confirm your order. The remaining{" "}
-              <strong>EGP {remainingOnDelivery.toLocaleString()}</strong> ({REMAINING_PERCENT}% + delivery) is paid on delivery.
+              Next step: pay <strong>EGP {upfront.toLocaleString()}</strong> upfront via{" "}
+              <strong>InstaPay</strong> — this is {UPFRONT_PERCENT}% of the furniture total after discounts.
+              Pay <strong>EGP {remainingOnDelivery.toLocaleString()}</strong> on delivery: {REMAINING_PERCENT}% furniture balance{" "}
+              (EGP {remainingProduct.toLocaleString()}) + delivery (EGP {SHIPPING.toLocaleString()}).
             </div>
 
             <Button type="submit" size="lg" className="w-full">
@@ -198,10 +199,10 @@ function Checkout() {
             <div>
               <h2 className="font-serif text-2xl mb-1">Pay with InstaPay</h2>
               <p className="text-sm text-muted-foreground">
-                Send exactly <strong className="text-foreground">EGP {upfront.toLocaleString()} ({UPFRONT_PERCENT}%)</strong>{" "}
-                using the QR below to confirm your order, then enter your transaction ID and upload a screenshot.
-                The remaining <strong className="text-foreground">EGP {remainingOnDelivery.toLocaleString()}</strong>{" "}
-                ({REMAINING_PERCENT}% + delivery fees) is paid in cash or InstaPay on delivery.
+                Send exactly <strong className="text-foreground">EGP {upfront.toLocaleString()}</strong>{" "}
+                using the QR below to confirm your order. This is {UPFRONT_PERCENT}% of the furniture total after discounts.
+                On delivery, pay <strong className="text-foreground">EGP {remainingOnDelivery.toLocaleString()}</strong>: {REMAINING_PERCENT}% furniture balance{" "}
+                (EGP {remainingProduct.toLocaleString()}) + delivery (EGP {SHIPPING.toLocaleString()}).
               </p>
             </div>
 
@@ -212,7 +213,7 @@ function Checkout() {
                   <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Pay now ({UPFRONT_PERCENT}%)</p>
                   <p className="font-serif text-2xl text-primary">EGP {upfront.toLocaleString()}</p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Order total EGP {subtotal.toLocaleString()} · Remaining on delivery EGP {remainingOnDelivery.toLocaleString()}
+                    Furniture total after discounts EGP {subtotalAfter.toLocaleString()} · On delivery EGP {remainingOnDelivery.toLocaleString()}
                   </p>
                 </div>
                 <div>
@@ -324,11 +325,19 @@ function Checkout() {
 
             <div className="border-t border-border pt-3 space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Pay now ({UPFRONT_PERCENT}%)</span>
+                <span className="text-muted-foreground">Pay now ({UPFRONT_PERCENT}% furniture)</span>
                 <span className="font-medium text-primary">EGP {upfront.toLocaleString()}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Due on delivery ({REMAINING_PERCENT}% + shipping)</span>
+                <span className="text-muted-foreground">Furniture balance ({REMAINING_PERCENT}%)</span>
+                <span className="font-medium">EGP {remainingProduct.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Delivery</span>
+                <span className="font-medium">EGP {SHIPPING.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between border-t border-border pt-2">
+                <span className="text-muted-foreground">Due on delivery</span>
                 <span className="font-medium">EGP {remainingOnDelivery.toLocaleString()}</span>
               </div>
             </div>
