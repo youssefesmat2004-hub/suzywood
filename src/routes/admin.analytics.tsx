@@ -24,6 +24,7 @@ const RANGES = [
 ] as const;
 
 const COLORS = ["hsl(var(--primary))", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4", "#ec4899"];
+const PROFIT_MARGIN = 0.25;
 
 function AdminAnalytics() {
   const [days, setDays] = useState<number>(30);
@@ -110,6 +111,8 @@ function AdminAnalytics() {
 
   const kpis = [
     { label: "Revenue (EGP)", value: totalRevenue.toLocaleString() },
+    { label: "Profit 25% (EGP)", value: Math.round(totalRevenue * PROFIT_MARGIN).toLocaleString() },
+    { label: "Cost 75% (EGP)", value: Math.round(totalRevenue * (1 - PROFIT_MARGIN)).toLocaleString() },
     { label: "Orders", value: orders.length },
     { label: "Avg Order Value", value: `EGP ${Math.round(aov).toLocaleString()}` },
     { label: "Bookings → Orders", value: `${conversion.toFixed(0)}%` },
