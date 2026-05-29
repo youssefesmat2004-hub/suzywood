@@ -1,36 +1,23 @@
-# Add image cropping everywhere
+## Problem
 
-Let users crop any image — on upload (before it's saved) and on existing images (re-crop in place) — with a free-form rectangular selection.
+`src/lib/rooms.ts` imports 10 image files that don't exist:
+- `@/assets/whole-rooms/room-b/img-1..5.jpeg`
+- `@/assets/whole-rooms/room-c/img-1..5.jpeg`
 
-## What you'll see
+Only `room-1.jpeg`…`room-11.jpeg` exist in `src/assets/whole-rooms/`. Vite throws `ERR_MODULE_NOT_FOUND`, which surfaces in the preview as **"Lovable proxy error (500)"** whenever the `/rooms/$slug` route (Room Two / Room Three) is loaded.
 
-- After picking a file in any image uploader, a **Crop** dialog opens with the image and a draggable/resizable rectangle. Buttons: **Skip** (upload original) and **Crop & Upload**.
-- Every already-uploaded image gets a small **Crop** button (alongside the existing Remove/Clear). Clicking it opens the same dialog; saving uploads the cropped version and swaps the URL.
-- Selection is fully free — any aspect ratio, any size.
+## Fix
 
-## Where it applies
+Reuse the existing 11 room images across all three rooms so the file resolves and the page renders. Update `src/lib/rooms.ts`:
 
-All image upload surfaces in the app:
+1. Remove the 10 broken `b1..b5` and `c1..c5` imports.
+2. Split the existing `r1..r11` across the three rooms, e.g.:
+   - Room One: `r1, r2, r3, r4`
+   - Room Two: `r5, r6, r7`
+   - Room Three: `r8, r9, r10, r11`
 
-1. **Admin → Product form** — main image, gallery images, variant images (upload + re-crop)
-2. **Admin → Content** — any image fields (hero, etc.)
-3. **Admin → Categories** — if/where images are uploaded
-4. **Customer-facing**:
-   - **Payment proof** upload on the payment page
-   - **Custom build inspiration images** on the custom build form
+No other files change. This restores the route immediately.
 
-## Technical approach
+## Alternative (only if you want unique images per room)
 
-1. Add dependency `react-image-crop`.
-2. New shared component `src/components/ui/image-crop-dialog.tsx` — shadcn Dialog + `<ReactCrop>`, free aspect, **Skip** and **Crop & Upload** actions. Accepts a File or URL.
-3. New hook `src/hooks/use-image-cropper.tsx` — exposes `{ open, dialog }`; mount `{dialog}` once then `await open(fileOrUrl)` returns a `Blob` (or `null` if skipped).
-4. New helper `src/lib/upload-image.ts` — centralizes Supabase Storage upload (used today only inside ProductForm) so all surfaces share one path.
-5. Wire each upload site:
-   - New file selection → cropper → upload.
-   - Existing image → add a small **Crop** icon button → fetch URL → cropper → upload → replace stored URL.
-
-## Out of scope
-
-- No rotation, filters, or fixed aspect presets (free crop only).
-- No bulk re-cropping of historical images.
-- No server-side processing — cropping is done in the browser before upload.
+If you'd rather keep separate photo sets per room, you'd need to upload the missing `room-b/img-1..5.jpeg` and `room-c/img-1..5.jpeg` files into `src/assets/whole-rooms/`. Let me know if you'd prefer that path — otherwise I'll proceed with the reuse fix above.
