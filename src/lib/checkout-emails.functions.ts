@@ -147,6 +147,11 @@ export const sendCheckoutPendingEmail = createServerFn({ method: "POST" })
     if (!res.ok) {
       const body = await res.text().catch(() => "");
       console.error("Resend send failed", res.status, body);
+      // Release the claim so the customer (or a retry) can still receive the email.
+      await supabaseAdmin
+        .from("orders")
+        .update({ confirmation_email_sent_at: null })
+        .eq("id", order.id);
       return { ok: false };
     }
     return { ok: true };
