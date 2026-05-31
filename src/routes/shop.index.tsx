@@ -62,7 +62,12 @@ export const Route = createFileRoute("/shop/")({
       .select("product_id")
       .eq("is_active", true);
     const withVariants = new Set((vRows ?? []).map((r) => r.product_id));
-    const annotated = (products ?? []).map((p) => ({ ...(p as Product), has_variants: withVariants.has(p.id) }));
+    const catSlug = new Map((categories ?? []).map((c) => [c.id, c.slug]));
+    const annotated = (products ?? []).map((p) => ({
+      ...(p as Product),
+      has_variants: withVariants.has(p.id),
+      category_slug: catSlug.get(p.category_id) ?? undefined,
+    }));
     return {
       categories: (categories ?? []) as Category[],
       products: annotated as Product[],

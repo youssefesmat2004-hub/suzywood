@@ -36,6 +36,7 @@ import { Route as AdminPromosRouteImport } from './routes/admin.promos'
 import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
 import { Route as AdminNewsletterRouteImport } from './routes/admin.newsletter'
 import { Route as AdminMessagesRouteImport } from './routes/admin.messages'
+import { Route as AdminMeasurementBookingsRouteImport } from './routes/admin.measurement-bookings'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
 import { Route as AdminCustomersRouteImport } from './routes/admin.customers'
 import { Route as AdminCustomBuildsRouteImport } from './routes/admin.custom-builds'
@@ -184,6 +185,12 @@ const AdminMessagesRoute = AdminMessagesRouteImport.update({
   path: '/messages',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminMeasurementBookingsRoute =
+  AdminMeasurementBookingsRouteImport.update({
+    id: '/measurement-bookings',
+    path: '/measurement-bookings',
+    getParentRoute: () => AdminRoute,
+  } as any)
 const AdminLoginRoute = AdminLoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -271,6 +278,7 @@ export interface FileRoutesByFullPath {
   '/admin/custom-builds': typeof AdminCustomBuildsRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/login': typeof AdminLoginRoute
+  '/admin/measurement-bookings': typeof AdminMeasurementBookingsRoute
   '/admin/messages': typeof AdminMessagesRoute
   '/admin/newsletter': typeof AdminNewsletterRoute
   '/admin/orders': typeof AdminOrdersRouteWithChildren
@@ -310,6 +318,7 @@ export interface FileRoutesByTo {
   '/admin/custom-builds': typeof AdminCustomBuildsRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/login': typeof AdminLoginRoute
+  '/admin/measurement-bookings': typeof AdminMeasurementBookingsRoute
   '/admin/messages': typeof AdminMessagesRoute
   '/admin/newsletter': typeof AdminNewsletterRoute
   '/admin/orders': typeof AdminOrdersRouteWithChildren
@@ -352,6 +361,7 @@ export interface FileRoutesById {
   '/admin/custom-builds': typeof AdminCustomBuildsRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/login': typeof AdminLoginRoute
+  '/admin/measurement-bookings': typeof AdminMeasurementBookingsRoute
   '/admin/messages': typeof AdminMessagesRoute
   '/admin/newsletter': typeof AdminNewsletterRoute
   '/admin/orders': typeof AdminOrdersRouteWithChildren
@@ -395,6 +405,7 @@ export interface FileRouteTypes {
     | '/admin/custom-builds'
     | '/admin/customers'
     | '/admin/login'
+    | '/admin/measurement-bookings'
     | '/admin/messages'
     | '/admin/newsletter'
     | '/admin/orders'
@@ -434,6 +445,7 @@ export interface FileRouteTypes {
     | '/admin/custom-builds'
     | '/admin/customers'
     | '/admin/login'
+    | '/admin/measurement-bookings'
     | '/admin/messages'
     | '/admin/newsletter'
     | '/admin/orders'
@@ -475,6 +487,7 @@ export interface FileRouteTypes {
     | '/admin/custom-builds'
     | '/admin/customers'
     | '/admin/login'
+    | '/admin/measurement-bookings'
     | '/admin/messages'
     | '/admin/newsletter'
     | '/admin/orders'
@@ -704,6 +717,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminMessagesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/measurement-bookings': {
+      id: '/admin/measurement-bookings'
+      path: '/measurement-bookings'
+      fullPath: '/admin/measurement-bookings'
+      preLoaderRoute: typeof AdminMeasurementBookingsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/login': {
       id: '/admin/login'
       path: '/login'
@@ -811,6 +831,7 @@ interface AdminRouteChildren {
   AdminCustomBuildsRoute: typeof AdminCustomBuildsRoute
   AdminCustomersRoute: typeof AdminCustomersRoute
   AdminLoginRoute: typeof AdminLoginRoute
+  AdminMeasurementBookingsRoute: typeof AdminMeasurementBookingsRoute
   AdminMessagesRoute: typeof AdminMessagesRoute
   AdminNewsletterRoute: typeof AdminNewsletterRoute
   AdminOrdersRoute: typeof AdminOrdersRouteWithChildren
@@ -830,6 +851,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCustomBuildsRoute: AdminCustomBuildsRoute,
   AdminCustomersRoute: AdminCustomersRoute,
   AdminLoginRoute: AdminLoginRoute,
+  AdminMeasurementBookingsRoute: AdminMeasurementBookingsRoute,
   AdminMessagesRoute: AdminMessagesRoute,
   AdminNewsletterRoute: AdminNewsletterRoute,
   AdminOrdersRoute: AdminOrdersRouteWithChildren,

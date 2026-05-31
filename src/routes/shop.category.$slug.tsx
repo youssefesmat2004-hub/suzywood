@@ -19,7 +19,11 @@ export const Route = createFileRoute("/shop/category/$slug")({
       ? await supabase.from("product_variants").select("product_id").in("product_id", ids).eq("is_active", true)
       : { data: [] as { product_id: string }[] };
     const withVariants = new Set((vRows ?? []).map((r) => r.product_id));
-    const annotated = (products ?? []).map((p) => ({ ...(p as Product), has_variants: withVariants.has(p.id) }));
+    const annotated = (products ?? []).map((p) => ({
+      ...(p as Product),
+      has_variants: withVariants.has(p.id),
+      category_slug: cat.slug,
+    }));
     return { category: cat as Category, products: annotated as Product[] };
   },
   head: ({ loaderData }) => ({

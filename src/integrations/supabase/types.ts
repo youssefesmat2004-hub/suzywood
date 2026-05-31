@@ -241,6 +241,60 @@ export type Database = {
         }
         Relationships: []
       }
+      measurement_bookings: {
+        Row: {
+          address: string
+          area: string
+          created_at: string
+          full_name: string
+          id: string
+          notes: string | null
+          phone: string
+          preferred_day: string
+          product_id: string | null
+          product_name: string
+          quoted_price: number | null
+          status: Database["public"]["Enums"]["measurement_booking_status"]
+          time_slot: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          address: string
+          area: string
+          created_at?: string
+          full_name: string
+          id?: string
+          notes?: string | null
+          phone: string
+          preferred_day: string
+          product_id?: string | null
+          product_name: string
+          quoted_price?: number | null
+          status?: Database["public"]["Enums"]["measurement_booking_status"]
+          time_slot: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          address?: string
+          area?: string
+          created_at?: string
+          full_name?: string
+          id?: string
+          notes?: string | null
+          phone?: string
+          preferred_day?: string
+          product_id?: string | null
+          product_name?: string
+          quoted_price?: number | null
+          status?: Database["public"]["Enums"]["measurement_booking_status"]
+          time_slot?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       newsletter_subscribers: {
         Row: {
           created_at: string
@@ -782,6 +836,13 @@ export type Database = {
         | "thursday"
       booking_status: "new" | "contacted" | "done"
       booking_time_slot: "morning" | "afternoon" | "evening"
+      measurement_booking_status:
+        | "new"
+        | "contacted"
+        | "visited"
+        | "quoted"
+        | "ordered"
+        | "cancelled"
       order_status:
         | "pending_payment"
         | "confirmed"
@@ -929,6 +990,14 @@ export const Constants = {
       ],
       booking_status: ["new", "contacted", "done"],
       booking_time_slot: ["morning", "afternoon", "evening"],
+      measurement_booking_status: [
+        "new",
+        "contacted",
+        "visited",
+        "quoted",
+        "ordered",
+        "cancelled",
+      ],
       order_status: [
         "pending_payment",
         "confirmed",
