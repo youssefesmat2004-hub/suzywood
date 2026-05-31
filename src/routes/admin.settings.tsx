@@ -21,13 +21,18 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-const ADMIN_WHATSAPP = "201096313532";
+const ADMIN_WHATSAPP = "201121171138";
+const ADMIN_EMAIL = "youssef.esmat2004@gmail.com";
 
 function notifyAdminQrChanged() {
   try {
     const msg = "⚠️ Alert: Your InstaPay QR code was just updated on Suzy Wood. If you did not make this change, contact support immediately.";
-    const url = `https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(msg)}`;
-    window.open(url, "_blank", "noopener,noreferrer");
+    const waUrl = `https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(msg)}`;
+    const opened = window.open(waUrl, "_blank", "noopener,noreferrer");
+    // Fallback to email if popup blocked
+    if (!opened) {
+      window.location.href = `mailto:${ADMIN_EMAIL}?subject=${encodeURIComponent("Suzy Wood — InstaPay QR updated")}&body=${encodeURIComponent(msg)}`;
+    }
   } catch {
     /* noop */
   }
