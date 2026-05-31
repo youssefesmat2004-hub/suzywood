@@ -79,7 +79,6 @@ function SettingsPage() {
   const [uploadingQr, setUploadingQr] = useState(false);
   const [pendingQrFile, setPendingQrFile] = useState<File | null>(null);
   const [confirmReplaceOpen, setConfirmReplaceOpen] = useState(false);
-  const [originalQr, setOriginalQr] = useState<string>("");
 
   useEffect(() => {
     (async () => {
@@ -92,7 +91,6 @@ function SettingsPage() {
       setStoreLogo(map.get("store_logo_url") ?? "");
       setCurrency(map.get("default_currency") || "EGP");
       setInstapayQr(map.get("instapay_qr_url") ?? "");
-      setOriginalQr(map.get("instapay_qr_url") ?? "");
       setLoading(false);
     })();
   }, []);
