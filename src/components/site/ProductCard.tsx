@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Plus } from "lucide-react";
+import { Plus, Ruler } from "lucide-react";
 import type { Product } from "@/lib/types";
 import { asOptions } from "@/lib/types";
 import { resolveImage } from "@/lib/images";
@@ -12,6 +12,7 @@ export function ProductCard({ product }: { product: Product }) {
   const finishes = asOptions(product.finishes);
   const hasVariants = !!product.has_variants || sizes.length > 1 || finishes.length > 1;
   const soldOut = (product.stock_quantity ?? 1) <= 0;
+  const isSafetyGate = product.category_slug === "safety-gates";
 
   const quickAdd = (e: React.MouseEvent) => {
     if (soldOut) return;
@@ -51,14 +52,23 @@ export function ProductCard({ product }: { product: Product }) {
           loading="lazy"
           width={1024}
           height={1024}
-          className={`h-full w-full object-cover transition-transform duration-700 group-hover:scale-105 ${soldOut ? "opacity-70" : ""}`}
+          className={`h-full w-full object-cover transition-transform duration-700 group-hover:scale-105 ${soldOut && !isSafetyGate ? "opacity-70" : ""}`}
         />
-        {soldOut && (
+        {isSafetyGate && (
+          <span className="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-secondary text-secondary-foreground text-[10px] uppercase tracking-[0.18em] px-3 py-1">
+            <Ruler className="h-3 w-3" /> Custom Measurement Required
+          </span>
+        )}
+        {soldOut && !isSafetyGate && (
           <span className="absolute top-3 left-3 rounded-full bg-foreground/85 text-background text-[10px] uppercase tracking-[0.18em] px-3 py-1">
             Sold out
           </span>
         )}
-        {!soldOut && (
+        {isSafetyGate ? (
+          <span className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-2 text-xs font-medium text-primary-foreground shadow-elegant opacity-0 translate-y-1 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0">
+            <Ruler className="h-3.5 w-3.5" /> Book measurement
+          </span>
+        ) : !soldOut && (
           <button
             type="button"
             onClick={quickAdd}
@@ -72,16 +82,23 @@ export function ProductCard({ product }: { product: Product }) {
       <div className="p-6 flex flex-col gap-2">
         <h3 className="font-serif text-2xl">{product.name}</h3>
         <p className="text-sm text-muted-foreground line-clamp-1">{product.tagline}</p>
-        {hasVariants && (
+        {hasVariants && !isSafetyGate && (
           <p className="text-[11px] uppercase tracking-[0.2em] text-secondary">
             Available in multiple {sizes.length > 1 && finishes.length > 1 ? "sizes & finishes" : sizes.length > 1 ? "sizes" : "finishes"}
           </p>
         )}
         <div className="mt-4 flex items-end justify-between">
-          <div>
-            <p className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">From</p>
-            <p className="font-serif text-xl text-primary">EGP {product.starting_price.toLocaleString()}</p>
-          </div>
+          {isSafetyGate ? (
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">Pricing</p>
+              <p className="font-serif text-lg text-primary">Price upon measurement</p>
+            </div>
+          ) : (
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">From</p>
+              <p className="font-serif text-xl text-primary">EGP {product.starting_price.toLocaleString()}</p>
+            </div>
+          )}
           <span className="text-xs text-muted-foreground">View details →</span>
         </div>
       </div>
