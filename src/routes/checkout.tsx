@@ -141,9 +141,9 @@ function Checkout() {
     }
     clear();
     // Fire-and-forget confirmation email
-    sendPendingEmail({ data: { orderId: order.id } }).catch((e) =>
-      console.error("Pending email failed", e),
-    );
+    sendPendingEmail({
+      data: { orderId: order.id, instapayReference: reference.trim() },
+    }).catch((e) => console.error("Pending email failed", e));
     toast.success(`Order ${order.order_number} submitted`, {
       description: "We'll verify your payment and email you once confirmed.",
     });
