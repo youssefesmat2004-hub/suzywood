@@ -8,7 +8,30 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Upload, X, Image as ImageIcon, Lock, Mail, Store, Wallet, QrCode } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
+import { useIsAdmin } from "@/lib/admin";
 import { resolveImage } from "@/lib/images";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+const ADMIN_WHATSAPP = "201096313532";
+
+function notifyAdminQrChanged() {
+  try {
+    const msg = "⚠️ Alert: Your InstaPay QR code was just updated on Suzy Wood. If you did not make this change, contact support immediately.";
+    const url = `https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(msg)}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  } catch {
+    /* noop */
+  }
+}
 
 export const Route = createFileRoute("/admin/settings")({
   component: SettingsPage,
@@ -33,6 +56,7 @@ async function uploadFile(file: File, folder: string): Promise<string | null> {
 
 function SettingsPage() {
   const { user } = useAuth();
+  const { isAdmin, loading: roleLoading } = useIsAdmin();
   const [loading, setLoading] = useState(true);
 
   // Store settings
@@ -53,6 +77,9 @@ function SettingsPage() {
   const qrRef = useRef<HTMLInputElement>(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingQr, setUploadingQr] = useState(false);
+  const [pendingQrFile, setPendingQrFile] = useState<File | null>(null);
+  const [confirmReplaceOpen, setConfirmReplaceOpen] = useState(false);
+  const [originalQr, setOriginalQr] = useState<string>("");
 
   useEffect(() => {
     (async () => {
@@ -65,6 +92,7 @@ function SettingsPage() {
       setStoreLogo(map.get("store_logo_url") ?? "");
       setCurrency(map.get("default_currency") || "EGP");
       setInstapayQr(map.get("instapay_qr_url") ?? "");
+      setOriginalQr(map.get("instapay_qr_url") ?? "");
       setLoading(false);
     })();
   }, []);
@@ -142,10 +170,36 @@ function SettingsPage() {
   };
 
   const handleQrUpload = async (file: File) => {
+    if (!isAdmin) {
+      toast.error("Only admins can change the InstaPay QR code");
+      return;
+    }
     setUploadingQr(true);
     const url = await uploadFile(file, "instapay");
     setUploadingQr(false);
-    if (url) setInstapayQr(url);
+    if (url) {
+      setInstapayQr(url);
+      notifyAdminQrChanged();
+      toast.success("QR uploaded. Click Save to apply.");
+    }
+  };
+
+  const onQrFileSelected = (file: File) => {
+    if (instapayQr) {
+      setPendingQrFile(file);
+      setConfirmReplaceOpen(true);
+    } else {
+      handleQrUpload(file);
+    }
+  };
+
+  const confirmReplaceQr = async () => {
+    setConfirmReplaceOpen(false);
+    if (pendingQrFile) {
+      const file = pendingQrFile;
+      setPendingQrFile(null);
+      await handleQrUpload(file);
+    }
   };
 
   return (
@@ -210,6 +264,7 @@ function SettingsPage() {
                 <p className="text-xs text-muted-foreground">Used in pricing displays across the site.</p>
               </div>
 
+              {isAdmin && (
               <div className="space-y-1.5">
                 <Label className="flex items-center gap-1.5"><QrCode className="h-3.5 w-3.5" /> InstaPay QR code</Label>
                 <div className="flex items-start gap-4">
@@ -221,7 +276,11 @@ function SettingsPage() {
                     )}
                   </div>
                   <div className="flex flex-col gap-2">
-                    <input ref={qrRef} type="file" accept="image/*" hidden onChange={(e) => e.target.files?.[0] && handleQrUpload(e.target.files[0])} />
+                    <input ref={qrRef} type="file" accept="image/*" hidden onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) onQrFileSelected(f);
+                      e.target.value = "";
+                    }} />
                     <Button type="button" variant="outline" size="sm" onClick={() => qrRef.current?.click()} disabled={uploadingQr}>
                       <Upload className="h-3.5 w-3.5 mr-2" /> {uploadingQr ? "Uploading…" : "Upload"}
                     </Button>
@@ -232,8 +291,12 @@ function SettingsPage() {
                     )}
                   </div>
                 </div>
-                <p className="text-xs text-muted-foreground">Shown to customers at checkout for payment.</p>
+                <p className="text-xs text-muted-foreground">Shown to customers at checkout for payment. Admin-only.</p>
               </div>
+              )}
+              {!isAdmin && !roleLoading && (
+                <p className="text-xs text-muted-foreground italic">The InstaPay QR code can only be managed by an admin.</p>
+              )}
 
               <Button type="submit" disabled={savingStore}>{savingStore ? "Saving…" : "Save Store Settings"}</Button>
             </>
@@ -273,6 +336,21 @@ function SettingsPage() {
           <Button type="submit" variant="outline" disabled={savingPassword}>{savingPassword ? "Updating…" : "Update Password"}</Button>
         </form>
       </div>
+
+      <AlertDialog open={confirmReplaceOpen} onOpenChange={setConfirmReplaceOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Replace InstaPay QR code?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to replace the InstaPay QR code? This will affect all future payments.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPendingQrFile(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmReplaceQr}>Yes, replace</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
