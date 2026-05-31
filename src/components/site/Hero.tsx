@@ -71,7 +71,7 @@ export function Hero({ title, subtitle }: HeroProps) {
           <div className="lg:col-span-5 hidden lg:flex justify-end relative">
             <div className="relative animate-float">
               <div className="aspect-[4/5] w-[360px] rounded-3xl overflow-hidden shadow-elegant border-4 border-cream">
-                <img src={cribFloat} alt="Handcrafted wooden crib" className="h-full w-full object-cover" />
+                <img src={roomFloat} alt="Suzy Wood nursery room" className="h-full w-full object-cover" />
               </div>
               <div className="absolute -bottom-6 -left-10 bg-card border border-border rounded-2xl px-5 py-4 shadow-card">
                 <p className="text-[10px] uppercase tracking-[0.24em] text-muted-foreground">Lead time</p>
