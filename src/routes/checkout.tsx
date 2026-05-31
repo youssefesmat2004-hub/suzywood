@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Layout } from "@/components/site/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,8 +11,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
 import { sendCheckoutPendingEmail } from "@/lib/checkout-emails.functions";
 import { toast } from "sonner";
-import qrImage from "@/assets/instapay-qr.jpeg";
-import { Upload, Check, Tag } from "lucide-react";
+import qrImageFallback from "@/assets/instapay-qr.jpeg";
+import { Upload, Check, Tag, MessageCircle } from "lucide-react";
+import { resolveImage } from "@/lib/images";
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({ meta: [{ title: "Checkout — Suzy Wood" }] }),
@@ -22,6 +23,7 @@ export const Route = createFileRoute("/checkout")({
 const SHIPPING = 1000;
 const INSTAPAY_NUMBER = "01096313532";
 const INSTAPAY_HANDLE = "axady@instapay";
+const ADMIN_WHATSAPP = "201096313532";
 const UPFRONT_RATE = 0.75;
 const REMAINING_RATE = 0.25;
 const UPFRONT_PERCENT = Math.round(UPFRONT_RATE * 100);
@@ -46,6 +48,23 @@ function Checkout() {
   const [promoApplying, setPromoApplying] = useState(false);
   const [promo, setPromo] = useState<{ id: string; code: string; discount: number } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [qrUrl, setQrUrl] = useState<string | null>(null);
+  const [qrLoadFailed, setQrLoadFailed] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("site_content")
+        .select("value")
+        .eq("key", "instapay_qr_url")
+        .maybeSingle();
+      if (cancelled) return;
+      const v = (data?.value ?? "").trim();
+      setQrUrl(v ? resolveImage(v) : null);
+    })();
+    return () => { cancelled = true; };
+  }, []);
   const discount = promo?.discount ?? 0;
   const subtotalAfter = Math.max(0, subtotal - discount);
   const total = subtotalAfter + SHIPPING;
