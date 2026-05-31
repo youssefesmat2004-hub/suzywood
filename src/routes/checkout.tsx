@@ -226,7 +226,37 @@ function Checkout() {
             </div>
 
             <div className="grid sm:grid-cols-[200px_1fr] gap-5 items-start bg-muted/40 border border-border rounded-xl p-5">
-              <img src={qrImage} alt="Suzy Wood InstaPay QR code" className="w-full max-w-[200px] rounded-lg" />
+              {qrLoadFailed || qrUrl === null ? (
+                qrUrl === null ? (
+                  <img
+                    src={qrImageFallback}
+                    alt="Suzy Wood InstaPay QR code"
+                    className="w-full max-w-[200px] rounded-lg"
+                  />
+                ) : (
+                  <div className="w-full max-w-[200px] rounded-lg border border-dashed border-border bg-muted/40 p-4 text-center">
+                    <p className="text-sm text-foreground mb-3">
+                      Payment QR code temporarily unavailable. Please contact us on WhatsApp.
+                    </p>
+                    <a
+                      href={`https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent("Hi Suzy Wood, the InstaPay QR is not loading on checkout.")}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 rounded-md bg-[oklch(0.38_0.055_50)] px-3 py-2 text-xs text-white hover:opacity-90"
+                    >
+                      <MessageCircle className="h-3.5 w-3.5" /> WhatsApp us
+                    </a>
+                  </div>
+                )
+              ) : (
+                <img
+                  src={qrUrl}
+                  alt="Suzy Wood InstaPay QR code"
+                  className="w-full max-w-[200px] rounded-lg"
+                  onError={() => setQrLoadFailed(true)}
+                  referrerPolicy="no-referrer"
+                />
+              )}
               <div className="space-y-3 text-sm">
                 <div>
                   <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Pay now ({UPFRONT_PERCENT}%)</p>
