@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { useEffect, useRef, useState } from "react";
 import hero from "@/assets/hero-nursery.jpg";
-import cribFloat from "@/assets/crib-petite.jpg";
+import roomFloat from "@/assets/whole-rooms/room-1.jpeg";
 import { ArrowRight } from "lucide-react";
 
 interface HeroProps {
