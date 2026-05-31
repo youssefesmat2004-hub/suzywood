@@ -46,6 +46,10 @@ const slugify = (s: string) =>
   s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
 async function uploadImage(file: File | Blob, originalName?: string): Promise<string | null> {
+  if ((file as File).size && (file as File).size > 5 * 1024 * 1024) {
+    toast.error("Image is too large", { description: "Please upload an image under 5MB." });
+    return null;
+  }
   const fromName = originalName?.split(".").pop();
   const fromType = file.type?.split("/")[1];
   const ext = (fromName || fromType || "jpg").toLowerCase();

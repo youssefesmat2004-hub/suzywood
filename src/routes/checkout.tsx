@@ -141,9 +141,9 @@ function Checkout() {
     }
     clear();
     // Fire-and-forget confirmation email
-    sendPendingEmail({ data: { orderId: order.id } }).catch((e) =>
-      console.error("Pending email failed", e),
-    );
+    sendPendingEmail({
+      data: { orderId: order.id, instapayReference: reference.trim() },
+    }).catch((e) => console.error("Pending email failed", e));
     toast.success(`Order ${order.order_number} submitted`, {
       description: "We'll verify your payment and email you once confirmed.",
     });
@@ -247,7 +247,17 @@ function Checkout() {
                 type="file"
                 accept="image/*"
                 className="hidden"
-                onChange={(e) => setProofFile(e.target.files?.[0] ?? null)}
+                onChange={(e) => {
+                  const f = e.target.files?.[0] ?? null;
+                  if (f && f.size > 3 * 1024 * 1024) {
+                    toast.error("Screenshot is too large", {
+                      description: "Please upload an image under 3MB.",
+                    });
+                    e.target.value = "";
+                    return;
+                  }
+                  setProofFile(f);
+                }}
               />
               <Button
                 type="button"

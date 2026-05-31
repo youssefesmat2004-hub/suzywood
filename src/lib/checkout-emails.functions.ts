@@ -12,7 +12,18 @@ function escapeHtml(s: string) {
 }
 
 export const sendCheckoutPendingEmail = createServerFn({ method: "POST" })
-  .inputValidator((data) => z.object({ orderId: z.string().uuid() }).parse(data))
+  .inputValidator((data) =>
+    z
+      .object({
+        orderId: z.string().uuid(),
+        // Caller must echo back the InstaPay reference they just submitted.
+        // It is a per-order shared secret (only the customer who placed the
+        // order knows it), preventing attackers from probing random order
+        // UUIDs to trigger emails or leak PII.
+        instapayReference: z.string().min(1).max(200),
+      })
+      .parse(data),
+  )
   .handler(async ({ data }) => {
     const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
@@ -32,6 +43,15 @@ export const sendCheckoutPendingEmail = createServerFn({ method: "POST" })
     if (error || !order) {
       console.error("Failed to load order for checkout email", error);
       return { ok: false };
+    }
+
+    // Verify the caller actually placed this order by matching the
+    // InstaPay reference stored on the order.
+    const stored = (order.instapay_reference ?? "").trim();
+    const provided = data.instapayReference.trim();
+    if (!stored || stored !== provided) {
+      console.warn("Checkout email rejected: reference mismatch", { orderId: data.orderId });
+      return { ok: false, skipped: "unauthorized" };
     }
 
     // Anti-spam guard: only send once, and only for orders placed in the last 30 min.
