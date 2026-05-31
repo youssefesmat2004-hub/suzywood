@@ -123,7 +123,17 @@ export const sendOrderStatusEmail = createServerFn({ method: "POST" })
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
     if (!RESEND_API_KEY) throw new Error("RESEND_API_KEY is not configured");
 
-    const { supabase } = context;
+    const { supabase, userId } = context;
+
+    // Staff-only: only admin or carpenter may dispatch status notifications.
+    const { data: roles } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .in("role", ["admin", "carpenter"]);
+    if (!roles?.length) {
+      throw new Response("Forbidden", { status: 403 });
+    }
 
     const { data: order, error } = await supabase
       .from("orders")
