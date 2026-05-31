@@ -247,7 +247,17 @@ function Checkout() {
                 type="file"
                 accept="image/*"
                 className="hidden"
-                onChange={(e) => setProofFile(e.target.files?.[0] ?? null)}
+                onChange={(e) => {
+                  const f = e.target.files?.[0] ?? null;
+                  if (f && f.size > 3 * 1024 * 1024) {
+                    toast.error("Screenshot is too large", {
+                      description: "Please upload an image under 3MB.",
+                    });
+                    e.target.value = "";
+                    return;
+                  }
+                  setProofFile(f);
+                }}
               />
               <Button
                 type="button"
