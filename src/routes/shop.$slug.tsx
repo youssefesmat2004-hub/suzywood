@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import type { Product } from "@/lib/types";
 import { asOptions } from "@/lib/types";
@@ -13,7 +16,7 @@ import { Reviews } from "@/components/site/Reviews";
 import { ProductCard } from "@/components/site/ProductCard";
 import { WishlistButton } from "@/components/site/WishlistButton";
 import { useCart } from "@/lib/cart";
-import { Check, ShoppingBag, Minus, Plus } from "lucide-react";
+import { Check, ShoppingBag, Minus, Plus, Ruler, CalendarCheck, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 type Variant = {
@@ -74,7 +77,7 @@ export const Route = createFileRoute("/shop/$slug")({
         .limit(4),
       supabase
         .from("categories")
-        .select("custom_size_enabled,custom_size_surcharge,custom_size_note,name_engraving_enabled,name_engraving_surcharge,name_engraving_note,finish_label")
+        .select("slug,custom_size_enabled,custom_size_surcharge,custom_size_note,name_engraving_enabled,name_engraving_surcharge,name_engraving_note,finish_label")
         .eq("id", product.category_id)
         .maybeSingle(),
     ]);
@@ -83,6 +86,7 @@ export const Route = createFileRoute("/shop/$slug")({
       variants: (variants ?? []) as Variant[],
       related: (related ?? []) as Product[],
       category: (cat ?? null) as {
+        slug: string;
         custom_size_enabled: boolean;
         custom_size_surcharge: number;
         custom_size_note: string | null;
@@ -126,6 +130,7 @@ function ProductPage() {
     variants: Variant[];
     related: Product[];
     category: {
+      slug: string;
       custom_size_enabled: boolean;
       custom_size_surcharge: number;
       custom_size_note: string | null;
@@ -140,6 +145,7 @@ function ProductPage() {
   const sizes = asOptions(product.sizes);
   const finishes = asOptions(product.finishes);
   const gallery = resolveGallery(product.gallery);
+  const isSafetyGate = category?.slug === "safety-gates";
   const [size, setSize] = useState(sizes[0]?.value ?? "");
   const [finish, setFinish] = useState(finishes[0]?.value ?? "");
   const [engraving, setEngraving] = useState("");
@@ -183,6 +189,8 @@ function ProductPage() {
     : stock <= 5
       ? { label: `Only ${stock} left`, className: "bg-amber-500/15 text-amber-700" }
       : { label: "In stock", className: "bg-secondary/15 text-secondary" };
+
+  const relatedAnnotated = related.map((p) => ({ ...p, category_slug: category?.slug }));
 
   const addToCart = () => {
     if (soldOut) return;
@@ -246,6 +254,10 @@ function ProductPage() {
           </div>
 
           <div className="space-y-7">
+            {isSafetyGate ? (
+              <SafetyGateRightColumn product={product} />
+            ) : (
+            <>
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary/15 text-secondary text-[11px] uppercase tracking-[0.22em]">
@@ -416,6 +428,8 @@ function ProductPage() {
             <p className="text-xs text-muted-foreground pt-4 border-t border-border">
               Flat 1,000 EGP delivery across all governorates of Egypt.
             </p>
+            </>
+            )}
           </div>
         </div>
 
@@ -449,11 +463,199 @@ function ProductPage() {
               <Link to="/shop" className="text-sm border-b border-primary pb-0.5 hover:opacity-70">View all →</Link>
             </div>
             <div className="grid gap-6 grid-cols-2 lg:grid-cols-4">
-              {related.map((p) => <ProductCard key={p.id} product={p} />)}
+              {relatedAnnotated.map((p) => <ProductCard key={p.id} product={p} />)}
             </div>
           </section>
         )}
       </div>
     </Layout>
+  );
+}
+
+const AREAS = ["Cairo", "Giza", "Alexandria", "Other"] as const;
+const DAYS = ["saturday","sunday","monday","tuesday","wednesday","thursday"] as const;
+const SLOTS = [
+  { value: "morning", label: "Morning (9am – 12pm)" },
+  { value: "afternoon", label: "Afternoon (12pm – 4pm)" },
+  { value: "evening", label: "Evening (4pm – 8pm)" },
+] as const;
+
+function SafetyGateRightColumn({ product }: { product: Product }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <div>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary/15 text-secondary text-[11px] uppercase tracking-[0.22em]">
+            <Ruler className="h-3 w-3" /> Custom Measurement Required
+          </span>
+        </div>
+        <h1 className="font-serif text-4xl md:text-5xl mt-5">{product.name}</h1>
+        {product.tagline && <p className="mt-3 text-muted-foreground">{product.tagline}</p>}
+        <p className="mt-6 font-serif text-2xl text-primary">Price upon measurement</p>
+      </div>
+
+      {product.description && <p className="text-foreground/80 leading-relaxed">{product.description}</p>}
+
+      <div className="rounded-2xl border border-border bg-muted/30 p-5 space-y-2">
+        <p className="text-sm leading-relaxed">
+          <strong>This product requires custom measurements.</strong> Our team will visit you to measure your space and give you an exact quote.
+        </p>
+      </div>
+
+      <div className="space-y-3">
+        <p className="text-[11px] uppercase tracking-[0.22em] text-secondary">What's included</p>
+        <ul className="space-y-2 text-sm">
+          <li className="flex items-start gap-2"><Check className="h-4 w-4 text-secondary mt-0.5" /> 250 EGP measurement visit</li>
+          <li className="flex items-start gap-2"><Check className="h-4 w-4 text-secondary mt-0.5" /> Expert advice on the best fit</li>
+          <li className="flex items-start gap-2"><Check className="h-4 w-4 text-secondary mt-0.5" /> Custom quote within 24 hours</li>
+        </ul>
+      </div>
+
+      <div className="flex flex-col gap-3 pt-2">
+        <Button size="lg" className="w-full" onClick={() => setOpen(true)}>
+          <CalendarCheck className="h-4 w-4 mr-2" /> Book your Measurement session now
+        </Button>
+        <WishlistButton productId={product.id} />
+      </div>
+
+      <MeasurementBookingDialog
+        open={open}
+        onOpenChange={setOpen}
+        productId={product.id}
+        productName={product.name}
+      />
+    </>
+  );
+}
+
+function MeasurementBookingDialog({
+  open, onOpenChange, productId, productName,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  productId: string;
+  productName: string;
+}) {
+  const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [area, setArea] = useState<string>("Cairo");
+  const [address, setAddress] = useState("");
+  const [day, setDay] = useState<string>("saturday");
+  const [slot, setSlot] = useState<string>("morning");
+  const [notes, setNotes] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [done, setDone] = useState(false);
+
+  const reset = () => {
+    setFullName(""); setPhone(""); setArea("Cairo"); setAddress("");
+    setDay("saturday"); setSlot("morning"); setNotes(""); setDone(false);
+  };
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!fullName.trim() || fullName.length > 100) return toast.error("Please enter your full name");
+    if (!/^01[0-9]{9}$/.test(phone)) return toast.error("Phone must be an 11-digit Egyptian number (01XXXXXXXXX)");
+    if (address.trim().length < 3) return toast.error("Please enter your full address");
+    setSubmitting(true);
+    const { error } = await supabase.from("measurement_bookings").insert({
+      product_id: productId,
+      product_name: productName,
+      full_name: fullName.trim(),
+      phone: phone.trim(),
+      area,
+      address: address.trim(),
+      preferred_day: day,
+      time_slot: slot,
+      notes: notes.trim() || null,
+    });
+    setSubmitting(false);
+    if (error) {
+      toast.error("Couldn't submit booking", { description: error.message });
+      return;
+    }
+    setDone(true);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => { if (!v) reset(); onOpenChange(v); }}>
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        {done ? (
+          <div className="text-center py-6 space-y-4">
+            <div className="mx-auto h-12 w-12 rounded-full bg-secondary/15 text-secondary inline-flex items-center justify-center">
+              <Sparkles className="h-6 w-6" />
+            </div>
+            <DialogHeader>
+              <DialogTitle className="text-center font-serif text-2xl">Thank you!</DialogTitle>
+              <DialogDescription className="text-center">
+                We will contact you within 24 hours to confirm your measurement appointment.
+              </DialogDescription>
+            </DialogHeader>
+            <Button onClick={() => { reset(); onOpenChange(false); }} className="mt-2">Close</Button>
+          </div>
+        ) : (
+          <>
+            <DialogHeader>
+              <DialogTitle className="font-serif text-2xl">Book a Measurement</DialogTitle>
+              <DialogDescription>For {productName}</DialogDescription>
+            </DialogHeader>
+            <form onSubmit={submit} className="space-y-4 pt-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="mb-name">Full name</Label>
+                <Input id="mb-name" value={fullName} onChange={(e) => setFullName(e.target.value)} maxLength={100} required />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="mb-phone">Phone number</Label>
+                <Input id="mb-phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="01XXXXXXXXX" inputMode="tel" required />
+              </div>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label>Area / Governorate</Label>
+                  <Select value={area} onValueChange={setArea}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {AREAS.map((a) => <SelectItem key={a} value={a}>{a}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Preferred day</Label>
+                  <Select value={day} onValueChange={setDay}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {DAYS.map((d) => <SelectItem key={d} value={d} className="capitalize">{d}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="mb-address">Full address</Label>
+                <Textarea id="mb-address" value={address} onChange={(e) => setAddress(e.target.value)} rows={2} maxLength={500} required />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Preferred time</Label>
+                <Select value={slot} onValueChange={setSlot}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {SLOTS.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="mb-product">Product</Label>
+                <Input id="mb-product" value={productName} readOnly className="bg-muted" />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="mb-notes">Notes (optional)</Label>
+                <Textarea id="mb-notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} maxLength={2000} />
+              </div>
+              <Button type="submit" disabled={submitting} size="lg" className="w-full">
+                {submitting ? "Submitting..." : "Confirm Booking"}
+              </Button>
+            </form>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
