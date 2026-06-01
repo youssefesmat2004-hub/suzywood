@@ -3,10 +3,7 @@ import logo from "@/assets/suzy-wood-logo.png";
 
 export function Logo() {
   return (
-    <Link
-      to="/"
-      className="flex items-center gap-3 group bg-background rounded-xl px-3 py-1.5 border border-border/40 shadow-soft"
-    >
+    <Link to="/" className="flex items-center gap-3 group">
       <img
         src={logo}
         alt="Suzy Wood — Premium Nursery & Toddler Furniture"
