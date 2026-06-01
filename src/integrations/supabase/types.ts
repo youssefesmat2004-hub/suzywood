@@ -67,6 +67,9 @@ export type Database = {
           name_engraving_enabled: boolean
           name_engraving_note: string | null
           name_engraving_surcharge: number
+          ottoman_addon_enabled: boolean
+          ottoman_addon_note: string | null
+          ottoman_addon_price: number
           slug: string
           sort_order: number
         }
@@ -83,6 +86,9 @@ export type Database = {
           name_engraving_enabled?: boolean
           name_engraving_note?: string | null
           name_engraving_surcharge?: number
+          ottoman_addon_enabled?: boolean
+          ottoman_addon_note?: string | null
+          ottoman_addon_price?: number
           slug: string
           sort_order?: number
         }
@@ -99,6 +105,9 @@ export type Database = {
           name_engraving_enabled?: boolean
           name_engraving_note?: string | null
           name_engraving_surcharge?: number
+          ottoman_addon_enabled?: boolean
+          ottoman_addon_note?: string | null
+          ottoman_addon_price?: number
           slug?: string
           sort_order?: number
         }

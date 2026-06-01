@@ -34,6 +34,9 @@ type CategoryRow = {
   name_engraving_surcharge: number;
   name_engraving_note: string | null;
   finish_label: string | null;
+  ottoman_addon_enabled: boolean;
+  ottoman_addon_price: number;
+  ottoman_addon_note: string | null;
   product_count?: number;
 };
 
@@ -116,6 +119,9 @@ function CategoriesPage() {
       name_engraving_surcharge: 0,
       name_engraving_note: null,
       finish_label: null,
+      ottoman_addon_enabled: false,
+      ottoman_addon_price: 0,
+      ottoman_addon_note: null,
     });
     setOpen(true);
   };
@@ -277,6 +283,9 @@ function CategoryDialog({
       name_engraving_surcharge: Number(value.name_engraving_surcharge) || 0,
       name_engraving_note: value.name_engraving_note || null,
       finish_label: value.finish_label?.trim() || null,
+      ottoman_addon_enabled: value.ottoman_addon_enabled,
+      ottoman_addon_price: Number(value.ottoman_addon_price) || 0,
+      ottoman_addon_note: value.ottoman_addon_note || null,
     };
     let catId = value.id;
     if (isNew) {
@@ -352,11 +361,12 @@ function CategoryDialog({
           <DialogTitle>{isNew ? "New Category" : "Edit Category"}</DialogTitle>
         </DialogHeader>
         <Tabs defaultValue="details">
-          <TabsList className="grid grid-cols-4 w-full">
+          <TabsList className="grid grid-cols-5 w-full">
             <TabsTrigger value="details">Details</TabsTrigger>
             <TabsTrigger value="sizes" disabled={isNew}>Sizes & Pricing</TabsTrigger>
             <TabsTrigger value="custom" disabled={isNew}>Custom Size</TabsTrigger>
             <TabsTrigger value="engraving" disabled={isNew}>Engraving</TabsTrigger>
+            <TabsTrigger value="ottoman" disabled={isNew}>Ottoman</TabsTrigger>
           </TabsList>
 
           <TabsContent value="details" className="space-y-4 mt-4">
@@ -564,6 +574,40 @@ function CategoryDialog({
                 value={value.name_engraving_note ?? ""}
                 onChange={(e) => onChange({ ...value, name_engraving_note: e.target.value })}
                 placeholder="e.g. Embroidered by hand. Allow 1 extra week."
+              />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="ottoman" className="space-y-4 mt-4">
+            <div className="flex items-center justify-between border rounded-lg p-3">
+              <div>
+                <p className="font-medium text-sm">Offer Ottoman Leg Rest add-on</p>
+                <p className="text-xs text-muted-foreground">Lets customers add a matching ottoman leg rest to any product in this category.</p>
+              </div>
+              <Switch
+                checked={value.ottoman_addon_enabled}
+                onCheckedChange={(c) => onChange({ ...value, ottoman_addon_enabled: c })}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Ottoman Leg Rest price (EGP)</Label>
+              <Input
+                type="number"
+                min={0}
+                step="0.01"
+                value={value.ottoman_addon_price}
+                onChange={(e) => onChange({ ...value, ottoman_addon_price: Number(e.target.value) })}
+                placeholder="e.g. 2500"
+              />
+              <p className="text-xs text-muted-foreground">Added on top of the product's price when the customer ticks the ottoman option. Leave at 0 if you'll quote later.</p>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Note shown to customers (optional)</Label>
+              <Textarea
+                rows={3}
+                value={value.ottoman_addon_note ?? ""}
+                onChange={(e) => onChange({ ...value, ottoman_addon_note: e.target.value })}
+                placeholder="e.g. Matching fabric. Adds 1 extra week to lead time."
               />
             </div>
           </TabsContent>
