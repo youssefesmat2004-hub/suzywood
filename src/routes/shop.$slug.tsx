@@ -279,11 +279,11 @@ function ProductPage() {
             {product.description && <p className="text-foreground/80 leading-relaxed">{product.description}</p>}
 
             <div className="space-y-5 pt-2 border-t border-border">
-              {variants.length > 0 && variants[0]?.variant_type !== "fabric_color" && (
+              {variants.some((v) => v.variant_type !== "fabric_color") && (
                 <div className="space-y-2 pt-5">
                   <Label>Select Size</Label>
                   <div className="flex flex-wrap gap-2">
-                    {variants.map((v) => {
+                    {variants.filter((v) => v.variant_type !== "fabric_color").map((v) => {
                       const isSel = !customMode && v.id === variantId;
                       const out = v.stock_quantity <= 0;
                       return (
