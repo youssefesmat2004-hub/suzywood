@@ -79,7 +79,7 @@ export const Route = createFileRoute("/shop/$slug")({
         .limit(4),
       supabase
         .from("categories")
-        .select("slug,custom_size_enabled,custom_size_surcharge,custom_size_note,name_engraving_enabled,name_engraving_surcharge,name_engraving_note,finish_label,ottoman_addon_enabled,ottoman_addon_price,ottoman_addon_note")
+        .select("slug,custom_size_enabled,custom_size_surcharge,custom_size_note,name_engraving_enabled,name_engraving_surcharge,name_engraving_note,finish_label,ottoman_addon_enabled,ottoman_addon_price,ottoman_addon_note,portable_changing_table_enabled,portable_changing_table_price,portable_changing_table_note")
         .eq("id", product.category_id)
         .maybeSingle(),
     ]);
@@ -99,6 +99,9 @@ export const Route = createFileRoute("/shop/$slug")({
         ottoman_addon_enabled: boolean;
         ottoman_addon_price: number;
         ottoman_addon_note: string | null;
+        portable_changing_table_enabled: boolean;
+        portable_changing_table_price: number;
+        portable_changing_table_note: string | null;
       } | null,
     };
   },
@@ -146,6 +149,9 @@ function ProductPage() {
       ottoman_addon_enabled: boolean;
       ottoman_addon_price: number;
       ottoman_addon_note: string | null;
+      portable_changing_table_enabled: boolean;
+      portable_changing_table_price: number;
+      portable_changing_table_note: string | null;
     } | null;
   };
   const navigate = useNavigate();
@@ -164,6 +170,7 @@ function ProductPage() {
   const [qty, setQty] = useState(1);
   const [active, setActive] = useState(0);
   const [withOttoman, setWithOttoman] = useState(false);
+  const [withPortable, setWithPortable] = useState(false);
 
   const selectedVariant = useMemo(
     () => (customMode ? null : variants.find((v) => v.id === variantId) ?? null),
@@ -188,6 +195,9 @@ function ProductPage() {
   const ottomanEnabled = !!category?.ottoman_addon_enabled;
   const ottomanPrice = Number(category?.ottoman_addon_price ?? 0);
   const ottomanApplied = ottomanEnabled && withOttoman;
+  const portableEnabled = !!category?.portable_changing_table_enabled;
+  const portablePrice = Number(category?.portable_changing_table_price ?? 0);
+  const portableApplied = portableEnabled && withPortable;
   const finishLabel = category?.finish_label?.trim() || "Wood Finish";
   const stock = customMode ? 99 : (selectedVariant ? selectedVariant.stock_quantity : (product.stock_quantity ?? 99));
   const soldOut = !customMode && stock <= 0;
@@ -196,7 +206,8 @@ function ProductPage() {
     : (selectedVariant ? selectedVariant.price : product.starting_price);
   const unitPrice = basePrice
     + (engravingApplied ? engravingSurcharge : 0)
-    + (ottomanApplied ? ottomanPrice : 0);
+    + (ottomanApplied ? ottomanPrice : 0)
+    + (portableApplied ? portablePrice : 0);
 
   const stockBadge = soldOut
     ? { label: "Sold out", className: "bg-destructive/10 text-destructive" }
@@ -234,19 +245,20 @@ function ProductPage() {
     const finishLabel = finishes.find((f) => f.value === finish)?.label ?? "";
     const variantSuffix = selectedVariant ? ` · ${selectedVariant.name}` : "";
     const ottomanSuffix = ottomanApplied ? " + Ottoman Leg Rest" : "";
+    const portableSuffix = portableApplied ? " + Portable Changing Table" : "";
     cart.add({
       productId: product.id,
       slug: product.slug,
-      name: product.name + variantSuffix + ottomanSuffix,
+      name: product.name + variantSuffix + ottomanSuffix + portableSuffix,
       image: selectedVariant?.image_url ? resolveImage(selectedVariant.image_url) : resolveImage(product.image_url),
-      size: ottomanApplied ? `${size || "std"}+ottoman` : size,
-      sizeLabel: ottomanApplied ? `${sizeLabel}${sizeLabel ? " · " : ""}Ottoman Leg Rest` : sizeLabel,
+      size: [size || "std", ottomanApplied ? "ottoman" : null, portableApplied ? "portable" : null].filter(Boolean).join("+"),
+      sizeLabel: [sizeLabel, ottomanApplied ? "Ottoman Leg Rest" : null, portableApplied ? "Portable Changing Table" : null].filter(Boolean).join(" · "),
       finish, finishLabel,
       engraving: engraving.slice(0, 20),
       unitPrice,
       quantity: qty,
     });
-    toast.success("Added to cart", { description: `${product.name}${variantSuffix}${ottomanSuffix} × ${qty}`, action: { label: "View cart", onClick: () => navigate({ to: "/cart" }) } });
+    toast.success("Added to cart", { description: `${product.name}${variantSuffix}${ottomanSuffix}${portableSuffix} × ${qty}`, action: { label: "View cart", onClick: () => navigate({ to: "/cart" }) } });
   };
 
   return (
@@ -453,6 +465,31 @@ function ProductPage() {
                       </div>
                       {category?.ottoman_addon_note && (
                         <p className="text-xs text-muted-foreground italic mt-1">{category.ottoman_addon_note}</p>
+                      )}
+                    </div>
+                  </label>
+                </div>
+              )}
+
+              {portableEnabled && (
+                <div className="space-y-2">
+                  {!ottomanEnabled && <Label>Add-on</Label>}
+                  <label className={`flex items-start gap-3 rounded-xl border p-4 cursor-pointer transition-colors ${withPortable ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"}`}>
+                    <input
+                      type="checkbox"
+                      className="mt-1 h-4 w-4 accent-primary"
+                      checked={withPortable}
+                      onChange={(e) => setWithPortable(e.target.checked)}
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-medium text-sm">Add a Portable Changing Table</span>
+                        <span className="text-sm text-primary font-medium">
+                          {portablePrice > 0 ? `+${portablePrice.toLocaleString()} EGP` : "Price on request"}
+                        </span>
+                      </div>
+                      {category?.portable_changing_table_note && (
+                        <p className="text-xs text-muted-foreground italic mt-1">{category.portable_changing_table_note}</p>
                       )}
                     </div>
                   </label>
