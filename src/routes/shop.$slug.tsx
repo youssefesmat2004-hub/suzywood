@@ -279,7 +279,7 @@ function ProductPage() {
             {product.description && <p className="text-foreground/80 leading-relaxed">{product.description}</p>}
 
             <div className="space-y-5 pt-2 border-t border-border">
-              {variants.length > 0 && (
+              {variants.length > 0 && variants[0]?.variant_type !== "fabric_color" && (
                 <div className="space-y-2 pt-5">
                   <Label>Select Size</Label>
                   <div className="flex flex-wrap gap-2">
@@ -329,6 +329,42 @@ function ProductPage() {
                         </p>
                       )}
                     </div>
+                  )}
+                </div>
+              )}
+              {variants.length > 0 && variants.some((v) => v.variant_type === "fabric_color") && (
+                <div className="space-y-3 pt-5">
+                  <Label>Fabric Color</Label>
+                  <div className="flex flex-wrap gap-3">
+                    {variants
+                      .filter((v) => v.variant_type === "fabric_color")
+                      .map((v) => {
+                        const isSel = v.id === variantId;
+                        const out = v.stock_quantity <= 0;
+                        return (
+                          <button
+                            key={v.id}
+                            type="button"
+                            onClick={() => { setVariantId(v.id); setCustomMode(false); setActive(0); }}
+                            disabled={out}
+                            title={`${v.name}${out ? " — Out of stock" : ""}`}
+                            aria-label={v.name}
+                            className={`relative h-10 w-10 rounded-full border-2 transition-all ${isSel ? "border-primary ring-2 ring-primary/30 ring-offset-2 ring-offset-background" : "border-border hover:border-primary"} ${out ? "opacity-60 cursor-not-allowed" : ""}`}
+                            style={{ backgroundColor: v.color_hex ?? "#ccc" }}
+                          >
+                            {out && (
+                              <span className="absolute inset-0 flex items-center justify-center text-destructive font-bold pointer-events-none" aria-hidden>
+                                ✕
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                  </div>
+                  {selectedVariant?.variant_type === "fabric_color" && (
+                    <p className="text-sm text-muted-foreground">
+                      Selected: <span className="text-foreground font-medium">{selectedVariant.name}</span>
+                    </p>
                   )}
                 </div>
               )}
