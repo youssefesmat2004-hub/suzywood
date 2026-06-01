@@ -260,8 +260,42 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
   const addVariant = () => {
     setVariants([
       ...variants,
-      { name: "", price: v.starting_price, stock_quantity: 0, image_url: null, sort_order: variants.length, is_active: true },
+      {
+        name: "",
+        price: v.starting_price,
+        stock_quantity: 0,
+        image_url: null,
+        sort_order: variants.length,
+        is_active: true,
+        variant_type: isUpholstered ? "fabric_color" : "size",
+        color_hex: isUpholstered ? "#F4F4F0" : null,
+      },
     ]);
+  };
+
+  const addAllFabricPresets = () => {
+    const existingNames = new Set(
+      variants.filter((x) => !x._delete && x.variant_type === "fabric_color").map((x) => x.name.toLowerCase()),
+    );
+    const toAdd = FABRIC_PALETTE.filter((c) => !existingNames.has(c.name.toLowerCase()));
+    if (toAdd.length === 0) {
+      toast.info("All preset colors are already added");
+      return;
+    }
+    setVariants((prev) => [
+      ...prev,
+      ...toAdd.map((c, i) => ({
+        name: c.name,
+        price: v.starting_price,
+        stock_quantity: 0,
+        image_url: null,
+        sort_order: prev.length + i,
+        is_active: true,
+        variant_type: "fabric_color" as const,
+        color_hex: c.hex,
+      })),
+    ]);
+    toast.success(`Added ${toAdd.length} fabric colors`);
   };
 
   const submit = async (e: React.FormEvent) => {
