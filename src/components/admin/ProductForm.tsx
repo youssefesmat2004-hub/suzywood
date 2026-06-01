@@ -20,8 +20,45 @@ type Variant = {
   image_url: string | null;
   sort_order: number;
   is_active: boolean;
+  variant_type?: "size" | "fabric_color";
+  color_hex?: string | null;
   _delete?: boolean;
 };
+
+// Default fabric palette for Nursing Chair (and other upholstered products).
+const FABRIC_PALETTE: { name: string; hex: string }[] = [
+  { name: "Ivory White", hex: "#F4F4F0" },
+  { name: "Natural Beige", hex: "#E6DFD3" },
+  { name: "Light Greige", hex: "#D1CCC4" },
+  { name: "Ash Grey", hex: "#B5B5B5" },
+  { name: "Mustard Yellow", hex: "#C49A45" },
+  { name: "Sage Green", hex: "#A9BCA7" },
+  { name: "Dusty Blue", hex: "#7E95AD" },
+  { name: "Ice Blue", hex: "#D2DBE3" },
+  { name: "Steel Blue", hex: "#6B7A8C" },
+  { name: "Charcoal Grey", hex: "#5A5C63" },
+  { name: "Vanilla Cream", hex: "#EFE9D8" },
+  { name: "Pure White", hex: "#FFFFFF" },
+  { name: "Snow", hex: "#F5F5F5" },
+  { name: "Cream", hex: "#EAE6DF" },
+  { name: "Sand", hex: "#D4CBBF" },
+  { name: "Taupe", hex: "#A89B90" },
+  { name: "Mocha", hex: "#8C776B" },
+  { name: "Pale Pink", hex: "#DECDD3" },
+  { name: "Dusty Rose", hex: "#B58686" },
+  { name: "Terracotta", hex: "#9A5A43" },
+  { name: "Mint", hex: "#A6BBAE" },
+  { name: "Forest Green", hex: "#3E5950" },
+  { name: "Deep Teal", hex: "#29454D" },
+  { name: "Dark Emerald", hex: "#1C332A" },
+  { name: "Powder Blue", hex: "#9EB3C9" },
+  { name: "Slate Blue", hex: "#495C73" },
+  { name: "Navy", hex: "#1D273B" },
+  { name: "Light Silver", hex: "#D1D3D4" },
+  { name: "Medium Grey", hex: "#9D9FA2" },
+  { name: "Charcoal Velvet", hex: "#4A4A4C" },
+  { name: "Solid Black", hex: "#1A1A1A" },
+];
 
 export type ProductFormValue = {
   id?: string;
