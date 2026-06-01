@@ -37,6 +37,9 @@ type CategoryRow = {
   ottoman_addon_enabled: boolean;
   ottoman_addon_price: number;
   ottoman_addon_note: string | null;
+  portable_changing_table_enabled: boolean;
+  portable_changing_table_price: number;
+  portable_changing_table_note: string | null;
   product_count?: number;
 };
 
@@ -122,6 +125,9 @@ function CategoriesPage() {
       ottoman_addon_enabled: false,
       ottoman_addon_price: 0,
       ottoman_addon_note: null,
+      portable_changing_table_enabled: false,
+      portable_changing_table_price: 0,
+      portable_changing_table_note: null,
     });
     setOpen(true);
   };
@@ -286,6 +292,9 @@ function CategoryDialog({
       ottoman_addon_enabled: value.ottoman_addon_enabled,
       ottoman_addon_price: Number(value.ottoman_addon_price) || 0,
       ottoman_addon_note: value.ottoman_addon_note || null,
+      portable_changing_table_enabled: value.portable_changing_table_enabled,
+      portable_changing_table_price: Number(value.portable_changing_table_price) || 0,
+      portable_changing_table_note: value.portable_changing_table_note || null,
     };
     let catId = value.id;
     if (isNew) {
@@ -361,12 +370,13 @@ function CategoryDialog({
           <DialogTitle>{isNew ? "New Category" : "Edit Category"}</DialogTitle>
         </DialogHeader>
         <Tabs defaultValue="details">
-          <TabsList className="grid grid-cols-5 w-full">
+          <TabsList className="grid grid-cols-6 w-full">
             <TabsTrigger value="details">Details</TabsTrigger>
             <TabsTrigger value="sizes" disabled={isNew}>Sizes & Pricing</TabsTrigger>
             <TabsTrigger value="custom" disabled={isNew}>Custom Size</TabsTrigger>
             <TabsTrigger value="engraving" disabled={isNew}>Engraving</TabsTrigger>
             <TabsTrigger value="ottoman" disabled={isNew}>Ottoman</TabsTrigger>
+            <TabsTrigger value="portable" disabled={isNew}>Portable Table</TabsTrigger>
           </TabsList>
 
           <TabsContent value="details" className="space-y-4 mt-4">
