@@ -516,17 +516,30 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
       <section className="bg-background border rounded-xl p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="font-serif text-xl">Variants</h2>
+            <h2 className="font-serif text-xl">{isUpholstered ? "Fabric Colors" : "Variants"}</h2>
             <p className="text-xs text-muted-foreground mt-1">
-              Sizes auto-load from the selected category. Each variant has its own price, stock, and optional image.
+              {isUpholstered
+                ? "Each fabric color is its own variant with price, stock, swatch image and hex color."
+                : "Sizes auto-load from the selected category. Each variant has its own price, stock, and optional image."}
             </p>
           </div>
-          <Button type="button" variant="outline" size="sm" onClick={addVariant}>
-            <Plus className="h-3.5 w-3.5 mr-1.5" /> Add Variant
-          </Button>
+          <div className="flex gap-2">
+            {isUpholstered && (
+              <Button type="button" variant="outline" size="sm" onClick={addAllFabricPresets}>
+                <Plus className="h-3.5 w-3.5 mr-1.5" /> Add preset palette
+              </Button>
+            )}
+            <Button type="button" variant="outline" size="sm" onClick={addVariant}>
+              <Plus className="h-3.5 w-3.5 mr-1.5" /> Add {isUpholstered ? "Color" : "Variant"}
+            </Button>
+          </div>
         </div>
         {variants.filter((x) => !x._delete).length === 0 && (
-          <p className="text-sm text-muted-foreground">No variants. Add one if this product has size/color/material options.</p>
+          <p className="text-sm text-muted-foreground">
+            {isUpholstered
+              ? "No fabric colors yet. Click \"Add preset palette\" to load the full color set."
+              : "No variants. Add one if this product has size/color/material options."}
+          </p>
         )}
         <div className="space-y-3">
           {variants.map((variant, idx) =>
@@ -538,14 +551,30 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
                   onClear={() => setVariants((p) => p.map((x, i) => i === idx ? { ...x, image_url: null } : x))}
                   onRecrop={() => recropVariant(idx)}
                 />
-                <div className="sm:col-span-4 space-y-1">
-                  <Label className="text-xs">Variant name</Label>
+                <div className={`${variant.variant_type === "fabric_color" ? "sm:col-span-3" : "sm:col-span-4"} space-y-1`}>
+                  <Label className="text-xs">{variant.variant_type === "fabric_color" ? "Color name" : "Variant name"}</Label>
                   <Input
-                    placeholder="e.g. Size: M / Walnut"
+                    placeholder={variant.variant_type === "fabric_color" ? "e.g. Baby Blue" : "e.g. Size: M / Walnut"}
                     value={variant.name}
                     onChange={(e) => setVariants((p) => p.map((x, i) => i === idx ? { ...x, name: e.target.value } : x))}
                   />
                 </div>
+                {variant.variant_type === "fabric_color" && (
+                  <div className="sm:col-span-1 space-y-1">
+                    <Label className="text-xs">Color</Label>
+                    <input
+                      type="color"
+                      value={variant.color_hex ?? "#ffffff"}
+                      onChange={(e) =>
+                        setVariants((p) =>
+                          p.map((x, i) => (i === idx ? { ...x, color_hex: e.target.value.toUpperCase() } : x)),
+                        )
+                      }
+                      className="h-10 w-full rounded border border-input cursor-pointer bg-transparent"
+                      title={variant.color_hex ?? ""}
+                    />
+                  </div>
+                )}
                 <div className="sm:col-span-2 space-y-1">
                   <Label className="text-xs">Price</Label>
                   <Input type="number" min={0} value={variant.price} onChange={(e) => setVariants((p) => p.map((x, i) => i === idx ? { ...x, price: Number(e.target.value) } : x))} />
