@@ -471,6 +471,31 @@ function ProductPage() {
                 </div>
               )}
 
+              {portableEnabled && (
+                <div className="space-y-2">
+                  {!ottomanEnabled && <Label>Add-on</Label>}
+                  <label className={`flex items-start gap-3 rounded-xl border p-4 cursor-pointer transition-colors ${withPortable ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"}`}>
+                    <input
+                      type="checkbox"
+                      className="mt-1 h-4 w-4 accent-primary"
+                      checked={withPortable}
+                      onChange={(e) => setWithPortable(e.target.checked)}
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-medium text-sm">Add a Portable Changing Table</span>
+                        <span className="text-sm text-primary font-medium">
+                          {portablePrice > 0 ? `+${portablePrice.toLocaleString()} EGP` : "Price on request"}
+                        </span>
+                      </div>
+                      {category?.portable_changing_table_note && (
+                        <p className="text-xs text-muted-foreground italic mt-1">{category.portable_changing_table_note}</p>
+                      )}
+                    </div>
+                  </label>
+                </div>
+              )}
+
               <div className="space-y-2">
                 <Label>Quantity</Label>
                 <div className="inline-flex items-center rounded-full border border-border">
