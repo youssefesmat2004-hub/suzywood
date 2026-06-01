@@ -577,6 +577,40 @@ function CategoryDialog({
               />
             </div>
           </TabsContent>
+
+          <TabsContent value="ottoman" className="space-y-4 mt-4">
+            <div className="flex items-center justify-between border rounded-lg p-3">
+              <div>
+                <p className="font-medium text-sm">Offer Ottoman Leg Rest add-on</p>
+                <p className="text-xs text-muted-foreground">Lets customers add a matching ottoman leg rest to any product in this category.</p>
+              </div>
+              <Switch
+                checked={value.ottoman_addon_enabled}
+                onCheckedChange={(c) => onChange({ ...value, ottoman_addon_enabled: c })}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Ottoman Leg Rest price (EGP)</Label>
+              <Input
+                type="number"
+                min={0}
+                step="0.01"
+                value={value.ottoman_addon_price}
+                onChange={(e) => onChange({ ...value, ottoman_addon_price: Number(e.target.value) })}
+                placeholder="e.g. 2500"
+              />
+              <p className="text-xs text-muted-foreground">Added on top of the product's price when the customer ticks the ottoman option. Leave at 0 if you'll quote later.</p>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Note shown to customers (optional)</Label>
+              <Textarea
+                rows={3}
+                value={value.ottoman_addon_note ?? ""}
+                onChange={(e) => onChange({ ...value, ottoman_addon_note: e.target.value })}
+                placeholder="e.g. Matching fabric. Adds 1 extra week to lead time."
+              />
+            </div>
+          </TabsContent>
         </Tabs>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
