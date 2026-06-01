@@ -135,6 +135,9 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
   const mainInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
 
+  const selectedCategorySlug = categories.find((c) => c.id === v.category_id)?.slug ?? "";
+  const isUpholstered = selectedCategorySlug === "nursing-chair";
+
   useEffect(() => {
     supabase.from("categories").select("id,name,slug").order("sort_order").then(({ data }) => {
       setCategories((data ?? []) as Category[]);
@@ -176,6 +179,8 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
     if (productId) return;
     if (categorySizes.length === 0) return;
     const liveVariants = variants.filter((x) => !x._delete);
+    // Skip auto size fill for upholstered (fabric color) categories.
+    if (isUpholstered) return;
     const presetLabels = categorySizes.map((s) => s.label);
     const isEmptyOrPresetMatch =
       liveVariants.length === 0 ||
@@ -189,10 +194,12 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
         image_url: null,
         sort_order: i,
         is_active: true,
+        variant_type: "size",
+        color_hex: null,
       })),
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [categorySizes, productId]);
+  }, [categorySizes, productId, isUpholstered]);
 
   const handleMainUpload = async (file: File) => {
     setUploadingMain(true);
