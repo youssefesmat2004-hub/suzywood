@@ -434,6 +434,31 @@ function ProductPage() {
                 </div>
               )}
 
+              {ottomanEnabled && (
+                <div className="space-y-2">
+                  <Label>Add-on</Label>
+                  <label className={`flex items-start gap-3 rounded-xl border p-4 cursor-pointer transition-colors ${withOttoman ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"}`}>
+                    <input
+                      type="checkbox"
+                      className="mt-1 h-4 w-4 accent-primary"
+                      checked={withOttoman}
+                      onChange={(e) => setWithOttoman(e.target.checked)}
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-medium text-sm">Include matching Ottoman Leg Rest</span>
+                        <span className="text-sm text-primary font-medium">
+                          {ottomanPrice > 0 ? `+${ottomanPrice.toLocaleString()} EGP` : "Price on request"}
+                        </span>
+                      </div>
+                      {category?.ottoman_addon_note && (
+                        <p className="text-xs text-muted-foreground italic mt-1">{category.ottoman_addon_note}</p>
+                      )}
+                    </div>
+                  </label>
+                </div>
+              )}
+
               <div className="space-y-2">
                 <Label>Quantity</Label>
                 <div className="inline-flex items-center rounded-full border border-border">
