@@ -136,7 +136,8 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
   const galleryInputRef = useRef<HTMLInputElement>(null);
 
   const selectedCategorySlug = categories.find((c) => c.id === v.category_id)?.slug ?? "";
-  const isUpholstered = selectedCategorySlug === "nursing-chair";
+  const isUpholstered =
+    selectedCategorySlug === "nursing-chair" || selectedCategorySlug === "nursing-chairs";
 
   useEffect(() => {
     supabase.from("categories").select("id,name,slug").order("sort_order").then(({ data }) => {
