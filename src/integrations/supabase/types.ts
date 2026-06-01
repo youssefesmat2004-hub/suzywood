@@ -70,6 +70,9 @@ export type Database = {
           ottoman_addon_enabled: boolean
           ottoman_addon_note: string | null
           ottoman_addon_price: number
+          portable_changing_table_enabled: boolean
+          portable_changing_table_note: string | null
+          portable_changing_table_price: number
           slug: string
           sort_order: number
         }
@@ -89,6 +92,9 @@ export type Database = {
           ottoman_addon_enabled?: boolean
           ottoman_addon_note?: string | null
           ottoman_addon_price?: number
+          portable_changing_table_enabled?: boolean
+          portable_changing_table_note?: string | null
+          portable_changing_table_price?: number
           slug: string
           sort_order?: number
         }
@@ -108,6 +114,9 @@ export type Database = {
           ottoman_addon_enabled?: boolean
           ottoman_addon_note?: string | null
           ottoman_addon_price?: number
+          portable_changing_table_enabled?: boolean
+          portable_changing_table_note?: string | null
+          portable_changing_table_price?: number
           slug?: string
           sort_order?: number
         }
