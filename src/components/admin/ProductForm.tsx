@@ -352,6 +352,8 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
           image_url: variant.image_url,
           sort_order: variant.sort_order,
           is_active: variant.is_active,
+          variant_type: variant.variant_type ?? "size",
+          color_hex: variant.variant_type === "fabric_color" ? (variant.color_hex ?? null) : null,
         }).eq("id", variant.id);
       } else if (!variant._delete && variant.name.trim()) {
         await supabase.from("product_variants").insert({
@@ -362,6 +364,8 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
           image_url: variant.image_url,
           sort_order: variant.sort_order,
           is_active: variant.is_active,
+          variant_type: variant.variant_type ?? "size",
+          color_hex: variant.variant_type === "fabric_color" ? (variant.color_hex ?? null) : null,
         });
       }
     }
