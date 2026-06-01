@@ -462,6 +462,7 @@ export type Database = {
       }
       product_variants: {
         Row: {
+          color_hex: string | null
           created_at: string
           id: string
           image_url: string | null
@@ -472,8 +473,10 @@ export type Database = {
           sort_order: number
           stock_quantity: number
           updated_at: string
+          variant_type: string
         }
         Insert: {
+          color_hex?: string | null
           created_at?: string
           id?: string
           image_url?: string | null
@@ -484,8 +487,10 @@ export type Database = {
           sort_order?: number
           stock_quantity?: number
           updated_at?: string
+          variant_type?: string
         }
         Update: {
+          color_hex?: string | null
           created_at?: string
           id?: string
           image_url?: string | null
@@ -496,6 +501,7 @@ export type Database = {
           sort_order?: number
           stock_quantity?: number
           updated_at?: string
+          variant_type?: string
         }
         Relationships: [
           {

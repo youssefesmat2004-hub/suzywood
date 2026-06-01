@@ -20,8 +20,45 @@ type Variant = {
   image_url: string | null;
   sort_order: number;
   is_active: boolean;
+  variant_type?: "size" | "fabric_color";
+  color_hex?: string | null;
   _delete?: boolean;
 };
+
+// Default fabric palette for Nursing Chair (and other upholstered products).
+const FABRIC_PALETTE: { name: string; hex: string }[] = [
+  { name: "Ivory White", hex: "#F4F4F0" },
+  { name: "Natural Beige", hex: "#E6DFD3" },
+  { name: "Light Greige", hex: "#D1CCC4" },
+  { name: "Ash Grey", hex: "#B5B5B5" },
+  { name: "Mustard Yellow", hex: "#C49A45" },
+  { name: "Sage Green", hex: "#A9BCA7" },
+  { name: "Dusty Blue", hex: "#7E95AD" },
+  { name: "Ice Blue", hex: "#D2DBE3" },
+  { name: "Steel Blue", hex: "#6B7A8C" },
+  { name: "Charcoal Grey", hex: "#5A5C63" },
+  { name: "Vanilla Cream", hex: "#EFE9D8" },
+  { name: "Pure White", hex: "#FFFFFF" },
+  { name: "Snow", hex: "#F5F5F5" },
+  { name: "Cream", hex: "#EAE6DF" },
+  { name: "Sand", hex: "#D4CBBF" },
+  { name: "Taupe", hex: "#A89B90" },
+  { name: "Mocha", hex: "#8C776B" },
+  { name: "Pale Pink", hex: "#DECDD3" },
+  { name: "Dusty Rose", hex: "#B58686" },
+  { name: "Terracotta", hex: "#9A5A43" },
+  { name: "Mint", hex: "#A6BBAE" },
+  { name: "Forest Green", hex: "#3E5950" },
+  { name: "Deep Teal", hex: "#29454D" },
+  { name: "Dark Emerald", hex: "#1C332A" },
+  { name: "Powder Blue", hex: "#9EB3C9" },
+  { name: "Slate Blue", hex: "#495C73" },
+  { name: "Navy", hex: "#1D273B" },
+  { name: "Light Silver", hex: "#D1D3D4" },
+  { name: "Medium Grey", hex: "#9D9FA2" },
+  { name: "Charcoal Velvet", hex: "#4A4A4C" },
+  { name: "Solid Black", hex: "#1A1A1A" },
+];
 
 export type ProductFormValue = {
   id?: string;
@@ -98,6 +135,9 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
   const mainInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
 
+  const selectedCategorySlug = categories.find((c) => c.id === v.category_id)?.slug ?? "";
+  const isUpholstered = selectedCategorySlug === "nursing-chair";
+
   useEffect(() => {
     supabase.from("categories").select("id,name,slug").order("sort_order").then(({ data }) => {
       setCategories((data ?? []) as Category[]);
@@ -139,6 +179,8 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
     if (productId) return;
     if (categorySizes.length === 0) return;
     const liveVariants = variants.filter((x) => !x._delete);
+    // Skip auto size fill for upholstered (fabric color) categories.
+    if (isUpholstered) return;
     const presetLabels = categorySizes.map((s) => s.label);
     const isEmptyOrPresetMatch =
       liveVariants.length === 0 ||
@@ -152,10 +194,12 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
         image_url: null,
         sort_order: i,
         is_active: true,
+        variant_type: "size",
+        color_hex: null,
       })),
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [categorySizes, productId]);
+  }, [categorySizes, productId, isUpholstered]);
 
   const handleMainUpload = async (file: File) => {
     setUploadingMain(true);
@@ -216,8 +260,42 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
   const addVariant = () => {
     setVariants([
       ...variants,
-      { name: "", price: v.starting_price, stock_quantity: 0, image_url: null, sort_order: variants.length, is_active: true },
+      {
+        name: "",
+        price: v.starting_price,
+        stock_quantity: 0,
+        image_url: null,
+        sort_order: variants.length,
+        is_active: true,
+        variant_type: isUpholstered ? "fabric_color" : "size",
+        color_hex: isUpholstered ? "#F4F4F0" : null,
+      },
     ]);
+  };
+
+  const addAllFabricPresets = () => {
+    const existingNames = new Set(
+      variants.filter((x) => !x._delete && x.variant_type === "fabric_color").map((x) => x.name.toLowerCase()),
+    );
+    const toAdd = FABRIC_PALETTE.filter((c) => !existingNames.has(c.name.toLowerCase()));
+    if (toAdd.length === 0) {
+      toast.info("All preset colors are already added");
+      return;
+    }
+    setVariants((prev) => [
+      ...prev,
+      ...toAdd.map((c, i) => ({
+        name: c.name,
+        price: v.starting_price,
+        stock_quantity: 0,
+        image_url: null,
+        sort_order: prev.length + i,
+        is_active: true,
+        variant_type: "fabric_color" as const,
+        color_hex: c.hex,
+      })),
+    ]);
+    toast.success(`Added ${toAdd.length} fabric colors`);
   };
 
   const submit = async (e: React.FormEvent) => {
@@ -274,6 +352,8 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
           image_url: variant.image_url,
           sort_order: variant.sort_order,
           is_active: variant.is_active,
+          variant_type: variant.variant_type ?? "size",
+          color_hex: variant.variant_type === "fabric_color" ? (variant.color_hex ?? null) : null,
         }).eq("id", variant.id);
       } else if (!variant._delete && variant.name.trim()) {
         await supabase.from("product_variants").insert({
@@ -284,6 +364,8 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
           image_url: variant.image_url,
           sort_order: variant.sort_order,
           is_active: variant.is_active,
+          variant_type: variant.variant_type ?? "size",
+          color_hex: variant.variant_type === "fabric_color" ? (variant.color_hex ?? null) : null,
         });
       }
     }
@@ -434,17 +516,30 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
       <section className="bg-background border rounded-xl p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="font-serif text-xl">Variants</h2>
+            <h2 className="font-serif text-xl">{isUpholstered ? "Fabric Colors" : "Variants"}</h2>
             <p className="text-xs text-muted-foreground mt-1">
-              Sizes auto-load from the selected category. Each variant has its own price, stock, and optional image.
+              {isUpholstered
+                ? "Each fabric color is its own variant with price, stock, swatch image and hex color."
+                : "Sizes auto-load from the selected category. Each variant has its own price, stock, and optional image."}
             </p>
           </div>
-          <Button type="button" variant="outline" size="sm" onClick={addVariant}>
-            <Plus className="h-3.5 w-3.5 mr-1.5" /> Add Variant
-          </Button>
+          <div className="flex gap-2">
+            {isUpholstered && (
+              <Button type="button" variant="outline" size="sm" onClick={addAllFabricPresets}>
+                <Plus className="h-3.5 w-3.5 mr-1.5" /> Add preset palette
+              </Button>
+            )}
+            <Button type="button" variant="outline" size="sm" onClick={addVariant}>
+              <Plus className="h-3.5 w-3.5 mr-1.5" /> Add {isUpholstered ? "Color" : "Variant"}
+            </Button>
+          </div>
         </div>
         {variants.filter((x) => !x._delete).length === 0 && (
-          <p className="text-sm text-muted-foreground">No variants. Add one if this product has size/color/material options.</p>
+          <p className="text-sm text-muted-foreground">
+            {isUpholstered
+              ? "No fabric colors yet. Click \"Add preset palette\" to load the full color set."
+              : "No variants. Add one if this product has size/color/material options."}
+          </p>
         )}
         <div className="space-y-3">
           {variants.map((variant, idx) =>
@@ -456,14 +551,30 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
                   onClear={() => setVariants((p) => p.map((x, i) => i === idx ? { ...x, image_url: null } : x))}
                   onRecrop={() => recropVariant(idx)}
                 />
-                <div className="sm:col-span-4 space-y-1">
-                  <Label className="text-xs">Variant name</Label>
+                <div className={`${variant.variant_type === "fabric_color" ? "sm:col-span-3" : "sm:col-span-4"} space-y-1`}>
+                  <Label className="text-xs">{variant.variant_type === "fabric_color" ? "Color name" : "Variant name"}</Label>
                   <Input
-                    placeholder="e.g. Size: M / Walnut"
+                    placeholder={variant.variant_type === "fabric_color" ? "e.g. Baby Blue" : "e.g. Size: M / Walnut"}
                     value={variant.name}
                     onChange={(e) => setVariants((p) => p.map((x, i) => i === idx ? { ...x, name: e.target.value } : x))}
                   />
                 </div>
+                {variant.variant_type === "fabric_color" && (
+                  <div className="sm:col-span-1 space-y-1">
+                    <Label className="text-xs">Color</Label>
+                    <input
+                      type="color"
+                      value={variant.color_hex ?? "#ffffff"}
+                      onChange={(e) =>
+                        setVariants((p) =>
+                          p.map((x, i) => (i === idx ? { ...x, color_hex: e.target.value.toUpperCase() } : x)),
+                        )
+                      }
+                      className="h-10 w-full rounded border border-input cursor-pointer bg-transparent"
+                      title={variant.color_hex ?? ""}
+                    />
+                  </div>
+                )}
                 <div className="sm:col-span-2 space-y-1">
                   <Label className="text-xs">Price</Label>
                   <Input type="number" min={0} value={variant.price} onChange={(e) => setVariants((p) => p.map((x, i) => i === idx ? { ...x, price: Number(e.target.value) } : x))} />
