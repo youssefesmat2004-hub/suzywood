@@ -79,7 +79,7 @@ export const Route = createFileRoute("/shop/$slug")({
         .limit(4),
       supabase
         .from("categories")
-        .select("slug,custom_size_enabled,custom_size_surcharge,custom_size_note,name_engraving_enabled,name_engraving_surcharge,name_engraving_note,finish_label")
+        .select("slug,custom_size_enabled,custom_size_surcharge,custom_size_note,name_engraving_enabled,name_engraving_surcharge,name_engraving_note,finish_label,ottoman_addon_enabled,ottoman_addon_price,ottoman_addon_note")
         .eq("id", product.category_id)
         .maybeSingle(),
     ]);
@@ -96,6 +96,9 @@ export const Route = createFileRoute("/shop/$slug")({
         name_engraving_surcharge: number;
         name_engraving_note: string | null;
         finish_label: string | null;
+        ottoman_addon_enabled: boolean;
+        ottoman_addon_price: number;
+        ottoman_addon_note: string | null;
       } | null,
     };
   },
@@ -140,6 +143,9 @@ function ProductPage() {
       name_engraving_surcharge: number;
       name_engraving_note: string | null;
       finish_label: string | null;
+      ottoman_addon_enabled: boolean;
+      ottoman_addon_price: number;
+      ottoman_addon_note: string | null;
     } | null;
   };
   const navigate = useNavigate();
@@ -157,6 +163,7 @@ function ProductPage() {
   const [customLength, setCustomLength] = useState<string>("");
   const [qty, setQty] = useState(1);
   const [active, setActive] = useState(0);
+  const [withOttoman, setWithOttoman] = useState(false);
 
   const selectedVariant = useMemo(
     () => (customMode ? null : variants.find((v) => v.id === variantId) ?? null),
@@ -178,13 +185,18 @@ function ProductPage() {
   const engravingEnabled = !!category?.name_engraving_enabled;
   const engravingSurcharge = Number(category?.name_engraving_surcharge ?? 0);
   const engravingApplied = engravingEnabled && engraving.trim().length > 0;
+  const ottomanEnabled = !!category?.ottoman_addon_enabled;
+  const ottomanPrice = Number(category?.ottoman_addon_price ?? 0);
+  const ottomanApplied = ottomanEnabled && withOttoman;
   const finishLabel = category?.finish_label?.trim() || "Wood Finish";
   const stock = customMode ? 99 : (selectedVariant ? selectedVariant.stock_quantity : (product.stock_quantity ?? 99));
   const soldOut = !customMode && stock <= 0;
   const basePrice = customMode
     ? product.starting_price + customSurcharge
     : (selectedVariant ? selectedVariant.price : product.starting_price);
-  const unitPrice = basePrice + (engravingApplied ? engravingSurcharge : 0);
+  const unitPrice = basePrice
+    + (engravingApplied ? engravingSurcharge : 0)
+    + (ottomanApplied ? ottomanPrice : 0);
 
   const stockBadge = soldOut
     ? { label: "Sold out", className: "bg-destructive/10 text-destructive" }
@@ -221,17 +233,20 @@ function ProductPage() {
     const sizeLabel = sizes.find((s) => s.value === size)?.label ?? "";
     const finishLabel = finishes.find((f) => f.value === finish)?.label ?? "";
     const variantSuffix = selectedVariant ? ` · ${selectedVariant.name}` : "";
+    const ottomanSuffix = ottomanApplied ? " + Ottoman Leg Rest" : "";
     cart.add({
       productId: product.id,
       slug: product.slug,
-      name: product.name + variantSuffix,
+      name: product.name + variantSuffix + ottomanSuffix,
       image: selectedVariant?.image_url ? resolveImage(selectedVariant.image_url) : resolveImage(product.image_url),
-      size, sizeLabel, finish, finishLabel,
+      size: ottomanApplied ? `${size || "std"}+ottoman` : size,
+      sizeLabel: ottomanApplied ? `${sizeLabel}${sizeLabel ? " · " : ""}Ottoman Leg Rest` : sizeLabel,
+      finish, finishLabel,
       engraving: engraving.slice(0, 20),
       unitPrice,
       quantity: qty,
     });
-    toast.success("Added to cart", { description: `${product.name}${variantSuffix} × ${qty}`, action: { label: "View cart", onClick: () => navigate({ to: "/cart" }) } });
+    toast.success("Added to cart", { description: `${product.name}${variantSuffix}${ottomanSuffix} × ${qty}`, action: { label: "View cart", onClick: () => navigate({ to: "/cart" }) } });
   };
 
   return (
