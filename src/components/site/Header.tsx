@@ -21,7 +21,7 @@ export function Header() {
   const { user } = useAuth();
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur-md">
+    <header className="sticky top-0 z-40 border-b border-border/30 bg-background">
       <div className="container mx-auto flex h-20 items-center justify-between px-6 lg:px-10">
         <Logo />
         <nav className="hidden lg:flex items-center gap-9">
