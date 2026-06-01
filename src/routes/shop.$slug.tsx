@@ -27,6 +27,8 @@ type Variant = {
   image_url: string | null;
   is_active: boolean;
   sort_order: number;
+  variant_type?: "size" | "fabric_color" | null;
+  color_hex?: string | null;
 };
 
 function ProductError({ error, reset }: { error: Error; reset: () => void }) {
