@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { timingSafeEqual } from "node:crypto";
 
 export const verifyCarpenterPin = createServerFn({ method: "POST" })
   .inputValidator((input) =>
@@ -20,7 +21,10 @@ export const verifyCarpenterPin = createServerFn({ method: "POST" })
       throw new Error("Carpenter credentials are not configured");
     }
 
-    if (data.pin !== expectedPin) {
+    const a = Buffer.from(data.pin);
+    const b = Buffer.from(expectedPin);
+    if (a.length !== b.length || !timingSafeEqual(a, b)) {
+      await new Promise((r) => setTimeout(r, 200));
       return { ok: false as const };
     }
 
@@ -65,5 +69,25 @@ export const verifyCarpenterPin = createServerFn({ method: "POST" })
       if (roleErr) throw new Error(roleErr.message);
     }
 
-    return { ok: true as const, email, password };
+    // Sign in server-side using the publishable client so we can return
+    // only a session (never the raw password) to the browser.
+    const { createClient } = await import("@supabase/supabase-js");
+    const SUPABASE_URL = process.env.SUPABASE_URL!;
+    const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY!;
+    const authClient = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+      auth: { persistSession: false, autoRefreshToken: false, storage: undefined },
+    });
+    const { data: signIn, error: signErr } = await authClient.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (signErr || !signIn.session) {
+      throw new Error(signErr?.message ?? "Failed to create carpenter session");
+    }
+
+    return {
+      ok: true as const,
+      accessToken: signIn.session.access_token,
+      refreshToken: signIn.session.refresh_token,
+    };
   });

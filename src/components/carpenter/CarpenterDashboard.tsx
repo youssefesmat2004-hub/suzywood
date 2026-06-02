@@ -123,9 +123,9 @@ function PinGate({
         setBusy(false);
         return;
       }
-      const { error } = await supabase.auth.signInWithPassword({
-        email: res.email,
-        password: res.password,
+      const { error } = await supabase.auth.setSession({
+        access_token: res.accessToken,
+        refresh_token: res.refreshToken,
       });
       if (error) throw error;
       onUnlocked();
