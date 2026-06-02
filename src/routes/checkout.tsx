@@ -164,6 +164,9 @@ function Checkout() {
     sendPendingEmail({
       data: { orderId: order.id, instapayReference: reference.trim() },
     }).catch((e) => console.error("Pending email failed", e));
+    notifyOwner({ data: { orderId: order.id } }).catch((e) =>
+      console.error("Owner notify failed", e),
+    );
     toast.success(`Order ${order.order_number} submitted`, {
       description: "We'll verify your payment and email you once confirmed.",
     });
