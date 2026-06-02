@@ -40,6 +40,7 @@ function Checkout() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const sendPendingEmail = useServerFn(sendCheckoutPendingEmail);
+  const notifyOwner = useServerFn(notifyOwnerNewOrder);
   const [step, setStep] = useState<"details" | "pay">("details");
   const [details, setDetails] = useState<Details | null>(null);
   const [reference, setReference] = useState("");
