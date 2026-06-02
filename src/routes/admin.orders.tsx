@@ -50,6 +50,7 @@ export const Route = createFileRoute("/admin/orders")({
 
 function OrdersPage() {
   const { isCarpenter } = useIsAdmin();
+  const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -192,34 +193,36 @@ function OrdersPage() {
                 <tr><td colSpan={isCarpenter ? 4 : 5} className="px-4 py-12 text-center text-muted-foreground">No orders found.</td></tr>
               )}
               {filtered.map((o) => (
-                <tr key={o.id} className="border-t hover:bg-muted/40 cursor-pointer">
-                  <td className="px-4 py-3 font-mono text-xs">
-                    <Link to="/admin/orders/$id" params={{ id: o.id }} className="block">{o.order_number}</Link>
-                  </td>
+                <tr
+                  key={o.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => navigate({ to: "/admin/orders/$id", params: { id: o.id } })}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      navigate({ to: "/admin/orders/$id", params: { id: o.id } });
+                    }
+                  }}
+                  className="border-t hover:bg-muted/40 cursor-pointer focus:outline-none focus:bg-muted/40"
+                >
+                  <td className="px-4 py-3 font-mono text-xs">{o.order_number}</td>
                   <td className="px-4 py-3">
-                    <Link to="/admin/orders/$id" params={{ id: o.id }} className="block">
-                      <div>{o.customer_name}</div>
-                      <div className="text-xs text-muted-foreground">{o.customer_email}</div>
-                    </Link>
+                    <div>{o.customer_name}</div>
+                    <div className="text-xs text-muted-foreground">{o.customer_email}</div>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">
-                    <Link to="/admin/orders/$id" params={{ id: o.id }} className="block">
-                      {new Date(o.created_at).toLocaleDateString("en-GB")}
-                    </Link>
+                    {new Date(o.created_at).toLocaleDateString("en-GB")}
                   </td>
                   {!isCarpenter && (
                     <td className="px-4 py-3 text-right font-medium">
-                      <Link to="/admin/orders/$id" params={{ id: o.id }} className="block">
-                        EGP {Number(o.total).toLocaleString()}
-                      </Link>
+                      EGP {Number(o.total).toLocaleString()}
                     </td>
                   )}
                   <td className="px-4 py-3">
-                    <Link to="/admin/orders/$id" params={{ id: o.id }}>
-                      <span className={`text-xs rounded-md border px-2 py-1 inline-block ${statusColor[o.status] ?? ""}`}>
-                        {STATUS_LABELS[o.status] ?? o.status}
-                      </span>
-                    </Link>
+                    <span className={`text-xs rounded-md border px-2 py-1 inline-block ${statusColor[o.status] ?? ""}`}>
+                      {STATUS_LABELS[o.status] ?? o.status}
+                    </span>
                   </td>
                 </tr>
               ))}
