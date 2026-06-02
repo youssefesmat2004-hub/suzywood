@@ -10,6 +10,7 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
 import { sendCheckoutPendingEmail } from "@/lib/checkout-emails.functions";
+import { notifyOwnerNewOrder } from "@/lib/owner-notifications.functions";
 import { toast } from "sonner";
 import qrImageFallback from "@/assets/instapay-qr.jpeg";
 import { Upload, Check, Tag, MessageCircle } from "lucide-react";
