@@ -6,6 +6,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { useServerFn } from "@tanstack/react-start";
+import { notifyOwnerNewCustomBuild } from "@/lib/owner-notifications.functions";
 import { toast } from "sonner";
 import { ImagePlus, X, Crop as CropIcon } from "lucide-react";
 import { useImageCropper } from "@/hooks/use-image-cropper";
@@ -13,6 +15,7 @@ import { useImageCropper } from "@/hooks/use-image-cropper";
 export function CustomBuildForm() {
   const { user } = useAuth();
   const [submitting, setSubmitting] = useState(false);
+  const notifyOwner = useServerFn(notifyOwnerNewCustomBuild);
   const [room, setRoom] = useState("nursery");
   const [file, setFile] = useState<File | Blob | null>(null);
   const [fileName, setFileName] = useState<string>("inspo.jpg");
@@ -66,13 +69,16 @@ export function CustomBuildForm() {
       inspiration_image_url = supabase.storage.from("inspiration-images").getPublicUrl(path).data.publicUrl;
     }
 
-    const { error } = await supabase.from("custom_build_requests").insert({
-      user_id: user?.id ?? null,
+    const payload = {
       full_name: String(fd.get("name")),
       email: String(fd.get("email")),
       phone: String(fd.get("phone")),
       room_type: room,
       description: String(fd.get("idea")),
+    };
+    const { error } = await supabase.from("custom_build_requests").insert({
+      user_id: user?.id ?? null,
+      ...payload,
       status: "new",
       inspiration_image_url,
     });
@@ -80,6 +86,9 @@ export function CustomBuildForm() {
     if (error) {
       toast.error("Couldn't send your request", { description: error.message });
     } else {
+      notifyOwner({ data: { ...payload, inspiration_image_url } }).catch((err) =>
+        console.error("Owner custom build notify failed", err),
+      );
       toast.success("Request received", { description: "Our team will reach out within two working days." });
       (e.target as HTMLFormElement).reset();
       clearFile();
