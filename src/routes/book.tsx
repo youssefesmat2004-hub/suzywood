@@ -55,6 +55,7 @@ const schema = z.object({
 function BookPage() {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState<{ method: string } | null>(null);
+  const notifyOwner = useServerFn(notifyOwnerNewBooking);
   const [form, setForm] = useState({
     full_name: "",
     phone: "",
