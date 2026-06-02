@@ -157,3 +157,48 @@ export const notifyOwnerNewBooking = createServerFn({ method: "POST" })
     const ok = await sendViaResend(`📅 New Session Booking — ${b.full_name}`, html);
     return { ok };
   });
+
+export const notifyOwnerNewCustomBuild = createServerFn({ method: "POST" })
+  .inputValidator((data) =>
+    z.object({
+      full_name: z.string().trim().min(1).max(100),
+      email: z.string().trim().email().max(255),
+      phone: z.string().trim().min(5).max(30),
+      room_type: z.string().min(1).max(50),
+      description: z.string().min(1).max(2000),
+      inspiration_image_url: z.string().url().nullish(),
+    }).parse(data),
+  )
+  .handler(async ({ data }) => {
+    const b = data;
+    const link = `${ADMIN_BASE}/admin/custom-builds`;
+    const html = `<!doctype html><html><body style="margin:0;padding:0;background:#f6f4ef;font-family:Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="padding:24px 12px;background:#f6f4ef;"><tr><td align="center">
+<table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:8px;max-width:600px;width:100%;">
+  <tr><td style="padding:24px 28px 8px;">
+    <h1 style="margin:0;font-size:20px;color:#1a1a1a;">🛠️ New Custom Build Request</h1>
+  </td></tr>
+  <tr><td style="padding:8px 28px;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="font-size:14px;color:#222;line-height:1.7;">
+      <tr><td><strong>Name:</strong></td><td>${esc(b.full_name)}</td></tr>
+      <tr><td><strong>Email:</strong></td><td>${esc(b.email)}</td></tr>
+      <tr><td><strong>Phone:</strong></td><td>${esc(b.phone)}</td></tr>
+      <tr><td><strong>Room type:</strong></td><td>${esc(b.room_type)}</td></tr>
+    </table>
+  </td></tr>
+  <tr><td style="padding:8px 28px;">
+    <h3 style="margin:16px 0 6px;font-size:13px;color:#777;text-transform:uppercase;letter-spacing:1px;">Description</h3>
+    <p style="margin:0;font-size:14px;color:#222;line-height:1.6;white-space:pre-wrap;">${esc(b.description)}</p>
+  </td></tr>
+  ${b.inspiration_image_url ? `<tr><td style="padding:16px 28px 0;">
+    <h3 style="margin:0 0 6px;font-size:13px;color:#777;text-transform:uppercase;letter-spacing:1px;">Inspiration photo</h3>
+    <a href="${esc(b.inspiration_image_url)}"><img src="${esc(b.inspiration_image_url)}" alt="Inspiration" style="max-width:100%;border-radius:8px;border:1px solid #eee;"/></a>
+  </td></tr>` : ""}
+  <tr><td style="padding:20px 28px 28px;">
+    <a href="${link}" style="display:inline-block;background:#1a1a1a;color:#fff;text-decoration:none;padding:12px 20px;border-radius:6px;font-size:14px;">Open custom builds dashboard →</a>
+  </td></tr>
+</table></td></tr></table></body></html>`;
+
+    const ok = await sendViaResend(`🛠️ New Custom Build Request — ${b.full_name}`, html);
+    return { ok };
+  });
