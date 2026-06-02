@@ -402,6 +402,7 @@ export type Database = {
       }
       orders: {
         Row: {
+          assigned_carpenter: number | null
           confirmation_email_sent_at: string | null
           created_at: string
           customer_email: string
@@ -427,6 +428,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          assigned_carpenter?: number | null
           confirmation_email_sent_at?: string | null
           created_at?: string
           customer_email: string
@@ -452,6 +454,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          assigned_carpenter?: number | null
           confirmation_email_sent_at?: string | null
           created_at?: string
           customer_email?: string
