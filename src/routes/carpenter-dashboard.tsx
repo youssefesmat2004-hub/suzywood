@@ -33,6 +33,7 @@ type Order = {
   customer_name: string;
   status: WorkStatus | string;
   created_at: string;
+  shipping_notes: string | null;
   order_items: OrderItem[];
 };
 
@@ -185,10 +186,14 @@ function Dashboard() {
   const seenIds = useRef<Set<string>>(new Set());
 
   const fetchOrders = useCallback(async () => {
+    // Carpenter view — non-financial columns only. Do NOT add: subtotal,
+    // shipping_fee, total, upfront_amount, remaining_amount, payment_method,
+    // instapay_reference, payment_proof_url, internal_notes, customer_email,
+    // customer_phone, shipping_address.
     const { data, error } = await supabase
       .from("orders")
       .select(
-        "id, order_number, customer_name, status, created_at, order_items(id, product_name, quantity, size, finish, engraving, custom_width_cm, custom_length_cm)"
+        "id, order_number, customer_name, status, created_at, shipping_notes, order_items(id, product_name, quantity, size, finish, engraving, custom_width_cm, custom_length_cm)"
       )
       .in("status", ["confirmed", "in_production", "delivered"])
       .order("created_at", { ascending: false });
@@ -224,7 +229,7 @@ function Dashboard() {
           const { data } = await supabase
             .from("orders")
             .select(
-              "id, order_number, customer_name, status, created_at, order_items(id, product_name, quantity, size, finish, engraving, custom_width_cm, custom_length_cm)"
+              "id, order_number, customer_name, status, created_at, shipping_notes, order_items(id, product_name, quantity, size, finish, engraving, custom_width_cm, custom_length_cm)"
             )
             .eq("id", newRow.id)
             .maybeSingle();
@@ -257,7 +262,7 @@ function Dashboard() {
           const { data } = await supabase
             .from("orders")
             .select(
-              "id, order_number, customer_name, status, created_at, order_items(id, product_name, quantity, size, finish, engraving, custom_width_cm, custom_length_cm)"
+              "id, order_number, customer_name, status, created_at, shipping_notes, order_items(id, product_name, quantity, size, finish, engraving, custom_width_cm, custom_length_cm)"
             )
             .eq("id", row.id)
             .maybeSingle();
@@ -340,7 +345,7 @@ function Dashboard() {
                 setTab(t.value);
                 if (t.value === "confirmed") setBadge(0);
               }}
-              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap border transition-colors ${
+              className={`relative px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap border transition-colors ${
                 tab === t.value
                   ? "bg-primary text-primary-foreground border-primary"
                   : "bg-background border-border hover:bg-muted"
@@ -352,6 +357,11 @@ function Dashboard() {
               }`}>
                 {counts[t.value] ?? 0}
               </span>
+              {t.value === "confirmed" && badge > 0 && (
+                <span className="absolute -top-1 -left-1 min-w-[20px] h-5 px-1 rounded-full bg-destructive text-destructive-foreground text-[11px] font-bold flex items-center justify-center shadow">
+                  {badge}
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -403,6 +413,27 @@ function OrderCard({
     minute: "2-digit",
   });
 
+  const daysSince = Math.max(
+    0,
+    Math.floor((Date.now() - new Date(order.created_at).getTime()) / 86_400_000)
+  );
+  const daysLabel =
+    daysSince === 0
+      ? "اليوم"
+      : daysSince === 1
+      ? "منذ يوم"
+      : daysSince === 2
+      ? "منذ يومين"
+      : daysSince <= 10
+      ? `منذ ${daysSince} أيام`
+      : `منذ ${daysSince} يوماً`;
+  const urgencyClass =
+    daysSince >= 7
+      ? "bg-red-100 text-red-700 border-red-200"
+      : daysSince >= 3
+      ? "bg-amber-100 text-amber-800 border-amber-200"
+      : "bg-muted text-foreground border-border";
+
   return (
     <article className="bg-card border rounded-2xl p-4 shadow-sm">
       <div className="flex items-start justify-between gap-3">
@@ -442,9 +473,27 @@ function OrderCard({
         </ul>
       </div>
 
-      <div className="mt-3 text-xs text-muted-foreground">
-        <span className="font-medium text-foreground">تاريخ الطلب: </span>
-        {dateText}
+      {order.shipping_notes && order.shipping_notes.trim() !== "" && (
+        <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3">
+          <div className="text-[11px] font-semibold text-amber-800 mb-1">ملاحظات</div>
+          <div className="text-sm text-amber-900 whitespace-pre-wrap leading-relaxed">
+            {order.shipping_notes}
+          </div>
+        </div>
+      )}
+
+      <div className="mt-3 flex items-center justify-between gap-3 flex-wrap">
+        <div className="text-xs text-muted-foreground">
+          <span className="font-medium text-foreground">تاريخ الطلب: </span>
+          {dateText}
+        </div>
+        <span
+          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${urgencyClass}`}
+          title="عدد الأيام منذ الطلب"
+        >
+          {daysLabel}
+          {daysSince >= 7 && <span className="font-bold">· عاجل</span>}
+        </span>
       </div>
 
       <div className="mt-4">
