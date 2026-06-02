@@ -44,7 +44,7 @@ const statusColor: Record<string, string> = {
   cancelled: "bg-rose-100 text-rose-800 border-rose-200",
 };
 
-export const Route = createFileRoute("/admin/orders")({
+export const Route = createFileRoute("/admin/orders/")({
   component: OrdersPage,
 });
 
