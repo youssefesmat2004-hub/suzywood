@@ -33,6 +33,7 @@ type Order = {
   customer_name: string;
   status: WorkStatus | string;
   created_at: string;
+  shipping_notes: string | null;
   order_items: OrderItem[];
 };
 
@@ -185,10 +186,14 @@ function Dashboard() {
   const seenIds = useRef<Set<string>>(new Set());
 
   const fetchOrders = useCallback(async () => {
+    // Carpenter view — non-financial columns only. Do NOT add: subtotal,
+    // shipping_fee, total, upfront_amount, remaining_amount, payment_method,
+    // instapay_reference, payment_proof_url, internal_notes, customer_email,
+    // customer_phone, shipping_address.
     const { data, error } = await supabase
       .from("orders")
       .select(
-        "id, order_number, customer_name, status, created_at, order_items(id, product_name, quantity, size, finish, engraving, custom_width_cm, custom_length_cm)"
+        "id, order_number, customer_name, status, created_at, shipping_notes, order_items(id, product_name, quantity, size, finish, engraving, custom_width_cm, custom_length_cm)"
       )
       .in("status", ["confirmed", "in_production", "delivered"])
       .order("created_at", { ascending: false });
@@ -224,7 +229,7 @@ function Dashboard() {
           const { data } = await supabase
             .from("orders")
             .select(
-              "id, order_number, customer_name, status, created_at, order_items(id, product_name, quantity, size, finish, engraving, custom_width_cm, custom_length_cm)"
+              "id, order_number, customer_name, status, created_at, shipping_notes, order_items(id, product_name, quantity, size, finish, engraving, custom_width_cm, custom_length_cm)"
             )
             .eq("id", newRow.id)
             .maybeSingle();
@@ -257,7 +262,7 @@ function Dashboard() {
           const { data } = await supabase
             .from("orders")
             .select(
-              "id, order_number, customer_name, status, created_at, order_items(id, product_name, quantity, size, finish, engraving, custom_width_cm, custom_length_cm)"
+              "id, order_number, customer_name, status, created_at, shipping_notes, order_items(id, product_name, quantity, size, finish, engraving, custom_width_cm, custom_length_cm)"
             )
             .eq("id", row.id)
             .maybeSingle();
