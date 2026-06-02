@@ -1,15 +1,24 @@
-## Goal
-Make the sticky header visually disappear behind the logo so only "Suzy Wood", the monkeys, and the tagline read on a single seamless cream surface.
+## What's happening
 
-## Changes
+The order rows on `/admin/orders` use `<Link>` wrappers inside table cells. They navigate correctly when they load, but the preview is throwing:
 
-1. **`src/components/site/Header.tsx`**
-   - Change the `<header>` background from `bg-background/85 backdrop-blur-md` (semi-transparent, washed) to solid `bg-background` (the cream token, `var(--cream)`). This matches the logo image's cream backdrop exactly.
-   - Soften the divider: replace `border-b border-border/60` with `border-b border-border/30` so the header doesn't look like a separate bar.
+> Failed to fetch dynamically imported module … virtual:tanstack-start-client-entry
 
-2. **`src/components/site/Logo.tsx`**
-   - Remove the pill container (`bg-background rounded-xl px-3 py-1.5 border border-border/40 shadow-soft`) now that the header itself is cream — the logo will sit flush on the header with no visible box around it.
-   - Keep the size (`h-14`) and hover scale.
+That's a stale-chunk error: an old build is cached in the browser and the new route chunk it tries to fetch on click no longer exists, so the navigation silently fails — which feels like "the order won't open".
 
-## Result
-Header and logo share the same `--cream` color with no transparency, border ring, or shadow seam — only the wordmark, monkeys, and tagline are visible against the cream bar.
+## Fix
+
+1. **Restart the dev server** so the preview serves fresh chunks. This alone resolves the stale-chunk error in 99% of cases.
+
+2. **Make the whole row reliably clickable** (small UX improvement so it doesn't depend on per-cell `<Link>` wrappers):
+   - Replace the 5 per-cell `<Link>` wrappers in `src/routes/admin.orders.tsx` with a single `onClick` on the `<tr>` using `useNavigate()` from `@tanstack/react-router`.
+   - Keep the `cursor-pointer` + hover styling.
+   - Add `role="button"` and keyboard support (`Enter` key) for accessibility.
+
+3. **Tell you to hard-refresh** the preview tab once (Cmd/Ctrl+Shift+R) to drop the cached old bundle.
+
+## Files touched
+
+- `src/routes/admin.orders.tsx` — swap nested Links for a row-level onClick navigate.
+
+No DB or backend changes.
