@@ -166,7 +166,7 @@ export const sendOrderStatusEmail = createServerFn({ method: "POST" })
         "X-Connection-Api-Key": RESEND_API_KEY,
       },
       body: JSON.stringify({
-        from: "Suzy Wood <onboarding@resend.dev>",
+        from: "Suzy Wood <orders@suzywoodofficial.com>",
         to: [order.customer_email],
         subject,
         html,
