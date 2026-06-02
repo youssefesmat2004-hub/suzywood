@@ -807,7 +807,6 @@ export type Database = {
           _items: Json
           _payment_proof_path: string
           _promo_code: string
-          _shipping_fee: number
           _upfront_rate: number
         }
         Returns: {
