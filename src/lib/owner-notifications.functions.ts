@@ -119,15 +119,18 @@ export const notifyOwnerNewOrder = createServerFn({ method: "POST" })
   });
 
 export const notifyOwnerNewBooking = createServerFn({ method: "POST" })
-  .inputValidator((data) => z.object({ bookingId: z.string().uuid() }).parse(data))
+  .inputValidator((data) =>
+    z.object({
+      full_name: z.string().trim().min(1).max(100),
+      phone: z.string().trim().regex(/^01[0-9]{9}$/),
+      contact_method: z.enum(["whatsapp", "phone"]),
+      preferred_day: z.string().min(1).max(20),
+      time_slot: z.string().min(1).max(20),
+      notes: z.string().max(2000).nullish(),
+    }).parse(data),
+  )
   .handler(async ({ data }) => {
-    const { data: b, error } = await supabaseAdmin
-      .from("bookings")
-      .select("id, full_name, phone, contact_method, preferred_day, time_slot, notes, created_at")
-      .eq("id", data.bookingId)
-      .single();
-    if (error || !b) return { ok: false };
-    if (!recent(b.created_at as string)) return { ok: false, skipped: "too_old" };
+    const b = data;
 
     const link = `${ADMIN_BASE}/admin/bookings`;
     const html = `<!doctype html><html><body style="margin:0;padding:0;background:#f6f4ef;font-family:Arial,sans-serif;">
