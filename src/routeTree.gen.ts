@@ -22,6 +22,7 @@ import { Route as CustomBuildsRouteImport } from './routes/custom-builds'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as CartRouteImport } from './routes/cart'
+import { Route as CarpenterDashboardRouteImport } from './routes/carpenter-dashboard'
 import { Route as BookRouteImport } from './routes/book'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
@@ -114,6 +115,11 @@ const CheckoutRoute = CheckoutRouteImport.update({
 const CartRoute = CartRouteImport.update({
   id: '/cart',
   path: '/cart',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CarpenterDashboardRoute = CarpenterDashboardRouteImport.update({
+  id: '/carpenter-dashboard',
+  path: '/carpenter-dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BookRoute = BookRouteImport.update({
@@ -264,6 +270,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/book': typeof BookRoute
+  '/carpenter-dashboard': typeof CarpenterDashboardRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
@@ -306,6 +313,7 @@ export interface FileRoutesByTo {
   '/account': typeof AccountRoute
   '/auth': typeof AuthRoute
   '/book': typeof BookRoute
+  '/carpenter-dashboard': typeof CarpenterDashboardRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
@@ -348,6 +356,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/book': typeof BookRoute
+  '/carpenter-dashboard': typeof CarpenterDashboardRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
@@ -393,6 +402,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/book'
+    | '/carpenter-dashboard'
     | '/cart'
     | '/checkout'
     | '/contact'
@@ -435,6 +445,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/auth'
     | '/book'
+    | '/carpenter-dashboard'
     | '/cart'
     | '/checkout'
     | '/contact'
@@ -476,6 +487,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/book'
+    | '/carpenter-dashboard'
     | '/cart'
     | '/checkout'
     | '/contact'
@@ -520,6 +532,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
   BookRoute: typeof BookRoute
+  CarpenterDashboardRoute: typeof CarpenterDashboardRoute
   CartRoute: typeof CartRoute
   CheckoutRoute: typeof CheckoutRoute
   ContactRoute: typeof ContactRoute
@@ -627,6 +640,13 @@ declare module '@tanstack/react-router' {
       path: '/cart'
       fullPath: '/cart'
       preLoaderRoute: typeof CartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/carpenter-dashboard': {
+      id: '/carpenter-dashboard'
+      path: '/carpenter-dashboard'
+      fullPath: '/carpenter-dashboard'
+      preLoaderRoute: typeof CarpenterDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/book': {
@@ -904,6 +924,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
   BookRoute: BookRoute,
+  CarpenterDashboardRoute: CarpenterDashboardRoute,
   CartRoute: CartRoute,
   CheckoutRoute: CheckoutRoute,
   ContactRoute: ContactRoute,
