@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
+import { notifyOwnerNewBooking } from "@/lib/owner-notifications.functions";
 import { Layout } from "@/components/site/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,6 +55,7 @@ const schema = z.object({
 function BookPage() {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState<{ method: string } | null>(null);
+  const notifyOwner = useServerFn(notifyOwnerNewBooking);
   const [form, setForm] = useState({
     full_name: "",
     phone: "",
@@ -85,6 +88,17 @@ function BookPage() {
       toast.error("Couldn't submit your booking. Please try again.");
       return;
     }
+
+    notifyOwner({
+      data: {
+        full_name: parsed.data.full_name,
+        phone: parsed.data.phone,
+        contact_method: parsed.data.contact_method,
+        preferred_day: parsed.data.preferred_day,
+        time_slot: parsed.data.time_slot,
+        notes: parsed.data.notes ?? null,
+      },
+    }).catch((e) => console.error("Owner booking notify failed", e));
 
     // Open WhatsApp pre-filled message to admin (click-to-send)
     const dayLabel = DAYS.find((d) => d.value === parsed.data.preferred_day)?.label ?? parsed.data.preferred_day;

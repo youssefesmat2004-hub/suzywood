@@ -10,6 +10,7 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
 import { sendCheckoutPendingEmail } from "@/lib/checkout-emails.functions";
+import { notifyOwnerNewOrder } from "@/lib/owner-notifications.functions";
 import { toast } from "sonner";
 import qrImageFallback from "@/assets/instapay-qr.jpeg";
 import { Upload, Check, Tag, MessageCircle } from "lucide-react";
@@ -39,6 +40,7 @@ function Checkout() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const sendPendingEmail = useServerFn(sendCheckoutPendingEmail);
+  const notifyOwner = useServerFn(notifyOwnerNewOrder);
   const [step, setStep] = useState<"details" | "pay">("details");
   const [details, setDetails] = useState<Details | null>(null);
   const [reference, setReference] = useState("");
@@ -162,6 +164,9 @@ function Checkout() {
     sendPendingEmail({
       data: { orderId: order.id, instapayReference: reference.trim() },
     }).catch((e) => console.error("Pending email failed", e));
+    notifyOwner({ data: { orderId: order.id } }).catch((e) =>
+      console.error("Owner notify failed", e),
+    );
     toast.success(`Order ${order.order_number} submitted`, {
       description: "We'll verify your payment and email you once confirmed.",
     });
