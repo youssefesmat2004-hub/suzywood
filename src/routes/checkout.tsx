@@ -145,7 +145,6 @@ function Checkout() {
         custom_length_cm: it.customSize?.lengthCm ?? "",
         custom_surcharge: it.customSize?.surcharge ?? "",
       })),
-      _shipping_fee: SHIPPING,
       _upfront_rate: UPFRONT_RATE,
       _promo_code: promo?.code ?? "",
       _instapay_reference: reference.trim(),
