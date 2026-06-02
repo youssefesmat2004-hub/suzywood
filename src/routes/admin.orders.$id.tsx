@@ -70,6 +70,7 @@ function OrderDetailPage() {
   const [proofSignedUrl, setProofSignedUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [itemsError, setItemsError] = useState<string | null>(null);
   const sendEmail = useServerFn(sendOrderStatusEmail);
 
   useEffect(() => {
@@ -90,6 +91,7 @@ function OrderDetailPage() {
         .eq("order_id", id);
       if (itemsErr) {
         toast.error(`Couldn't load order items: ${itemsErr.message}`);
+        setItemsError(itemsErr.message);
       }
       const items = ((itemRows ?? []) as OrderItem[]).map((i) => ({ ...i }));
       const productIds = items.map((i) => i.product_id).filter(Boolean) as string[];
@@ -191,6 +193,16 @@ function OrderDetailPage() {
           <span className={`text-xs rounded-md border px-2 py-1 ${statusColor[order.status] ?? ""}`}>
             {STATUS_LABELS[order.status] ?? order.status}
           </span>
+          {order.status === "pending_payment" && (
+            <button
+              type="button"
+              onClick={() => updateStatus("confirmed")}
+              disabled={saving}
+              className="text-sm rounded-md px-4 py-1.5 bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed font-medium"
+            >
+              {saving ? "Confirming…" : "Confirm payment"}
+            </button>
+          )}
           <select
             value={STATUSES.some((s) => s.value === order.status) ? order.status : "confirmed"}
             onChange={(e) => updateStatus(e.target.value)}
@@ -208,6 +220,11 @@ function OrderDetailPage() {
         <div className="lg:col-span-2 space-y-6">
           <section className="bg-background border rounded-xl p-6">
             <h2 className="font-serif text-lg mb-4">Items</h2>
+            {itemsError ? (
+              <p className="text-sm text-rose-600">Couldn't load items: {itemsError}</p>
+            ) : order.order_items.length === 0 ? (
+              <p className="text-sm text-muted-foreground italic">No items found on this order.</p>
+            ) : (
             <ul className="divide-y">
               {order.order_items.map((it) => (
                 <li key={it.id} className="py-3 flex items-center gap-4">
@@ -233,6 +250,7 @@ function OrderDetailPage() {
                 </li>
               ))}
             </ul>
+            )}
             {!isCarpenter && (
               <div className="mt-4 pt-4 border-t space-y-1 text-sm">
                 <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>EGP {Number(order.subtotal).toLocaleString()}</span></div>
