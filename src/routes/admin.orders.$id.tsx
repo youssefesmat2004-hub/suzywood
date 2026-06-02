@@ -74,24 +74,31 @@ function OrderDetailPage() {
 
   useEffect(() => {
     (async () => {
-      const { data, error } = await supabase
+      const { data: orderRow, error: orderErr } = await supabase
         .from("orders")
-        .select("id, order_number, customer_name, customer_email, customer_phone, shipping_address, shipping_city, shipping_governorate, shipping_notes, status, subtotal, shipping_fee, total, upfront_amount, remaining_amount, created_at, instapay_reference, payment_proof_url, order_items(id, product_id, product_name, quantity, unit_price, size, finish)")
+        .select("id, order_number, customer_name, customer_email, customer_phone, shipping_address, shipping_city, shipping_governorate, shipping_notes, status, subtotal, shipping_fee, total, upfront_amount, remaining_amount, created_at, instapay_reference, payment_proof_url")
         .eq("id", id)
         .single();
-      if (error) {
-        toast.error(error.message);
+      if (orderErr || !orderRow) {
+        toast.error(orderErr?.message ?? "Order not found");
         setLoading(false);
         return;
       }
-      const items = (data.order_items ?? []) as OrderItem[];
+      const { data: itemRows, error: itemsErr } = await supabase
+        .from("order_items")
+        .select("id, product_id, product_name, quantity, unit_price, size, finish")
+        .eq("order_id", id);
+      if (itemsErr) {
+        toast.error(`Couldn't load order items: ${itemsErr.message}`);
+      }
+      const items = ((itemRows ?? []) as OrderItem[]).map((i) => ({ ...i }));
       const productIds = items.map((i) => i.product_id).filter(Boolean) as string[];
       if (productIds.length) {
         const { data: prods } = await supabase.from("products").select("id, image_url").in("id", productIds);
         const map = new Map((prods ?? []).map((p: any) => [p.id, p.image_url]));
         items.forEach((i) => { if (i.product_id) i.image_url = map.get(i.product_id) ?? null; });
       }
-      setOrder({ ...(data as any), order_items: items });
+      setOrder({ ...(orderRow as any), order_items: items });
       setLoading(false);
     })();
   }, [id]);
@@ -131,14 +138,21 @@ function OrderDetailPage() {
 
   const updateStatus = async (status: string) => {
     if (!order) return;
+    const prevStatus = order.status;
     setSaving(true);
-    const { error } = await supabase.from("orders").update({ status } as never).eq("id", order.id);
-    if (error) {
-      toast.error(error.message);
+    setOrder({ ...order, status });
+    const { data, error } = await supabase
+      .from("orders")
+      .update({ status } as never)
+      .eq("id", order.id)
+      .select("id, status")
+      .single();
+    if (error || !data) {
+      toast.error(error?.message ?? "Update was blocked");
+      setOrder({ ...order, status: prevStatus });
       setSaving(false);
       return;
     }
-    setOrder({ ...order, status });
     toast.success("Status updated");
     try {
       const result = await sendEmail({ data: { orderId: order.id } });

@@ -1,20 +1,22 @@
 ## Plan
 
-1. **Make order rows navigate reliably**
-   - Replace the clickable `<tr>` pattern in `/admin/orders` with proper TanStack `<Link>` navigation for each row/cell.
-   - This preserves normal link behavior and avoids click handling being swallowed or not triggering navigation.
+1. **Restore the broken preview first**
+   - Remove the remote Google Fonts `@import` from `src/styles.css`, because Vite is currently failing to transform the stylesheet (`ENOENT ... fonts.googleapis.com`).
+   - Keep the existing font-family fallbacks so the app can load again.
 
-2. **Fix order detail loading**
-   - Check why `/admin/orders/:id` is loading but not showing order contents.
-   - Ensure the detail page fetches the selected order and its items with a resilient query, including a fallback if nested `order_items` loading fails.
-   - Add clearer admin-facing error/empty states instead of silently showing nothing useful.
+2. **Fix the admin order detail page**
+   - Replace the fragile embedded relationship query on `/admin/orders/$id` with separate reads for:
+     - the order row
+     - its `order_items`
+     - product image URLs
+   - Show a clear empty/error state if item rows are missing instead of silently rendering an empty list.
 
-3. **Fix status changes**
-   - Update the status save flow so the order status changes first and stays visible immediately.
-   - Keep the customer notification email attempt separate, so Resend sandbox failures do not make it look like the status update failed.
-   - Show a clear toast if the email is blocked by the current test-only email limitation.
+3. **Make status updates reliable**
+   - Update order status with `.select(...).single()` after the update, so the UI can confirm the database actually accepted the change.
+   - Roll back the dropdown UI and show the backend error if the update is blocked.
+   - Keep the existing customer notification email attempt after a successful status update.
 
-4. **Verify the real signals**
-   - Confirm the admin order detail URL opens for the test order.
-   - Confirm the order items render.
-   - Confirm changing status sends the database update request and the UI reflects the new status.
+4. **Verify in preview**
+   - Reopen the same order detail page.
+   - Confirm the two saved order items appear.
+   - Change status and confirm the visible status updates without errors.
