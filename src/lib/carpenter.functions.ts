@@ -2,9 +2,17 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 export const verifyCarpenterPin = createServerFn({ method: "POST" })
-  .inputValidator((input) => z.object({ pin: z.string().min(1).max(20) }).parse(input))
+  .inputValidator((input) =>
+    z
+      .object({
+        pin: z.string().min(1).max(20),
+        carpenterId: z.union([z.literal(1), z.literal(2), z.literal(3)]),
+      })
+      .parse(input),
+  )
   .handler(async ({ data }) => {
-    const expectedPin = process.env.CARPENTER_PIN;
+    const pinEnvName = `CARPENTER_PIN_${data.carpenterId}` as const;
+    const expectedPin = process.env[pinEnvName];
     const email = process.env.CARPENTER_EMAIL;
     const password = process.env.CARPENTER_PASSWORD;
 

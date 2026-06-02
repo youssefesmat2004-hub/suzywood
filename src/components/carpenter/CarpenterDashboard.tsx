@@ -1,18 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Bell, Loader2, CheckCircle2, Hammer, Package } from "lucide-react";
+import { Bell, Loader2, CheckCircle2, Hammer, Package, MessageCircle, Phone } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { verifyCarpenterPin } from "@/lib/carpenter.functions";
 import { playCarpenterAlert, unlockCarpenterAudio } from "@/lib/carpenter-sound";
 
-export const Route = createFileRoute("/carpenter-dashboard")({
-  ssr: false,
-  component: CarpenterDashboardPage,
-});
-
-const SESSION_KEY = "carpenter_pin_ok_v1";
+export type CarpenterId = 1 | 2 | 3;
 
 type WorkStatus = "confirmed" | "in_production" | "delivered";
 
@@ -31,9 +25,11 @@ type Order = {
   id: string;
   order_number: string;
   customer_name: string;
+  customer_phone: string | null;
   status: WorkStatus | string;
   created_at: string;
   shipping_notes: string | null;
+  assigned_carpenter: number | null;
   order_items: OrderItem[];
 };
 
@@ -43,32 +39,46 @@ const TABS: { value: WorkStatus; label: string }[] = [
   { value: "delivered", label: "تم الانتهاء" },
 ];
 
-function CarpenterDashboardPage() {
+// Carpenter view — non-financial columns only. Do NOT add: subtotal,
+// shipping_fee, total, upfront_amount, remaining_amount, payment_method,
+// instapay_reference, payment_proof_url, internal_notes, customer_email,
+// shipping_address.
+const ORDER_SELECT =
+  "id, order_number, customer_name, customer_phone, status, created_at, shipping_notes, assigned_carpenter, order_items(id, product_name, quantity, size, finish, engraving, custom_width_cm, custom_length_cm)";
+
+export function CarpenterDashboard({
+  carpenterId,
+  carpenterName,
+}: {
+  carpenterId: CarpenterId;
+  carpenterName: string;
+}) {
+  const sessionKey = `carpenter_pin_ok_v2_${carpenterId}`;
   const [unlocked, setUnlocked] = useState<boolean>(() => {
     if (typeof window === "undefined") return false;
-    return window.localStorage.getItem(SESSION_KEY) === "1";
+    return window.localStorage.getItem(sessionKey) === "1";
   });
   const [signedIn, setSignedIn] = useState(false);
 
-  // If we previously unlocked, check we still have a Supabase session.
   useEffect(() => {
     if (!unlocked) return;
     (async () => {
       const { data } = await supabase.auth.getSession();
       setSignedIn(!!data.session);
       if (!data.session) {
-        // Need to re-enter PIN to refresh the workshop session.
-        window.localStorage.removeItem(SESSION_KEY);
+        window.localStorage.removeItem(sessionKey);
         setUnlocked(false);
       }
     })();
-  }, [unlocked]);
+  }, [unlocked, sessionKey]);
 
   if (!unlocked || !signedIn) {
     return (
       <PinGate
+        carpenterId={carpenterId}
+        carpenterName={carpenterName}
         onUnlocked={() => {
-          window.localStorage.setItem(SESSION_KEY, "1");
+          window.localStorage.setItem(sessionKey, "1");
           setUnlocked(true);
           setSignedIn(true);
         }}
@@ -76,12 +86,20 @@ function CarpenterDashboardPage() {
     );
   }
 
-  return <Dashboard />;
+  return <Dashboard carpenterId={carpenterId} carpenterName={carpenterName} />;
 }
 
 /* ------------------------------ PIN GATE ------------------------------ */
 
-function PinGate({ onUnlocked }: { onUnlocked: () => void }) {
+function PinGate({
+  carpenterId,
+  carpenterName,
+  onUnlocked,
+}: {
+  carpenterId: CarpenterId;
+  carpenterName: string;
+  onUnlocked: () => void;
+}) {
   const [pin, setPin] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -96,16 +114,15 @@ function PinGate({ onUnlocked }: { onUnlocked: () => void }) {
     if (busy) return;
     setBusy(true);
     setErr(null);
-    unlockCarpenterAudio(); // user gesture — unlocks audio for later
+    unlockCarpenterAudio();
     try {
-      const res = await verify({ data: { pin: value } });
+      const res = await verify({ data: { pin: value, carpenterId } });
       if (!res.ok) {
         setErr("الرمز غير صحيح");
         setPin("");
         setBusy(false);
         return;
       }
-      // Sign in to Supabase as the shared workshop user.
       const { error } = await supabase.auth.signInWithPassword({
         email: res.email,
         password: res.password,
@@ -119,13 +136,18 @@ function PinGate({ onUnlocked }: { onUnlocked: () => void }) {
   };
 
   return (
-    <div dir="rtl" lang="ar" className="min-h-screen bg-background flex items-center justify-center p-6 font-sans" style={{ fontFamily: "'Cairo','Tajawal',system-ui,sans-serif" }}>
+    <div
+      dir="rtl"
+      lang="ar"
+      className="min-h-screen bg-background flex items-center justify-center p-6 font-sans"
+      style={{ fontFamily: "'Cairo','Tajawal',system-ui,sans-serif" }}
+    >
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <div className="mx-auto w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
             <Hammer className="w-7 h-7 text-primary" />
           </div>
-          <h1 className="text-2xl font-bold">لوحة الورشة</h1>
+          <h1 className="text-2xl font-bold">{carpenterName}</h1>
           <p className="text-sm text-muted-foreground mt-1">أدخل الرمز للدخول</p>
         </div>
 
@@ -177,24 +199,18 @@ function PinGate({ onUnlocked }: { onUnlocked: () => void }) {
 
 /* ------------------------------ DASHBOARD ------------------------------ */
 
-function Dashboard() {
+function Dashboard({ carpenterId, carpenterName }: { carpenterId: CarpenterId; carpenterName: string }) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<WorkStatus>("confirmed");
   const [badge, setBadge] = useState(0);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
-  const seenIds = useRef<Set<string>>(new Set());
 
   const fetchOrders = useCallback(async () => {
-    // Carpenter view — non-financial columns only. Do NOT add: subtotal,
-    // shipping_fee, total, upfront_amount, remaining_amount, payment_method,
-    // instapay_reference, payment_proof_url, internal_notes, customer_email,
-    // customer_phone, shipping_address.
     const { data, error } = await supabase
       .from("orders")
-      .select(
-        "id, order_number, customer_name, status, created_at, shipping_notes, order_items(id, product_name, quantity, size, finish, engraving, custom_width_cm, custom_length_cm)"
-      )
+      .select(ORDER_SELECT)
+      .eq("assigned_carpenter", carpenterId)
       .in("status", ["confirmed", "in_production", "delivered"])
       .order("created_at", { ascending: false });
     if (error) {
@@ -202,11 +218,9 @@ function Dashboard() {
       setLoading(false);
       return;
     }
-    const list = (data ?? []) as unknown as Order[];
-    seenIds.current = new Set(list.map((o) => o.id));
-    setOrders(list);
+    setOrders((data ?? []) as unknown as Order[]);
     setLoading(false);
-  }, []);
+  }, [carpenterId]);
 
   useEffect(() => {
     void fetchOrders();
@@ -215,22 +229,32 @@ function Dashboard() {
   // Realtime
   useEffect(() => {
     const channel = supabase
-      .channel("carpenter-orders")
+      .channel(`carpenter-orders-${carpenterId}`)
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "orders" },
         async (payload) => {
-          const newRow = payload.new as { id: string; status: string; customer_name: string };
-          const oldRow = payload.old as { status: string };
-          const becameConfirmed =
-            newRow.status === "confirmed" && oldRow.status !== "confirmed";
+          const newRow = payload.new as { id: string; status: string; customer_name: string; assigned_carpenter: number | null };
+          const oldRow = payload.old as { status: string; assigned_carpenter: number | null };
 
-          // Always re-fetch the impacted order so we have order_items joined.
+          // If the update doesn't concern this carpenter (either before or after), ignore.
+          if (newRow.assigned_carpenter !== carpenterId && oldRow.assigned_carpenter !== carpenterId) {
+            return;
+          }
+
+          const becameMine =
+            newRow.assigned_carpenter === carpenterId &&
+            (oldRow.assigned_carpenter !== carpenterId || (newRow.status === "confirmed" && oldRow.status !== "confirmed"));
+
+          // If it was reassigned away from us, remove from list.
+          if (oldRow.assigned_carpenter === carpenterId && newRow.assigned_carpenter !== carpenterId) {
+            setOrders((prev) => prev.filter((o) => o.id !== newRow.id));
+            return;
+          }
+
           const { data } = await supabase
             .from("orders")
-            .select(
-              "id, order_number, customer_name, status, created_at, shipping_notes, order_items(id, product_name, quantity, size, finish, engraving, custom_width_cm, custom_length_cm)"
-            )
+            .select(ORDER_SELECT)
             .eq("id", newRow.id)
             .maybeSingle();
 
@@ -238,18 +262,17 @@ function Dashboard() {
             const without = prev.filter((o) => o.id !== newRow.id);
             if (!data) return without;
             const o = data as unknown as Order;
+            if (o.assigned_carpenter !== carpenterId) return without;
             if (!["confirmed", "in_production", "delivered"].includes(o.status)) return without;
             return [o, ...without].sort(
               (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
             );
           });
 
-          if (becameConfirmed) {
+          if (becameMine && newRow.status === "confirmed") {
             setBadge((b) => b + 1);
             playCarpenterAlert();
-            toast.success(`لديك طلب جديد جاهز للعمل! — ${newRow.customer_name}`, {
-              duration: 6000,
-            });
+            toast.success(`لديك طلب جديد جاهز للعمل! — ${newRow.customer_name}`, { duration: 6000 });
           }
         }
       )
@@ -257,15 +280,9 @@ function Dashboard() {
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "orders" },
         async (payload) => {
-          const row = payload.new as { id: string; status: string; customer_name: string };
-          if (row.status !== "confirmed") return;
-          const { data } = await supabase
-            .from("orders")
-            .select(
-              "id, order_number, customer_name, status, created_at, shipping_notes, order_items(id, product_name, quantity, size, finish, engraving, custom_width_cm, custom_length_cm)"
-            )
-            .eq("id", row.id)
-            .maybeSingle();
+          const row = payload.new as { id: string; status: string; customer_name: string; assigned_carpenter: number | null };
+          if (row.assigned_carpenter !== carpenterId || row.status !== "confirmed") return;
+          const { data } = await supabase.from("orders").select(ORDER_SELECT).eq("id", row.id).maybeSingle();
           if (!data) return;
           setOrders((prev) => [data as unknown as Order, ...prev.filter((o) => o.id !== row.id)]);
           setBadge((b) => b + 1);
@@ -277,7 +294,7 @@ function Dashboard() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [carpenterId]);
 
   const counts = useMemo(() => {
     const c = { confirmed: 0, in_production: 0, delivered: 0 } as Record<WorkStatus, number>;
@@ -298,7 +315,6 @@ function Dashboard() {
       return;
     }
     toast.success(next === "in_production" ? "تم بدء العمل" : "تم إنهاء الطلب");
-    // Realtime will reflect the change; optimistic update for snappiness:
     setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status: next } : o)));
   };
 
@@ -309,14 +325,13 @@ function Dashboard() {
       className="min-h-screen bg-muted/30"
       style={{ fontFamily: "'Cairo','Tajawal',system-ui,sans-serif" }}
     >
-      {/* Top bar */}
       <header className="sticky top-0 z-20 bg-background border-b">
         <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
               <Hammer className="w-4 h-4 text-primary" />
             </div>
-            <h1 className="font-bold text-base">لوحة الورشة</h1>
+            <h1 className="font-bold text-base truncate">{carpenterName}</h1>
           </div>
           <button
             type="button"
@@ -336,7 +351,6 @@ function Dashboard() {
           </button>
         </div>
 
-        {/* Tabs */}
         <div className="max-w-2xl mx-auto px-2 pb-2 flex gap-2 overflow-x-auto">
           {TABS.map((t) => (
             <button
@@ -352,9 +366,11 @@ function Dashboard() {
               }`}
             >
               {t.label}
-              <span className={`ms-2 inline-flex items-center justify-center min-w-5 h-5 rounded-full text-[11px] ${
-                tab === t.value ? "bg-primary-foreground/20" : "bg-muted"
-              }`}>
+              <span
+                className={`ms-2 inline-flex items-center justify-center min-w-5 h-5 rounded-full text-[11px] ${
+                  tab === t.value ? "bg-primary-foreground/20" : "bg-muted"
+                }`}
+              >
                 {counts[t.value] ?? 0}
               </span>
               {t.value === "confirmed" && badge > 0 && (
@@ -367,7 +383,6 @@ function Dashboard() {
         </div>
       </header>
 
-      {/* List */}
       <main className="max-w-2xl mx-auto px-4 py-4 space-y-3">
         {loading && (
           <div className="flex items-center justify-center py-16 text-muted-foreground">
@@ -395,6 +410,15 @@ function Dashboard() {
 }
 
 /* ------------------------------ ORDER CARD ------------------------------ */
+
+function normalizeEgPhone(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  const digits = raw.replace(/\D/g, "");
+  if (!digits) return null;
+  if (digits.startsWith("20")) return digits;
+  if (digits.startsWith("0")) return `20${digits.slice(1)}`;
+  return digits;
+}
 
 function OrderCard({
   order,
@@ -434,6 +458,11 @@ function OrderCard({
       ? "bg-amber-100 text-amber-800 border-amber-200"
       : "bg-muted text-foreground border-border";
 
+  const waPhone = normalizeEgPhone(order.customer_phone);
+  const waMessage = `مرحباً ${order.customer_name}، بخصوص طلبك رقم ${order.order_number} من Suzy Wood.`;
+  const waHref = waPhone ? `https://wa.me/${waPhone}?text=${encodeURIComponent(waMessage)}` : null;
+  const telHref = order.customer_phone ? `tel:${order.customer_phone}` : null;
+
   return (
     <article className="bg-card border rounded-2xl p-4 shadow-sm">
       <div className="flex items-start justify-between gap-3">
@@ -446,6 +475,37 @@ function OrderCard({
           <div className="font-mono text-xs">{order.order_number}</div>
         </div>
       </div>
+
+      {order.customer_phone && (
+        <div className="mt-3 flex items-center justify-between gap-2 flex-wrap">
+          <div className="text-sm">
+            <span className="text-xs text-muted-foreground block mb-0.5">رقم العميل</span>
+            <span dir="ltr" className="font-mono">{order.customer_phone}</span>
+          </div>
+          <div className="flex gap-2">
+            {waHref && (
+              <a
+                href={waHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-3 h-9 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700"
+              >
+                <MessageCircle className="w-4 h-4" />
+                دردشة
+              </a>
+            )}
+            {telHref && (
+              <a
+                href={telHref}
+                className="inline-flex items-center gap-1.5 px-3 h-9 rounded-lg border border-border bg-background text-sm font-medium hover:bg-muted"
+              >
+                <Phone className="w-4 h-4" />
+                اتصال
+              </a>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="mt-3">
         <div className="text-xs text-muted-foreground mb-1">الطلب</div>
@@ -527,3 +587,9 @@ function OrderCard({
     </article>
   );
 }
+
+export const CARPENTER_NAMES: Record<CarpenterId, string> = {
+  1: "النجار الأول",
+  2: "النجار الثاني",
+  3: "النجار الثالث",
+};

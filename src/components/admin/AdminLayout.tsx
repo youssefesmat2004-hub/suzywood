@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 const nav = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { to: "/admin/orders", label: "Orders", icon: ShoppingBag },
+  { to: "/admin/carpenters", label: "Carpenters", icon: Hammer },
   { to: "/admin/bookings", label: "Bookings", icon: CalendarCheck },
   { to: "/admin/measurement-bookings", label: "Measurement Bookings", icon: Ruler },
   { to: "/admin/messages", label: "Messages", icon: MessageSquare },

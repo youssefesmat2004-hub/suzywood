@@ -37,6 +37,7 @@ type Order = {
   created_at: string;
   instapay_reference: string | null;
   payment_proof_url: string | null;
+  assigned_carpenter: number | null;
   order_items: OrderItem[];
 };
 
@@ -59,6 +60,13 @@ const statusColor: Record<string, string> = {
   cancelled: "bg-rose-100 text-rose-800 border-rose-200",
 };
 
+const CARPENTERS: { value: number | null; label: string }[] = [
+  { value: null, label: "Unassigned" },
+  { value: 1, label: "Carpenter 1 — النجار الأول" },
+  { value: 2, label: "Carpenter 2 — النجار الثاني" },
+  { value: 3, label: "Carpenter 3 — النجار الثالث" },
+];
+
 export const Route = createFileRoute("/admin/orders/$id")({
   component: OrderDetailPage,
 });
@@ -77,7 +85,7 @@ function OrderDetailPage() {
     (async () => {
       const { data: orderRow, error: orderErr } = await supabase
         .from("orders")
-        .select("id, order_number, customer_name, customer_email, customer_phone, shipping_address, shipping_city, shipping_governorate, shipping_notes, status, subtotal, shipping_fee, total, upfront_amount, remaining_amount, created_at, instapay_reference, payment_proof_url")
+        .select("id, order_number, customer_name, customer_email, customer_phone, shipping_address, shipping_city, shipping_governorate, shipping_notes, status, subtotal, shipping_fee, total, upfront_amount, remaining_amount, created_at, instapay_reference, payment_proof_url, assigned_carpenter")
         .eq("id", id)
         .single();
       if (orderErr || !orderRow) {
@@ -166,6 +174,22 @@ function OrderDetailPage() {
     setSaving(false);
   };
 
+  const updateAssignment = async (value: number | null) => {
+    if (!order) return;
+    const prev = order.assigned_carpenter;
+    setOrder({ ...order, assigned_carpenter: value });
+    const { error } = await supabase
+      .from("orders")
+      .update({ assigned_carpenter: value } as never)
+      .eq("id", order.id);
+    if (error) {
+      toast.error(error.message);
+      setOrder({ ...order, assigned_carpenter: prev });
+      return;
+    }
+    toast.success(value === null ? "Order unassigned" : `Assigned to Carpenter ${value}`);
+  };
+
   if (loading) return <div className="text-sm text-muted-foreground">Loading…</div>;
   if (!order) return (
     <div>
@@ -215,6 +239,26 @@ function OrderDetailPage() {
           </select>
         </div>
       </div>
+
+      {!isCarpenter && (
+        <section className="bg-background border rounded-xl p-4 mb-6 flex items-center justify-between gap-4 flex-wrap">
+          <div>
+            <h2 className="font-serif text-base">Workshop assignment</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">Choose which carpenter will build this order. Each carpenter only sees their own dashboard.</p>
+          </div>
+          <select
+            value={order.assigned_carpenter ?? ""}
+            onChange={(e) => updateAssignment(e.target.value === "" ? null : Number(e.target.value))}
+            className="text-sm rounded-md border px-3 py-1.5 bg-background"
+          >
+            {CARPENTERS.map((c) => (
+              <option key={String(c.value)} value={c.value ?? ""}>
+                {c.label}
+              </option>
+            ))}
+          </select>
+        </section>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
