@@ -45,6 +45,7 @@ import { Route as AdminCustomersRouteImport } from './routes/admin.customers'
 import { Route as AdminCustomBuildsRouteImport } from './routes/admin.custom-builds'
 import { Route as AdminContentRouteImport } from './routes/admin.content'
 import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
+import { Route as AdminCarpentersRouteImport } from './routes/admin.carpenters'
 import { Route as AdminBookingsRouteImport } from './routes/admin.bookings'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
 import { Route as AdminProductsIndexRouteImport } from './routes/admin.products.index'
@@ -235,6 +236,11 @@ const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
   path: '/categories',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminCarpentersRoute = AdminCarpentersRouteImport.update({
+  id: '/carpenters',
+  path: '/carpenters',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminBookingsRoute = AdminBookingsRouteImport.update({
   id: '/bookings',
   path: '/bookings',
@@ -300,6 +306,7 @@ export interface FileRoutesByFullPath {
   '/wishlist': typeof WishlistRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/bookings': typeof AdminBookingsRoute
+  '/admin/carpenters': typeof AdminCarpentersRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/custom-builds': typeof AdminCustomBuildsRoute
@@ -344,6 +351,7 @@ export interface FileRoutesByTo {
   '/wishlist': typeof WishlistRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/bookings': typeof AdminBookingsRoute
+  '/admin/carpenters': typeof AdminCarpentersRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/custom-builds': typeof AdminCustomBuildsRoute
@@ -390,6 +398,7 @@ export interface FileRoutesById {
   '/wishlist': typeof WishlistRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/bookings': typeof AdminBookingsRoute
+  '/admin/carpenters': typeof AdminCarpentersRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/custom-builds': typeof AdminCustomBuildsRoute
@@ -438,6 +447,7 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/admin/analytics'
     | '/admin/bookings'
+    | '/admin/carpenters'
     | '/admin/categories'
     | '/admin/content'
     | '/admin/custom-builds'
@@ -482,6 +492,7 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/admin/analytics'
     | '/admin/bookings'
+    | '/admin/carpenters'
     | '/admin/categories'
     | '/admin/content'
     | '/admin/custom-builds'
@@ -527,6 +538,7 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/admin/analytics'
     | '/admin/bookings'
+    | '/admin/carpenters'
     | '/admin/categories'
     | '/admin/content'
     | '/admin/custom-builds'
@@ -829,6 +841,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCategoriesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/carpenters': {
+      id: '/admin/carpenters'
+      path: '/carpenters'
+      fullPath: '/admin/carpenters'
+      preLoaderRoute: typeof AdminCarpentersRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/bookings': {
       id: '/admin/bookings'
       path: '/bookings'
@@ -905,6 +924,7 @@ const AdminOrdersRouteWithChildren = AdminOrdersRoute._addFileChildren(
 interface AdminRouteChildren {
   AdminAnalyticsRoute: typeof AdminAnalyticsRoute
   AdminBookingsRoute: typeof AdminBookingsRoute
+  AdminCarpentersRoute: typeof AdminCarpentersRoute
   AdminCategoriesRoute: typeof AdminCategoriesRoute
   AdminContentRoute: typeof AdminContentRoute
   AdminCustomBuildsRoute: typeof AdminCustomBuildsRoute
@@ -925,6 +945,7 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAnalyticsRoute: AdminAnalyticsRoute,
   AdminBookingsRoute: AdminBookingsRoute,
+  AdminCarpentersRoute: AdminCarpentersRoute,
   AdminCategoriesRoute: AdminCategoriesRoute,
   AdminContentRoute: AdminContentRoute,
   AdminCustomBuildsRoute: AdminCustomBuildsRoute,
@@ -985,3 +1006,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
