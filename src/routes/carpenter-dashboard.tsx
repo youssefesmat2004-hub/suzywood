@@ -345,7 +345,7 @@ function Dashboard() {
                 setTab(t.value);
                 if (t.value === "confirmed") setBadge(0);
               }}
-              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap border transition-colors ${
+              className={`relative px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap border transition-colors ${
                 tab === t.value
                   ? "bg-primary text-primary-foreground border-primary"
                   : "bg-background border-border hover:bg-muted"
@@ -357,6 +357,11 @@ function Dashboard() {
               }`}>
                 {counts[t.value] ?? 0}
               </span>
+              {t.value === "confirmed" && badge > 0 && (
+                <span className="absolute -top-1 -left-1 min-w-[20px] h-5 px-1 rounded-full bg-destructive text-destructive-foreground text-[11px] font-bold flex items-center justify-center shadow">
+                  {badge}
+                </span>
+              )}
             </button>
           ))}
         </div>
