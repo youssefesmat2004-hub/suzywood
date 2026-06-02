@@ -1,22 +1,22 @@
 ## Plan
 
-1. **Restore the broken preview first**
-   - Remove the remote Google Fonts `@import` from `src/styles.css`, because Vite is currently failing to transform the stylesheet (`ENOENT ... fonts.googleapis.com`).
-   - Keep the existing font-family fallbacks so the app can load again.
+1. **Add a clear payment confirmation action**
+   - Add a prominent **Confirm payment** button on the admin order detail page.
+   - When clicked, it will set the order status to `confirmed`.
+   - Show a saving state and prevent double-clicks while the update is running.
+   - Keep the existing status dropdown as a secondary control, but make the button the obvious path for pending-payment orders.
 
-2. **Fix the admin order detail page**
-   - Replace the fragile embedded relationship query on `/admin/orders/$id` with separate reads for:
-     - the order row
-     - its `order_items`
-     - product image URLs
-   - Show a clear empty/error state if item rows are missing instead of silently rendering an empty list.
+2. **Make ordered items easier to see**
+   - Keep the existing item list but add an empty/error state so admins can tell if items failed to load instead of seeing a blank section.
+   - Show product name, quantity, size, finish, unit price, and line total where allowed.
+   - Include a clear message if no items are attached to the order.
 
-3. **Make status updates reliable**
-   - Update order status with `.select(...).single()` after the update, so the UI can confirm the database actually accepted the change.
-   - Roll back the dropdown UI and show the backend error if the update is blocked.
-   - Keep the existing customer notification email attempt after a successful status update.
+3. **Improve reliability of status updates**
+   - Update the status function so success/failure feedback is always visible.
+   - Revert the UI if the backend update fails.
+   - Keep email notification after a successful status update, without blocking the status change if email fails.
 
-4. **Verify in preview**
-   - Reopen the same order detail page.
-   - Confirm the two saved order items appear.
-   - Change status and confirm the visible status updates without errors.
+4. **Validate the page after implementation**
+   - Check that the order detail page loads.
+   - Confirm the new button appears for pending payment orders.
+   - Confirm the Items section visibly shows ordered products or a clear fallback message.
