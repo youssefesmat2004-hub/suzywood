@@ -1,24 +1,24 @@
 ## What's happening
 
-The order rows on `/admin/orders` use `<Link>` wrappers inside table cells. They navigate correctly when they load, but the preview is throwing:
+I checked the server logs. Your code DID try to send the "payment pending" email, but Resend rejected it with `403`:
 
-> Failed to fetch dynamically imported module … virtual:tanstack-start-client-entry
+> "You can only send testing emails to your own email address (`youssef.esmat2004@gmail.com`). To send emails to other recipients, please verify a domain at resend.com/domains, and change the `from` address to an email using this domain."
 
-That's a stale-chunk error: an old build is cached in the browser and the new route chunk it tries to fetch on click no longer exists, so the navigation silently fails — which feels like "the order won't open".
+Your sender is currently `Suzy Wood <onboarding@resend.dev>` — that's Resend's sandbox address, which is **only allowed to send to your own Resend account email** (`youssef.esmat2004@gmail.com`). Any other test recipient is silently dropped with a 403.
 
-## Fix
+The same limit applies to the admin status-change email (Pending → Confirmed, etc.) and any future order email — none of them will reach real customers as-is.
 
-1. **Restart the dev server** so the preview serves fresh chunks. This alone resolves the stale-chunk error in 99% of cases.
+## How to fix it — pick one
 
-2. **Make the whole row reliably clickable** (small UX improvement so it doesn't depend on per-cell `<Link>` wrappers):
-   - Replace the 5 per-cell `<Link>` wrappers in `src/routes/admin.orders.tsx` with a single `onClick` on the `<tr>` using `useNavigate()` from `@tanstack/react-router`.
-   - Keep the `cursor-pointer` + hover styling.
-   - Add `role="button"` and keyboard support (`Enter` key) for accessibility.
+**Option A — Switch to Lovable Emails (recommended)**
+Use the built-in email system. I set up a sender subdomain on your own domain (e.g. `notify.suzywood.com`), wire up an email queue + retry, and migrate both the checkout-pending email and the admin status-change email to use it. You won't need Resend at all and you won't hit sandbox limits. Needs a domain you own + ~5 min of DNS setup at your registrar.
 
-3. **Tell you to hard-refresh** the preview tab once (Cmd/Ctrl+Shift+R) to drop the cached old bundle.
+**Option B — Verify your domain in Resend (keep Resend)**
+Faster if you want to stay on Resend. You verify `suzywood.com` (or any domain you own) at resend.com/domains, then I change the `from` in both email functions from `onboarding@resend.dev` to something like `orders@suzywood.com`. Same DNS-setup effort, just done in Resend's dashboard instead.
 
-## Files touched
+**Option C — Test-only workaround**
+Place all your test orders using `youssef.esmat2004@gmail.com` as the customer email. No code changes; nothing for real customers yet.
 
-- `src/routes/admin.orders.tsx` — swap nested Links for a row-level onClick navigate.
+## What I'd do
 
-No DB or backend changes.
+I recommend **Option A (Lovable Emails)** — it's the native path, removes the Resend dependency, and adds retry safety. Tell me which option you want and I'll proceed.
