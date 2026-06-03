@@ -179,7 +179,7 @@ function Index() {
             <h2 className="font-serif text-4xl md:text-5xl text-balance">Premium quality furniture with reasonable pricing, made the slow way.</h2>
             <p className="text-muted-foreground leading-relaxed">
               Every Suzy Wood piece is hand-joined from solid timber by a small team of carpenters in Cairo.
-              We use plant-based, non-toxic finishes and rounded edges throughout — safe enough for the tiniest hands.
+              We use plant-based Premium finishes and rounded edges throughout - safe enough for the tiniest hands.
             </p>
             <Button asChild variant="outline" className="border-wood-deep text-wood-deep hover:bg-wood-deep hover:text-cream">
               <Link to="/our-craft">Read our story</Link>
