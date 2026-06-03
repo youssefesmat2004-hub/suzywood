@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
-const OWNER_EMAIL = "Youssef.esmat2004@gmail.com";
+const OWNER_EMAILS = ["Youssef.esmat2004@gmail.com", "suzzy.wael@gmail.com"];
 const FROM = "Suzy Wood <info@suzywoodofficial.com>";
 const ADMIN_BASE = "https://suzywoodofficial.com";
 
@@ -31,7 +31,7 @@ async function sendViaResend(subject: string, html: string) {
     },
     body: JSON.stringify({
       from: FROM,
-      to: [OWNER_EMAIL],
+      to: OWNER_EMAILS,
       subject,
       html,
     }),
