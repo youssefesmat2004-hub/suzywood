@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { verifyCarpenterPin } from "@/lib/carpenter.functions";
 import { playCarpenterAlert, unlockCarpenterAudio } from "@/lib/carpenter-sound";
+import { resolveImage } from "@/lib/images";
 
 export type CarpenterId = 1 | 2 | 3;
 
@@ -19,6 +20,7 @@ type OrderItem = {
   engraving: string | null;
   custom_width_cm: number | null;
   custom_length_cm: number | null;
+  products: { image_url: string | null } | null;
 };
 
 type Order = {
@@ -44,7 +46,7 @@ const TABS: { value: WorkStatus; label: string }[] = [
 // instapay_reference, payment_proof_url, internal_notes, customer_email,
 // shipping_address.
 const ORDER_SELECT =
-  "id, order_number, customer_name, customer_phone, status, created_at, shipping_notes, assigned_carpenter, order_items(id, product_name, quantity, size, finish, engraving, custom_width_cm, custom_length_cm)";
+  "id, order_number, customer_name, customer_phone, status, created_at, shipping_notes, assigned_carpenter, order_items(id, product_name, quantity, size, finish, engraving, custom_width_cm, custom_length_cm, products(image_url))";
 
 export function CarpenterDashboard({
   carpenterId,
@@ -511,23 +513,26 @@ function OrderCard({
         <div className="text-xs text-muted-foreground mb-1">الطلب</div>
         <ul className="space-y-1.5">
           {order.order_items.map((it) => (
-            <li key={it.id} className="text-sm">
-              <div className="flex items-baseline justify-between gap-3">
-                <span className="font-medium">{it.product_name}</span>
-                <span className="text-muted-foreground text-xs">× {it.quantity}</span>
-              </div>
-              {(it.size || it.finish || it.engraving || it.custom_width_cm || it.custom_length_cm) && (
-                <div className="text-[12px] text-muted-foreground mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5">
-                  {it.size && <span>المقاس: {it.size}</span>}
-                  {it.finish && <span>التشطيب: {it.finish}</span>}
-                  {it.custom_width_cm && it.custom_length_cm && (
-                    <span>
-                      مقاس مخصص: {it.custom_width_cm}×{it.custom_length_cm} سم
-                    </span>
-                  )}
-                  {it.engraving && <span>نقش: {it.engraving}</span>}
+            <li key={it.id} className="text-sm flex items-start gap-3">
+              <ProductThumb url={it.products?.image_url ?? null} alt={it.product_name} />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="font-medium">{it.product_name}</span>
+                  <span className="text-muted-foreground text-xs">× {it.quantity}</span>
                 </div>
-              )}
+                {(it.size || it.finish || it.engraving || it.custom_width_cm || it.custom_length_cm) && (
+                  <div className="text-[12px] text-muted-foreground mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5">
+                    {it.size && <span>المقاس: {it.size}</span>}
+                    {it.finish && <span>التشطيب: {it.finish}</span>}
+                    {it.custom_width_cm && it.custom_length_cm && (
+                      <span>
+                        مقاس مخصص: {it.custom_width_cm}×{it.custom_length_cm} سم
+                      </span>
+                    )}
+                    {it.engraving && <span>نقش: {it.engraving}</span>}
+                  </div>
+                )}
+              </div>
             </li>
           ))}
         </ul>
@@ -593,3 +598,24 @@ export const CARPENTER_NAMES: Record<CarpenterId, string> = {
   2: "النجار الثاني",
   3: "النجار الثالث",
 };
+
+function ProductThumb({ url, alt }: { url: string | null; alt: string }) {
+  const [failed, setFailed] = useState(false);
+  const src = url ? resolveImage(url) : null;
+  if (!src || failed) {
+    return (
+      <div className="w-14 h-14 rounded-lg bg-muted flex items-center justify-center shrink-0 border">
+        <Package className="w-5 h-5 text-muted-foreground" />
+      </div>
+    );
+  }
+  return (
+    <img
+      src={src}
+      alt={alt}
+      loading="lazy"
+      onError={() => setFailed(true)}
+      className="w-14 h-14 rounded-lg object-cover shrink-0 border bg-muted"
+    />
+  );
+}
