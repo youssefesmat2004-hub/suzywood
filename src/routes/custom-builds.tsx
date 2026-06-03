@@ -25,15 +25,14 @@ function CustomBuilds() {
               Designed for your room, built for your child.
             </h1>
             <p className="text-muted-foreground leading-relaxed">
-              Tell us about the piece you've been imagining — a fitted wardrobe, a reading nook, a one-of-a-kind crib.
+              Tell us about the piece you've been imagining , A fitted wardrobe, a reading nook, a one of a kind crib.
               Our design team will sketch a proposal and quote within two working days.
             </p>
             <ul className="space-y-3 pt-2 text-sm">
               {[
-                "Free design consultation",
-                "3D rendering before production",
-                "6–8 week typical lead time",
-                "White-glove install in Greater Cairo",
+                "Execution of your desired design",
+                "3-6 week typical lead time",
+                "White-glove install across Egypt",
               ].map((i) => (
                 <li key={i} className="flex items-center gap-3">
                   <span className="h-1.5 w-1.5 rounded-full bg-secondary" /> {i}
