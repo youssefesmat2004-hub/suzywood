@@ -13,6 +13,14 @@ export function ProductCard({ product }: { product: Product }) {
   const hasVariants = !!product.has_variants || sizes.length > 1 || finishes.length > 1;
   const soldOut = (product.stock_quantity ?? 1) <= 0;
   const isSafetyGate = product.category_slug === "safety-gates";
+  const HIDE_FINISHES_LABEL = new Set([
+    "cribs",
+    "kids-beds",
+    "montessori-bed",
+    "play-safety",
+    "drawers-changing-tables",
+  ]);
+  const displayFinishes = HIDE_FINISHES_LABEL.has(product.category_slug ?? "") ? [] : finishes;
 
   const quickAdd = (e: React.MouseEvent) => {
     if (soldOut) return;
@@ -83,9 +91,11 @@ export function ProductCard({ product }: { product: Product }) {
         <h3 className="font-serif text-2xl">{product.name}</h3>
         <p className="text-sm text-muted-foreground line-clamp-1">{product.tagline}</p>
         {hasVariants && !isSafetyGate && (
-          <p className="text-[11px] uppercase tracking-[0.2em] text-secondary">
-            Available in multiple {sizes.length > 1 && finishes.length > 1 ? "sizes & finishes" : sizes.length > 1 ? "sizes" : "finishes"}
-          </p>
+          (sizes.length > 1 || displayFinishes.length > 1) && (
+            <p className="text-[11px] uppercase tracking-[0.2em] text-secondary">
+              Available in multiple {sizes.length > 1 && displayFinishes.length > 1 ? "sizes & finishes" : sizes.length > 1 ? "sizes" : "finishes"}
+            </p>
+          )
         )}
         <div className="mt-4 flex items-end justify-between">
           {isSafetyGate ? (
