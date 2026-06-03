@@ -36,9 +36,9 @@ function OurCraft() {
 
         <div className="mt-20 grid md:grid-cols-3 gap-12">
           {[
-            { t: "Solid Wood, Always", d: "We never use particleboard or veneers. Every joint, panel and rail is solid European oak or beech." },
-            { t: "Plant-Based Finishes", d: "Our oils and waxes are food-contact safe — tested for chewing toddlers, not just for grown-up hands." },
-            { t: "Built to Be Inherited", d: "Joinery is mortise-and-tenon, hardware is replaceable, and every piece can be refinished decades from now." },
+            { t: "Solid Wood, Always", d: "We never use particleboard or veneers. Every joint, panel and rail is solid Finnish Moski , Contor or Zan." },
+            { t: "Plant-Based Finishes", d: "All of our products stand out with its smooth and sleek finishes" },
+            { t: "Built to Be Inherited", d: "Some Hardware Pieces are replaceable, and every piece can be refinished decades from now for extra cost" },
           ].map((b) => (
             <div key={b.t}>
               <h3 className="font-serif text-2xl">{b.t}</h3>
