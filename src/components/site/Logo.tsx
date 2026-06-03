@@ -6,7 +6,7 @@ export function Logo() {
     <Link to="/" className="flex items-center gap-3 group">
       <img
         src={logo}
-        alt="Suzy Wood — Premium Nursery & Toddler Furniture"
+        alt="Suzy Wood — Premium Baby & Toddlers Furniture"
         className="h-14 w-auto transition-transform group-hover:scale-105"
       />
     </Link>
