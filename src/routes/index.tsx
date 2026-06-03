@@ -176,7 +176,7 @@ function Index() {
           </div>
           <div data-reveal className="space-y-6 order-1 lg:order-2 lg:pl-8">
             <p className="text-[11px] uppercase tracking-[0.32em] text-secondary">Our Craft</p>
-            <h2 className="font-serif text-4xl md:text-5xl text-balance">Heirloom-quality wood, made the slow way.</h2>
+            <h2 className="font-serif text-4xl md:text-5xl text-balance">Premium quality furniture with reasonable pricing, made the slow way.</h2>
             <p className="text-muted-foreground leading-relaxed">
               Every Suzy Wood piece is hand-joined from solid timber by a small team of carpenters in Cairo.
               We use plant-based, non-toxic finishes and rounded edges throughout — safe enough for the tiniest hands.
