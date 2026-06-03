@@ -106,7 +106,7 @@ function Index() {
           <div className="max-w-xl">
             <p className="text-[11px] uppercase tracking-[0.32em] text-secondary mb-3">Featured</p>
             <h2 className="font-serif text-4xl md:text-5xl text-balance">Our Most Loved Pieces</h2>
-            <p className="text-muted-foreground mt-3">Heirloom-quality wood, made by hand — chosen by parents across Egypt.</p>
+            <p className="text-muted-foreground mt-3">Premium quality Furniture, made by hand, chosen by families across Egypt.</p>
           </div>
           <Link to="/shop" className="group inline-flex items-center gap-2 text-sm font-medium text-primary hover:gap-3 transition-all">
             View all <ArrowRight className="h-4 w-4" />
