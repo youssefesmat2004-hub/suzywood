@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import hero from "@/assets/hero-nursery.jpg";
 import roomFloat from "@/assets/whole-rooms/room-1.jpeg";
 import { ArrowRight } from "lucide-react";
+import { CountdownTimer } from "./CountdownTimer";
 
 interface HeroProps {
   title?: string;
