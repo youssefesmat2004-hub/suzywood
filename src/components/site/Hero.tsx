@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import hero from "@/assets/hero-nursery.jpg";
 import roomFloat from "@/assets/whole-rooms/room-1.jpeg";
 import { ArrowRight } from "lucide-react";
+import { CountdownTimer } from "./CountdownTimer";
 
 interface HeroProps {
   title?: string;
@@ -65,6 +66,10 @@ export function Hero({ title, subtitle }: HeroProps) {
               <Button asChild size="lg" variant="outline" className="border-wood-deep text-wood-deep hover:bg-wood-deep hover:text-cream">
                 <Link to="/book">Book a Free Session</Link>
               </Button>
+            </div>
+
+            <div className="pt-6 sm:pt-8">
+              <CountdownTimer />
             </div>
           </div>
 
