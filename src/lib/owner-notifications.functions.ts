@@ -63,6 +63,16 @@ export const notifyOwnerNewOrder = createServerFn({ method: "POST" })
     if (error || !order) return { ok: false };
     if (!recent(order.created_at as string)) return { ok: false, skipped: "too_old" };
 
+    // Atomically claim the notification slot — only one caller succeeds.
+    const { data: claimed, error: claimErr } = await supabaseAdmin
+      .from("orders")
+      .update({ owner_notification_sent_at: new Date().toISOString() })
+      .eq("id", data.orderId)
+      .is("owner_notification_sent_at", null)
+      .select("id")
+      .maybeSingle();
+    if (claimErr || !claimed) return { ok: false, skipped: "already_sent" };
+
     const items = (order.order_items ?? []) as Array<{
       product_name: string; quantity: number; unit_price: number; size: string | null; finish: string | null;
     }>;
