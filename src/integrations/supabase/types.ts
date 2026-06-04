@@ -21,6 +21,7 @@ export type Database = {
           full_name: string
           id: string
           notes: string | null
+          owner_notification_sent_at: string | null
           phone: string
           preferred_day: Database["public"]["Enums"]["booking_day"]
           status: Database["public"]["Enums"]["booking_status"]
@@ -33,6 +34,7 @@ export type Database = {
           full_name: string
           id?: string
           notes?: string | null
+          owner_notification_sent_at?: string | null
           phone: string
           preferred_day: Database["public"]["Enums"]["booking_day"]
           status?: Database["public"]["Enums"]["booking_status"]
@@ -45,6 +47,7 @@ export type Database = {
           full_name?: string
           id?: string
           notes?: string | null
+          owner_notification_sent_at?: string | null
           phone?: string
           preferred_day?: Database["public"]["Enums"]["booking_day"]
           status?: Database["public"]["Enums"]["booking_status"]
@@ -201,6 +204,7 @@ export type Database = {
           full_name: string
           id: string
           inspiration_image_url: string | null
+          owner_notification_sent_at: string | null
           phone: string
           room_type: string
           status: string
@@ -213,6 +217,7 @@ export type Database = {
           full_name: string
           id?: string
           inspiration_image_url?: string | null
+          owner_notification_sent_at?: string | null
           phone: string
           room_type: string
           status?: string
@@ -225,6 +230,7 @@ export type Database = {
           full_name?: string
           id?: string
           inspiration_image_url?: string | null
+          owner_notification_sent_at?: string | null
           phone?: string
           room_type?: string
           status?: string
