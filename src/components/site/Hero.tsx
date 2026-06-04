@@ -67,6 +67,10 @@ export function Hero({ title, subtitle }: HeroProps) {
                 <Link to="/book">Book a Free Session</Link>
               </Button>
             </div>
+
+            <div className="pt-6 sm:pt-8">
+              <CountdownTimer />
+            </div>
           </div>
 
           <div className="lg:col-span-5 hidden lg:flex justify-end relative">
