@@ -50,8 +50,8 @@ export function Hero({ title, subtitle }: HeroProps) {
               <span className="h-1.5 w-1.5 rounded-full bg-secondary animate-pulse" /> Est. 2018 · Cairo
             </span>
             <h1 className="font-serif text-5xl md:text-7xl lg:text-[5.5rem] leading-[1.02] text-balance text-wood-deep">
-              {title ?? "Premium Furniture for "}
-              <span className="italic text-secondary">Your Little One</span>
+              {title ?? "Premium Baby & Toddlers Furniture "}
+              <span className="italic text-secondary">For your little one</span>
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground max-w-xl leading-relaxed">
               {subtitle ?? "Handmade wooden baby furniture, built to last a lifetime."}
