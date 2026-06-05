@@ -106,7 +106,9 @@ export function ProductCard({ product }: { product: Product }) {
           ) : (
             <div>
               <p className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">From</p>
-              <p className="font-serif text-xl text-primary">EGP {product.starting_price.toLocaleString()}</p>
+              <p className="font-serif text-xl text-primary">
+                {product.starting_price === 0 ? "Price upon measurement" : `EGP ${product.starting_price.toLocaleString()}`}
+              </p>
             </div>
           )}
           <span className="text-xs text-muted-foreground">View details →</span>

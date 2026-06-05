@@ -299,7 +299,8 @@ function ProductPage() {
               <h1 className="font-serif text-4xl md:text-5xl mt-5">{product.name}</h1>
               {product.tagline && <p className="mt-3 text-muted-foreground">{product.tagline}</p>}
               <p className="mt-6 font-serif text-3xl text-primary">
-                {selectedVariant ? "" : "From "}EGP {unitPrice.toLocaleString()}
+                {selectedVariant ? "" : "From "}
+                {unitPrice === 0 ? "Price upon measurement" : `EGP ${unitPrice.toLocaleString()}`}
               </p>
             </div>
 
