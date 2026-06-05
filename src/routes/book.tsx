@@ -75,30 +75,23 @@ function BookPage() {
       return;
     }
     setSubmitting(true);
-    const { error } = await supabase.from("bookings").insert({
+    const { data: inserted, error } = await supabase.from("bookings").insert({
       full_name: parsed.data.full_name,
       phone: parsed.data.phone,
       contact_method: parsed.data.contact_method,
       preferred_day: parsed.data.preferred_day,
       time_slot: parsed.data.time_slot,
       notes: parsed.data.notes ?? null,
-    });
+    }).select("id").single();
     setSubmitting(false);
-    if (error) {
+    if (error || !inserted) {
       toast.error("Couldn't submit your booking. Please try again.");
       return;
     }
 
-    notifyOwner({
-      data: {
-        full_name: parsed.data.full_name,
-        phone: parsed.data.phone,
-        contact_method: parsed.data.contact_method,
-        preferred_day: parsed.data.preferred_day,
-        time_slot: parsed.data.time_slot,
-        notes: parsed.data.notes ?? null,
-      },
-    }).catch((e) => console.error("Owner booking notify failed", e));
+    notifyOwner({ data: { bookingId: inserted.id } }).catch((e) =>
+      console.error("Owner booking notify failed", e),
+    );
 
     // Open WhatsApp pre-filled message to admin (click-to-send)
     const dayLabel = DAYS.find((d) => d.value === parsed.data.preferred_day)?.label ?? parsed.data.preferred_day;
