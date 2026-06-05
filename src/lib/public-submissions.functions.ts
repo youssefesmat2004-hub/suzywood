@@ -6,8 +6,8 @@ const bookingSchema = z.object({
   full_name: z.string().trim().min(1).max(100),
   phone: z.string().trim().regex(/^01[0-9]{9}$/),
   contact_method: z.enum(["whatsapp", "phone"]),
-  preferred_day: z.string().min(1).max(20),
-  time_slot: z.string().min(1).max(20),
+  preferred_day: z.enum(["saturday", "sunday", "monday", "tuesday", "wednesday", "thursday"]),
+  time_slot: z.enum(["morning", "afternoon", "evening"]),
   notes: z.string().max(2000).nullish(),
 });
 
