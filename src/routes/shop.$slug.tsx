@@ -361,7 +361,7 @@ function ProductPage() {
               )}
               {variants.length > 0 && variants.some((v) => v.variant_type === "fabric_color") && (
                 <div className="space-y-3 pt-5">
-                  <Label>Pompom Color</Label>
+                  <Label>Fabric Color</Label>
                   <div className="flex flex-wrap gap-3">
                     {variants
                       .filter((v) => v.variant_type === "fabric_color")
