@@ -69,7 +69,7 @@ export function Footer() {
       <div className="border-t border-border">
         <div className="container mx-auto px-6 lg:px-10 py-6 flex flex-col sm:flex-row justify-between gap-3 text-xs text-muted-foreground">
           <p>© 2018 Suzy Wood. Crafted in Cairo.</p>
-          <p>Delivery across all governorates of Egypt.</p>
+          <p>{"\n"}</p>
         </div>
       </div>
     </footer>
