@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
 import { notifyOwnerNewBooking } from "@/lib/owner-notifications.functions";
+import { submitBooking } from "@/lib/public-submissions.functions";
 import { Layout } from "@/components/site/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,6 +56,7 @@ function BookPage() {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState<{ method: string } | null>(null);
   const notifyOwner = useServerFn(notifyOwnerNewBooking);
+  const submit = useServerFn(submitBooking);
   const [form, setForm] = useState({
     full_name: "",
     phone: "",
@@ -75,21 +76,21 @@ function BookPage() {
       return;
     }
     setSubmitting(true);
-    const { data: inserted, error } = await supabase.from("bookings").insert({
+    const res = await submit({ data: {
       full_name: parsed.data.full_name,
       phone: parsed.data.phone,
       contact_method: parsed.data.contact_method,
-      preferred_day: parsed.data.preferred_day,
-      time_slot: parsed.data.time_slot,
+      preferred_day: parsed.data.preferred_day as "saturday" | "sunday" | "monday" | "tuesday" | "wednesday" | "thursday",
+      time_slot: parsed.data.time_slot as "morning" | "afternoon" | "evening",
       notes: parsed.data.notes ?? null,
-    }).select("id").single();
+    } }).catch(() => null);
     setSubmitting(false);
-    if (error || !inserted) {
+    if (!res || !res.ok) {
       toast.error("Couldn't submit your booking. Please try again.");
       return;
     }
 
-    notifyOwner({ data: { bookingId: inserted.id } }).catch((e) =>
+    notifyOwner({ data: { bookingId: res.id } }).catch((e) =>
       console.error("Owner booking notify failed", e),
     );
 
