@@ -412,7 +412,6 @@ export type Database = {
           instapay_reference: string | null
           internal_notes: string | null
           order_number: string
-          owner_notification_sent_at: string | null
           payment_method: string | null
           payment_proof_url: string | null
           remaining_amount: number | null
@@ -439,7 +438,6 @@ export type Database = {
           instapay_reference?: string | null
           internal_notes?: string | null
           order_number?: string
-          owner_notification_sent_at?: string | null
           payment_method?: string | null
           payment_proof_url?: string | null
           remaining_amount?: number | null
@@ -466,7 +464,6 @@ export type Database = {
           instapay_reference?: string | null
           internal_notes?: string | null
           order_number?: string
-          owner_notification_sent_at?: string | null
           payment_method?: string | null
           payment_proof_url?: string | null
           remaining_amount?: number | null
