@@ -299,7 +299,8 @@ function ProductPage() {
               <h1 className="font-serif text-4xl md:text-5xl mt-5">{product.name}</h1>
               {product.tagline && <p className="mt-3 text-muted-foreground">{product.tagline}</p>}
               <p className="mt-6 font-serif text-3xl text-primary">
-                {selectedVariant ? "" : "From "}EGP {unitPrice.toLocaleString()}
+                {selectedVariant ? "" : "From "}
+                {unitPrice === 0 ? "Price upon measurement" : `EGP ${unitPrice.toLocaleString()}`}
               </p>
             </div>
 
@@ -321,7 +322,7 @@ function ProductPage() {
                           disabled={out}
                           className={`px-4 py-2 rounded-full border text-sm transition-colors ${isSel ? "border-primary bg-primary text-primary-foreground" : "border-border hover:border-primary"} ${out ? "opacity-50 line-through cursor-not-allowed" : ""}`}
                         >
-                          {v.name} — EGP {Number(v.price).toLocaleString()}{out ? " (Out of stock)" : ""}
+                          {v.name} — {Number(v.price) === 0 ? "Price upon measurement" : `EGP ${Number(v.price).toLocaleString()}`}{out ? " (Out of stock)" : ""}
                         </button>
                       );
                     })}
