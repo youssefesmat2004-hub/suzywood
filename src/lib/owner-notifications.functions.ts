@@ -129,24 +129,18 @@ export const notifyOwnerNewOrder = createServerFn({ method: "POST" })
   });
 
 export const notifyOwnerNewBooking = createServerFn({ method: "POST" })
-  .inputValidator((data) => z.object({ id: z.string().uuid() }).parse(data))
+  .inputValidator((data) =>
+    z.object({
+      full_name: z.string().trim().min(1).max(100),
+      phone: z.string().trim().regex(/^01[0-9]{9}$/),
+      contact_method: z.enum(["whatsapp", "phone"]),
+      preferred_day: z.string().min(1).max(20),
+      time_slot: z.string().min(1).max(20),
+      notes: z.string().max(2000).nullish(),
+    }).parse(data),
+  )
   .handler(async ({ data }) => {
-    const { data: b, error } = await supabaseAdmin
-      .from("bookings")
-      .select("id, full_name, phone, contact_method, preferred_day, time_slot, notes, created_at")
-      .eq("id", data.id)
-      .single();
-    if (error || !b) return { ok: false, skipped: "not_found" };
-    if (!recent(b.created_at as string, 10)) return { ok: false, skipped: "too_old" };
-
-    const { data: claimed, error: claimErr } = await supabaseAdmin
-      .from("bookings")
-      .update({ owner_notification_sent_at: new Date().toISOString() })
-      .eq("id", data.id)
-      .is("owner_notification_sent_at", null)
-      .select("id")
-      .maybeSingle();
-    if (claimErr || !claimed) return { ok: false, skipped: "already_sent" };
+    const b = data;
 
     const link = `${ADMIN_BASE}/admin/bookings`;
     const html = `<!doctype html><html><body style="margin:0;padding:0;background:#f6f4ef;font-family:Arial,sans-serif;">
@@ -175,25 +169,18 @@ export const notifyOwnerNewBooking = createServerFn({ method: "POST" })
   });
 
 export const notifyOwnerNewCustomBuild = createServerFn({ method: "POST" })
-  .inputValidator((data) => z.object({ id: z.string().uuid() }).parse(data))
+  .inputValidator((data) =>
+    z.object({
+      full_name: z.string().trim().min(1).max(100),
+      email: z.string().trim().email().max(255),
+      phone: z.string().trim().min(5).max(30),
+      room_type: z.string().min(1).max(50),
+      description: z.string().min(1).max(2000),
+      inspiration_image_url: z.string().url().nullish(),
+    }).parse(data),
+  )
   .handler(async ({ data }) => {
-    const { data: b, error } = await supabaseAdmin
-      .from("custom_build_requests")
-      .select("id, full_name, email, phone, room_type, description, inspiration_image_url, created_at")
-      .eq("id", data.id)
-      .single();
-    if (error || !b) return { ok: false, skipped: "not_found" };
-    if (!recent(b.created_at as string, 10)) return { ok: false, skipped: "too_old" };
-
-    const { data: claimed, error: claimErr } = await supabaseAdmin
-      .from("custom_build_requests")
-      .update({ owner_notification_sent_at: new Date().toISOString() })
-      .eq("id", data.id)
-      .is("owner_notification_sent_at", null)
-      .select("id")
-      .maybeSingle();
-    if (claimErr || !claimed) return { ok: false, skipped: "already_sent" };
-
+    const b = data;
     const link = `${ADMIN_BASE}/admin/custom-builds`;
     const html = `<!doctype html><html><body style="margin:0;padding:0;background:#f6f4ef;font-family:Arial,sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0" style="padding:24px 12px;background:#f6f4ef;"><tr><td align="center">

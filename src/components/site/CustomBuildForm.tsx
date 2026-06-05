@@ -76,21 +76,19 @@ export function CustomBuildForm() {
       room_type: room,
       description: String(fd.get("idea")),
     };
-    const { data: inserted, error } = await supabase.from("custom_build_requests").insert({
+    const { error } = await supabase.from("custom_build_requests").insert({
       user_id: user?.id ?? null,
       ...payload,
       status: "new",
       inspiration_image_url,
-    }).select("id").single();
+    });
     setSubmitting(false);
     if (error) {
       toast.error("Couldn't send your request", { description: error.message });
     } else {
-      if (inserted?.id) {
-        notifyOwner({ data: { id: inserted.id } }).catch((err) =>
-          console.error("Owner custom build notify failed", err),
-        );
-      }
+      notifyOwner({ data: { ...payload, inspiration_image_url } }).catch((err) =>
+        console.error("Owner custom build notify failed", err),
+      );
       toast.success("Request received", { description: "Our team will reach out within two working days." });
       (e.target as HTMLFormElement).reset();
       clearFile();
