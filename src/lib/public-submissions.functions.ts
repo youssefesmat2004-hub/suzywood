@@ -16,14 +16,14 @@ export const submitBooking = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { data: row, error } = await supabaseAdmin
       .from("bookings")
-      .insert({
+      .insert([{
         full_name: data.full_name,
         phone: data.phone,
         contact_method: data.contact_method,
         preferred_day: data.preferred_day,
         time_slot: data.time_slot,
         notes: data.notes ?? null,
-      })
+      }])
       .select("id")
       .single();
     if (error || !row) return { ok: false as const, error: error?.message ?? "insert_failed" };
@@ -45,7 +45,7 @@ export const submitCustomBuildRequest = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { data: row, error } = await supabaseAdmin
       .from("custom_build_requests")
-      .insert({
+      .insert([{
         full_name: data.full_name,
         email: data.email,
         phone: data.phone,
@@ -54,7 +54,7 @@ export const submitCustomBuildRequest = createServerFn({ method: "POST" })
         inspiration_image_url: data.inspiration_image_url ?? null,
         user_id: data.user_id ?? null,
         status: "new",
-      })
+      }] as never)
       .select("id")
       .single();
     if (error || !row) return { ok: false as const, error: error?.message ?? "insert_failed" };
