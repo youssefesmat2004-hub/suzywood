@@ -63,6 +63,16 @@ export const notifyOwnerNewOrder = createServerFn({ method: "POST" })
     if (error || !order) return { ok: false };
     if (!recent(order.created_at as string)) return { ok: false, skipped: "too_old" };
 
+    // Atomic claim — only one notification per order
+    const { data: claim, error: claimErr } = await supabaseAdmin
+      .from("orders")
+      .update({ owner_notification_sent_at: new Date().toISOString() })
+      .eq("id", data.orderId)
+      .is("owner_notification_sent_at", null)
+      .select("id")
+      .maybeSingle();
+    if (claimErr || !claim) return { ok: false, skipped: "already_sent" };
+
     const items = (order.order_items ?? []) as Array<{
       product_name: string; quantity: number; unit_price: number; size: string | null; finish: string | null;
     }>;
@@ -115,22 +125,32 @@ export const notifyOwnerNewOrder = createServerFn({ method: "POST" })
 </table></td></tr></table></body></html>`;
 
     const ok = await sendViaResend(`🚨 New Website Order Received — ${order.order_number}`, html);
+    if (!ok) {
+      await supabaseAdmin.from("orders").update({ owner_notification_sent_at: null }).eq("id", data.orderId);
+    }
     return { ok };
   });
 
 export const notifyOwnerNewBooking = createServerFn({ method: "POST" })
-  .inputValidator((data) =>
-    z.object({
-      full_name: z.string().trim().min(1).max(100),
-      phone: z.string().trim().regex(/^01[0-9]{9}$/),
-      contact_method: z.enum(["whatsapp", "phone"]),
-      preferred_day: z.string().min(1).max(20),
-      time_slot: z.string().min(1).max(20),
-      notes: z.string().max(2000).nullish(),
-    }).parse(data),
-  )
+  .inputValidator((data) => z.object({ bookingId: z.string().uuid() }).parse(data))
   .handler(async ({ data }) => {
-    const b = data;
+    const { data: b, error } = await supabaseAdmin
+      .from("bookings")
+      .select("id, full_name, phone, contact_method, preferred_day, time_slot, notes, created_at, owner_notification_sent_at")
+      .eq("id", data.bookingId)
+      .single();
+    if (error || !b) return { ok: false };
+    if (!recent(b.created_at as string, 10)) return { ok: false, skipped: "too_old" };
+    if (b.owner_notification_sent_at) return { ok: false, skipped: "already_sent" };
+
+    const { data: claim, error: claimErr } = await supabaseAdmin
+      .from("bookings")
+      .update({ owner_notification_sent_at: new Date().toISOString() })
+      .eq("id", data.bookingId)
+      .is("owner_notification_sent_at", null)
+      .select("id")
+      .maybeSingle();
+    if (claimErr || !claim) return { ok: false, skipped: "already_sent" };
 
     const link = `${ADMIN_BASE}/admin/bookings`;
     const html = `<!doctype html><html><body style="margin:0;padding:0;background:#f6f4ef;font-family:Arial,sans-serif;">
@@ -155,22 +175,32 @@ export const notifyOwnerNewBooking = createServerFn({ method: "POST" })
 </table></td></tr></table></body></html>`;
 
     const ok = await sendViaResend(`📅 New Session Booking — ${b.full_name}`, html);
+    if (!ok) {
+      await supabaseAdmin.from("bookings").update({ owner_notification_sent_at: null }).eq("id", data.bookingId);
+    }
     return { ok };
   });
 
 export const notifyOwnerNewCustomBuild = createServerFn({ method: "POST" })
-  .inputValidator((data) =>
-    z.object({
-      full_name: z.string().trim().min(1).max(100),
-      email: z.string().trim().email().max(255),
-      phone: z.string().trim().min(5).max(30),
-      room_type: z.string().min(1).max(50),
-      description: z.string().min(1).max(2000),
-      inspiration_image_url: z.string().url().nullish(),
-    }).parse(data),
-  )
+  .inputValidator((data) => z.object({ requestId: z.string().uuid() }).parse(data))
   .handler(async ({ data }) => {
-    const b = data;
+    const { data: b, error } = await supabaseAdmin
+      .from("custom_build_requests")
+      .select("id, full_name, email, phone, room_type, description, inspiration_image_url, created_at, owner_notification_sent_at")
+      .eq("id", data.requestId)
+      .single();
+    if (error || !b) return { ok: false };
+    if (!recent(b.created_at as string, 10)) return { ok: false, skipped: "too_old" };
+    if (b.owner_notification_sent_at) return { ok: false, skipped: "already_sent" };
+
+    const { data: claim, error: claimErr } = await supabaseAdmin
+      .from("custom_build_requests")
+      .update({ owner_notification_sent_at: new Date().toISOString() })
+      .eq("id", data.requestId)
+      .is("owner_notification_sent_at", null)
+      .select("id")
+      .maybeSingle();
+    if (claimErr || !claim) return { ok: false, skipped: "already_sent" };
     const link = `${ADMIN_BASE}/admin/custom-builds`;
     const html = `<!doctype html><html><body style="margin:0;padding:0;background:#f6f4ef;font-family:Arial,sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0" style="padding:24px 12px;background:#f6f4ef;"><tr><td align="center">
@@ -200,5 +230,8 @@ export const notifyOwnerNewCustomBuild = createServerFn({ method: "POST" })
 </table></td></tr></table></body></html>`;
 
     const ok = await sendViaResend(`🛠️ New Custom Build Request — ${b.full_name}`, html);
+    if (!ok) {
+      await supabaseAdmin.from("custom_build_requests").update({ owner_notification_sent_at: null }).eq("id", data.requestId);
+    }
     return { ok };
   });
