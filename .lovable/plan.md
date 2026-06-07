@@ -1,22 +1,25 @@
-Run a single migration with the GRANTs and data fix you specified. No code changes.
+## Goal
 
-## Migration SQL
+On the safety gate product, never allow add-to-cart. Show only images and a booking action — no price, no description/what's-included clutter. Replace "Price upon measurement" with "Custom Measurement Required" everywhere it appears for safety gates.
 
-```sql
--- 1. Restore has_role execute
-GRANT EXECUTE ON FUNCTION public.has_role(uuid, public.app_role) TO anon, authenticated;
+## Changes
 
--- 2. Restore public read access
-GRANT SELECT ON public.products TO anon, authenticated;
-GRANT SELECT ON public.product_variants TO anon, authenticated;
-GRANT SELECT ON public.categories TO anon, authenticated;
+### 1. `src/routes/shop.$slug.tsx` — `SafetyGateRightColumn`
+- Remove the `Price upon measurement` line.
+- Remove the `product.description` paragraph.
+- Remove the "What's included" list block (250 EGP measurement visit, etc.).
+- Remove the muted "This product requires custom measurements…" callout.
+- Keep: the `Custom Measurement Required` pill, product name, tagline, the `Book your Measurement session now` button, and the WishlistButton.
+- The existing `isSafetyGate` branch already prevents the regular add-to-cart UI from rendering — confirm no other code path can add a safety gate to cart (the page-level `addToCart` only runs inside the non-safety-gate branch).
 
--- 3. Restore admin write access
-GRANT ALL ON public.products TO authenticated;
-GRANT ALL ON public.product_variants TO authenticated;
-GRANT ALL ON public.categories TO authenticated;
-```
+### 2. `src/components/site/ProductCard.tsx`
+- Change the safety-gate price block text from `Price upon measurement` to `Custom Measurement Required`.
+- Listing card already hides quick-add for safety gates — no behavior change there.
 
-## Note on `is_visible`
+### 3. No other files
+- Cart, checkout, and wishlist code don't need changes; the safety gate has no entry point into `cart.add` once the detail page strips its non-booking UI.
 
-The `products` table in this project does not have an `is_visible` column — visibility is controlled by `is_active`. I will skip the `UPDATE products SET is_visible = true` statement since the column does not exist (it would error). RLS already exposes rows where `is_active = true`, so no data update is needed. If you actually want to flip every product's `is_active` to true, say so and I'll add that.
+## Out of scope
+- No DB/schema changes.
+- No changes to the measurement booking dialog itself.
+- No changes to other product categories.
