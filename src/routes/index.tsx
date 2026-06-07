@@ -56,6 +56,7 @@ function Index() {
   const heroSubtitle = content.hero_subtitle || "Handmade wooden baby furniture, built to last a lifetime.";
 
   const quickAdd = (e: React.MouseEvent, p: Product) => {
+    if (p.category_slug === "safety-gates") return;
     const sizes = asOptions(p.sizes);
     const finishes = asOptions(p.finishes);
     const hasVariants = !!p.has_variants || sizes.length > 1 || finishes.length > 1;
