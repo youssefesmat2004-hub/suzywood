@@ -5,7 +5,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth";
 import { useServerFn } from "@tanstack/react-start";
 import { notifyOwnerNewCustomBuild } from "@/lib/owner-notifications.functions";
 import { submitCustomBuildRequest } from "@/lib/public-submissions.functions";
@@ -14,7 +13,6 @@ import { ImagePlus, X, Crop as CropIcon } from "lucide-react";
 import { useImageCropper } from "@/hooks/use-image-cropper";
 
 export function CustomBuildForm() {
-  const { user } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   const notifyOwner = useServerFn(notifyOwnerNewCustomBuild);
   const submit = useServerFn(submitCustomBuildRequest);
@@ -79,7 +77,7 @@ export function CustomBuildForm() {
       description: String(fd.get("idea")),
     };
     const res = await submit({
-      data: { ...payload, inspiration_image_url, user_id: user?.id ?? null },
+      data: { ...payload, inspiration_image_url },
     }).catch((err) => ({ ok: false as const, error: String(err?.message ?? err) }));
     setSubmitting(false);
     if (!res.ok) {
