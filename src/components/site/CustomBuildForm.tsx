@@ -79,7 +79,7 @@ export function CustomBuildForm() {
       description: String(fd.get("idea")),
     };
     const res = await submit({
-      data: { ...payload, inspiration_image_url, user_id: user?.id ?? null },
+      data: { ...payload, inspiration_image_url },
     }).catch((err) => ({ ok: false as const, error: String(err?.message ?? err) }));
     setSubmitting(false);
     if (!res.ok) {
