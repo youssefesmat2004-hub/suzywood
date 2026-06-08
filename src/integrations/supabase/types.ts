@@ -174,6 +174,7 @@ export type Database = {
           id: string
           is_read: boolean
           message: string
+          owner_notification_sent_at: string | null
           phone: string | null
         }
         Insert: {
@@ -183,6 +184,7 @@ export type Database = {
           id?: string
           is_read?: boolean
           message: string
+          owner_notification_sent_at?: string | null
           phone?: string | null
         }
         Update: {
@@ -192,6 +194,7 @@ export type Database = {
           id?: string
           is_read?: boolean
           message?: string
+          owner_notification_sent_at?: string | null
           phone?: string | null
         }
         Relationships: []
@@ -273,6 +276,7 @@ export type Database = {
           full_name: string
           id: string
           notes: string | null
+          owner_notification_sent_at: string | null
           phone: string
           preferred_day: string
           product_id: string | null
@@ -290,6 +294,7 @@ export type Database = {
           full_name: string
           id?: string
           notes?: string | null
+          owner_notification_sent_at?: string | null
           phone: string
           preferred_day: string
           product_id?: string | null
@@ -307,6 +312,7 @@ export type Database = {
           full_name?: string
           id?: string
           notes?: string | null
+          owner_notification_sent_at?: string | null
           phone?: string
           preferred_day?: string
           product_id?: string | null
@@ -325,6 +331,7 @@ export type Database = {
           email: string
           full_name: string | null
           id: string
+          owner_notification_sent_at: string | null
           unsubscribed_at: string | null
         }
         Insert: {
@@ -332,6 +339,7 @@ export type Database = {
           email: string
           full_name?: string | null
           id?: string
+          owner_notification_sent_at?: string | null
           unsubscribed_at?: string | null
         }
         Update: {
@@ -339,6 +347,7 @@ export type Database = {
           email?: string
           full_name?: string | null
           id?: string
+          owner_notification_sent_at?: string | null
           unsubscribed_at?: string | null
         }
         Relationships: []
@@ -695,6 +704,7 @@ export type Database = {
           created_at: string
           id: string
           is_published: boolean
+          owner_notification_sent_at: string | null
           product_id: string
           rating: number
           title: string | null
@@ -705,6 +715,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_published?: boolean
+          owner_notification_sent_at?: string | null
           product_id: string
           rating: number
           title?: string | null
@@ -715,6 +726,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_published?: boolean
+          owner_notification_sent_at?: string | null
           product_id?: string
           rating?: number
           title?: string | null
