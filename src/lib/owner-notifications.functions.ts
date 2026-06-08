@@ -385,7 +385,7 @@ export const notifyOwnerNewReview = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { data: r, error } = await supabaseAdmin
       .from("reviews")
-      .select("id, product_id, rating, title, body, created_at, updated_at, owner_notification_sent_at, products(name, slug)")
+      .select("id, product_id, rating, title, body, created_at, owner_notification_sent_at, products(name, slug)")
       .eq("id", data.reviewId)
       .single();
     if (error || !r) return { ok: false };
