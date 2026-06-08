@@ -18,6 +18,7 @@ import { WishlistButton } from "@/components/site/WishlistButton";
 import { useCart } from "@/lib/cart";
 import { Check, ShoppingBag, Minus, Plus, Ruler, CalendarCheck, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import { applyDiscount, isDiscountable, DISCOUNT_LABEL } from "@/lib/pricing";
 
 type Variant = {
   id: string;
@@ -201,13 +202,24 @@ function ProductPage() {
   const finishLabel = category?.finish_label?.trim() || "Wood Finish";
   const stock = customMode ? 99 : (selectedVariant ? selectedVariant.stock_quantity : (product.stock_quantity ?? 99));
   const soldOut = !customMode && stock <= 0;
-  const basePrice = customMode
-    ? product.starting_price + customSurcharge
+  // 5% storewide discount applies to the product/variant component only.
+  // Surcharges (custom size, engraving, ottoman, portable changing table) are NOT discounted.
+  const productBaseOriginal = customMode
+    ? product.starting_price
     : (selectedVariant ? selectedVariant.price : product.starting_price);
+  const productBaseDiscounted = applyDiscount(productBaseOriginal);
+  const basePrice = customMode
+    ? productBaseDiscounted + customSurcharge
+    : productBaseDiscounted;
   const unitPrice = basePrice
     + (engravingApplied ? engravingSurcharge : 0)
     + (ottomanApplied ? ottomanPrice : 0)
     + (portableApplied ? portablePrice : 0);
+  const unitPriceOriginal = (customMode ? productBaseOriginal + customSurcharge : productBaseOriginal)
+    + (engravingApplied ? engravingSurcharge : 0)
+    + (ottomanApplied ? ottomanPrice : 0)
+    + (portableApplied ? portablePrice : 0);
+  const showDiscount = isDiscountable(productBaseOriginal);
 
   const stockBadge = soldOut
     ? { label: "Sold out", className: "bg-destructive/10 text-destructive" }
@@ -298,10 +310,21 @@ function ProductPage() {
               </div>
               <h1 className="font-serif text-4xl md:text-5xl mt-5">{product.name}</h1>
               {product.tagline && <p className="mt-3 text-muted-foreground">{product.tagline}</p>}
-              <p className="mt-6 font-serif text-3xl text-primary">
-                {selectedVariant ? "" : "From "}
-                {unitPrice === 0 ? "Price upon measurement" : `EGP ${unitPrice.toLocaleString()}`}
-              </p>
+              {unitPrice === 0 ? (
+                <p className="mt-6 font-serif text-3xl text-primary">Price upon measurement</p>
+              ) : showDiscount ? (
+                <div className="mt-6 flex items-baseline gap-3 flex-wrap">
+                  <p className="font-serif text-3xl text-primary">
+                    {selectedVariant ? "" : "From "}EGP {unitPrice.toLocaleString()}
+                  </p>
+                  <p className="text-lg text-muted-foreground line-through">EGP {unitPriceOriginal.toLocaleString()}</p>
+                  <span className="text-xs font-semibold uppercase tracking-wider rounded-full bg-destructive/10 text-destructive px-2.5 py-1">{DISCOUNT_LABEL}</span>
+                </div>
+              ) : (
+                <p className="mt-6 font-serif text-3xl text-primary">
+                  {selectedVariant ? "" : "From "}EGP {unitPrice.toLocaleString()}
+                </p>
+              )}
             </div>
 
             {product.description && <p className="text-foreground/80 leading-relaxed">{product.description}</p>}
@@ -322,7 +345,17 @@ function ProductPage() {
                           disabled={out}
                           className={`px-4 py-2 rounded-full border text-sm transition-colors ${isSel ? "border-primary bg-primary text-primary-foreground" : "border-border hover:border-primary"} ${out ? "opacity-50 line-through cursor-not-allowed" : ""}`}
                         >
-                          {v.name} — {Number(v.price) === 0 ? "Price upon measurement" : `EGP ${Number(v.price).toLocaleString()}`}{out ? " (Out of stock)" : ""}
+                          {v.name} — {Number(v.price) === 0
+                            ? "Price upon measurement"
+                            : isDiscountable(Number(v.price))
+                              ? `EGP ${applyDiscount(Number(v.price)).toLocaleString()}`
+                              : `EGP ${Number(v.price).toLocaleString()}`}
+                          {isDiscountable(Number(v.price)) && (
+                            <span className={`ml-2 text-xs line-through ${isSel ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
+                              EGP {Number(v.price).toLocaleString()}
+                            </span>
+                          )}
+                          {out ? " (Out of stock)" : ""}
                         </button>
                       );
                     })}
