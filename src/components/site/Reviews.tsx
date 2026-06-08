@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
+import { notifyOwnerNewReview } from "@/lib/owner-notifications.functions";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +14,7 @@ import type { Review } from "@/lib/types";
 
 export function Reviews({ productId }: { productId: string }) {
   const { user } = useAuth();
+  const notifyOwner = useServerFn(notifyOwnerNewReview);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [rating, setRating] = useState(5);
@@ -40,14 +43,19 @@ export function Reviews({ productId }: { productId: string }) {
     e.preventDefault();
     if (!user) return;
     setSubmitting(true);
-    const { error } = await supabase.from("reviews").upsert(
+    const { data: row, error } = await supabase.from("reviews").upsert(
       { product_id: productId, user_id: user.id, rating, title: title.slice(0, 120), body: body.slice(0, 1000) },
       { onConflict: "product_id,user_id" },
-    );
+    ).select("id").maybeSingle();
     setSubmitting(false);
     if (error) {
       toast.error("Couldn't save your review", { description: error.message });
     } else {
+      if (row?.id) {
+        notifyOwner({ data: { reviewId: row.id } }).catch((e) =>
+          console.error("Owner review notify failed", e),
+        );
+      }
       toast.success("Thank you for your review");
       setTitle(""); setBody(""); setRating(5);
       load();

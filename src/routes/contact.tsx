@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Phone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
+import { notifyOwnerNewContactMessage } from "@/lib/owner-notifications.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/contact")({
@@ -21,20 +23,29 @@ export const Route = createFileRoute("/contact")({
 
 function Contact() {
   const [submitting, setSubmitting] = useState(false);
+  const notifyOwner = useServerFn(notifyOwnerNewContactMessage);
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitting(true);
     const fd = new FormData(e.currentTarget);
-    const { error } = await supabase.from("contact_messages").insert({
+    const { data: row, error } = await supabase.from("contact_messages").insert({
       full_name: String(fd.get("name")),
       email: String(fd.get("email")),
       phone: String(fd.get("phone") ?? "") || null,
       message: String(fd.get("message")),
-    });
+    }).select("id").maybeSingle();
     setSubmitting(false);
     if (error) toast.error("Couldn't send", { description: error.message });
-    else { toast.success("Message sent"); (e.target as HTMLFormElement).reset(); }
+    else {
+      if (row?.id) {
+        notifyOwner({ data: { messageId: row.id } }).catch((err) =>
+          console.error("Owner contact notify failed", err),
+        );
+      }
+      toast.success("Message sent");
+      (e.target as HTMLFormElement).reset();
+    }
   };
 
   return (

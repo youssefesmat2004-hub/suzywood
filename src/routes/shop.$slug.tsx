@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
+import { notifyOwnerNewMeasurementBooking } from "@/lib/owner-notifications.functions";
 import type { Product } from "@/lib/types";
 import { asOptions } from "@/lib/types";
 import { resolveImage, resolveGallery } from "@/lib/images";
@@ -677,6 +679,7 @@ function MeasurementBookingDialog({
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const notifyOwnerMeasurement = useServerFn(notifyOwnerNewMeasurementBooking);
 
   const reset = () => {
     setFullName(""); setPhone(""); setArea("Cairo"); setAddress("");
@@ -689,7 +692,7 @@ function MeasurementBookingDialog({
     if (!/^01[0-9]{9}$/.test(phone)) return toast.error("Phone must be an 11-digit Egyptian number (01XXXXXXXXX)");
     if (address.trim().length < 3) return toast.error("Please enter your full address");
     setSubmitting(true);
-    const { error } = await supabase.from("measurement_bookings").insert({
+    const { data: row, error } = await supabase.from("measurement_bookings").insert({
       product_id: productId,
       product_name: productName,
       full_name: fullName.trim(),
@@ -699,11 +702,16 @@ function MeasurementBookingDialog({
       preferred_day: day,
       time_slot: slot,
       notes: notes.trim() || null,
-    });
+    }).select("id").maybeSingle();
     setSubmitting(false);
     if (error) {
       toast.error("Couldn't submit booking", { description: error.message });
       return;
+    }
+    if (row?.id) {
+      notifyOwnerMeasurement({ data: { bookingId: row.id } }).catch((e: unknown) =>
+        console.error("Owner measurement booking notify failed", e),
+      );
     }
     setDone(true);
   };
