@@ -679,6 +679,7 @@ function MeasurementBookingDialog({
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const notifyOwnerMeasurement = useServerFn(notifyOwnerNewMeasurementBooking);
 
   const reset = () => {
     setFullName(""); setPhone(""); setArea("Cairo"); setAddress("");
@@ -708,7 +709,7 @@ function MeasurementBookingDialog({
       return;
     }
     if (row?.id) {
-      notifyOwnerMeasurement({ data: { bookingId: row.id } }).catch((e) =>
+      notifyOwnerMeasurement({ data: { bookingId: row.id } }).catch((e: unknown) =>
         console.error("Owner measurement booking notify failed", e),
       );
     }
