@@ -18,6 +18,8 @@ export type Database = {
         Row: {
           contact_method: Database["public"]["Enums"]["booking_contact_method"]
           created_at: string
+          customer_email: string | null
+          customer_notification_sent_at: string | null
           full_name: string
           id: string
           notes: string | null
@@ -31,6 +33,8 @@ export type Database = {
         Insert: {
           contact_method: Database["public"]["Enums"]["booking_contact_method"]
           created_at?: string
+          customer_email?: string | null
+          customer_notification_sent_at?: string | null
           full_name: string
           id?: string
           notes?: string | null
@@ -44,6 +48,8 @@ export type Database = {
         Update: {
           contact_method?: Database["public"]["Enums"]["booking_contact_method"]
           created_at?: string
+          customer_email?: string | null
+          customer_notification_sent_at?: string | null
           full_name?: string
           id?: string
           notes?: string | null
@@ -273,6 +279,8 @@ export type Database = {
           address: string
           area: string
           created_at: string
+          customer_email: string | null
+          customer_notification_sent_at: string | null
           full_name: string
           id: string
           notes: string | null
@@ -291,6 +299,8 @@ export type Database = {
           address: string
           area: string
           created_at?: string
+          customer_email?: string | null
+          customer_notification_sent_at?: string | null
           full_name: string
           id?: string
           notes?: string | null
@@ -309,6 +319,8 @@ export type Database = {
           address?: string
           area?: string
           created_at?: string
+          customer_email?: string | null
+          customer_notification_sent_at?: string | null
           full_name?: string
           id?: string
           notes?: string | null

@@ -1,45 +1,58 @@
-## Goal
+# Customer confirmation emails
 
-Make sure the owner gets an email for **every** customer action on the site. Today the system only emails for: new orders, free-session bookings, and custom build requests. Missing:
+## What already works (no change needed)
 
-1. **Safety-gate measurement bookings** (the one the user just lost)
-2. Contact form messages
-3. Newsletter sign-ups
-4. New product reviews
+- **Order placed → customer email**: `sendCheckoutPendingEmail` is already fired from `checkout.tsx` after a successful order. The customer receives "Order received — Pending Payment" with the InstaPay reference, item list, and 75 / 25 split.
+- **Payment confirmed → customer email**: `sendOrderStatusEmail` is already fired from `admin.orders.$id.tsx → updateStatus()` every time staff changes the order status. So when you flip an order to **Payment Confirmed**, the customer automatically gets the "Your payment is confirmed" email. Same for shipped / delivered / cancelled.
+
+I'll verify both of those still fire end-to-end and that the email arrives at the customer's inbox (no silent failures in the existing fire-and-forget calls).
+
+## What's missing — bookings have no customer confirmation
+
+Neither booking table currently stores a customer email, so we can't email them yet:
+
+- `bookings` (free guidance session): only `full_name`, `phone`, `contact_method`.
+- `measurement_bookings` (safety-gate measurement): only `full_name`, `phone`, `area`, `address`.
 
 ## Changes
 
-### 1. `src/lib/owner-notifications.functions.ts`
-Add four new server functions, mirroring the existing pattern (sends via Resend gateway, atomic `owner_notification_sent_at` claim, 10‑minute freshness window):
+### 1. Database migration
+Add an **optional** `customer_email TEXT NULL` column to both tables (no extra RLS rules — existing INSERT policies already allow nulls and any string; we'll add a length cap in the policy check).
 
-- `notifyOwnerNewMeasurementBooking({ bookingId })` — pulls from `measurement_bookings`. Email shows: product, customer name, phone, area, address, preferred day/time, notes, and a button to `/admin/measurement-bookings`. Subject: `📐 New Measurement Booking — <product>`.
-- `notifyOwnerNewContactMessage({ messageId })` — pulls from `contact_messages`. Subject: `✉️ New Contact Message — <name>`. Links to `/admin/messages`.
-- `notifyOwnerNewNewsletterSubscriber({ subscriberId })` — short email with the address. Subject: `📬 New Newsletter Subscriber`. Links to `/admin/newsletter`.
-- `notifyOwnerNewReview({ reviewId })` — shows product, rating (stars), title, body, reviewer. Subject: `⭐ New Review — <rating>★ <product>`. Links to the product page + admin.
+- `bookings.customer_email TEXT NULL` (max 254 chars)
+- `measurement_bookings.customer_email TEXT NULL` (max 254 chars)
 
-### 2. Database migration
-Add `owner_notification_sent_at TIMESTAMPTZ NULL` to the four tables that don't have it yet:
-- `measurement_bookings`
-- `contact_messages`
-- `newsletter_subscribers`
-- `reviews`
+### 2. Forms — collect email (optional)
+- **`src/routes/book.tsx`** (free session): add an optional Email input under Phone. Include in `submitBooking` payload.
+- **`src/routes/shop.$slug.tsx`** → `MeasurementBookingDialog`: add an optional Email input. Include in the `measurement_bookings` insert.
+- **`src/lib/public-submissions.functions.ts`** → `submitBooking` validator: accept optional `customer_email` (Zod `.email().optional()`).
 
-(Used for the same atomic single-send claim already used by `orders` / `bookings` / `custom_build_requests`.)
+If the customer leaves it blank, we simply skip the customer email and only WhatsApp + owner-notify as today.
 
-### 3. Wire calls from the submission sites
-Fire-and-forget call after a successful insert (same pattern as `book.tsx` already uses for `notifyOwnerNewBooking`):
+### 3. New customer-facing email server functions
+In a new file `src/lib/booking-emails.functions.ts` (mirrors the `checkout-emails.functions.ts` pattern — Resend via Lovable gateway, atomic `customer_notification_sent_at` claim, 30-minute freshness window):
 
-- `src/routes/shop.$slug.tsx` → `MeasurementBookingDialog.submit`: change the insert to `.select("id").single()`, then call `notifyOwnerNewMeasurementBooking({ data: { bookingId: row.id } })`.
-- `src/routes/contact.tsx` → contact form submit: capture inserted id, call `notifyOwnerNewContactMessage`.
-- `src/components/site/NewsletterForm.tsx` → after successful insert, call `notifyOwnerNewNewsletterSubscriber`.
-- `src/components/site/Reviews.tsx` → after the upsert, call `notifyOwnerNewReview` (skip if the row was an edit of an existing review — only notify when `created_at` matches the just-inserted moment, which we'll guard inside the server fn via the existing `recent()` helper).
+- `sendBookingConfirmationEmail({ bookingId })` — pulls `bookings`, sends "Your free session is booked" with chosen day/time slot, contact method, and a note that the team will reach out on WhatsApp/phone shortly.
+- `sendMeasurementBookingConfirmationEmail({ bookingId })` — pulls `measurement_bookings`, sends "Measurement visit booked — <product>" with product, area, address, preferred day/time, and a note that we'll confirm the visit.
 
-### Out of scope
-- Wishlist adds, cart adds, product views — those are not "actions" the owner needs to know about and would flood the inbox.
-- Re-sending notifications for past measurement bookings that already exist in the DB.
+Both use the same Suzy Wood branded HTML template as the existing order emails for visual consistency.
+
+### 4. DB migration also adds the claim columns
+- `bookings.customer_notification_sent_at TIMESTAMPTZ NULL`
+- `measurement_bookings.customer_notification_sent_at TIMESTAMPTZ NULL`
+
+### 5. Wire the calls
+Fire-and-forget after the existing owner notification, only when the customer provided an email:
+
+- `src/routes/book.tsx` → after `submit(...)` success, if email was entered, call `sendBookingConfirmationEmail({ data: { bookingId: res.id } }).catch(console.error)`.
+- `src/routes/shop.$slug.tsx` `MeasurementBookingDialog` → same, alongside `notifyOwnerMeasurement`.
+
+## Out of scope
+- Forcing email as required on booking forms (kept optional so phone-only customers can still book).
+- Re-sending confirmations for past bookings.
+- A "your visit is scheduled / completed" follow-up status email for bookings (only the initial confirmation).
 
 ## Technical notes
-
-- Re-uses the existing Resend connector and `OWNER_EMAILS` / `FROM` constants.
-- Atomic claim via `owner_notification_sent_at IS NULL` guarantees one email per submission even if the client retries.
-- Server fn calls are wrapped in `.catch(console.error)` on the client so a notify failure never blocks the user's success state.
+- Reuses the existing Resend connector + `LOVABLE_API_KEY` / `RESEND_API_KEY` gateway pattern.
+- The atomic `customer_notification_sent_at IS NULL → set now()` claim guarantees one email per booking even if the client retries.
+- Customer-email sends are wrapped in `.catch(console.error)` so a notify failure never blocks the success state.

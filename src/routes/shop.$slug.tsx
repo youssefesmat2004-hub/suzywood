@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
 import { notifyOwnerNewMeasurementBooking } from "@/lib/owner-notifications.functions";
+import { sendMeasurementBookingConfirmationEmail } from "@/lib/booking-emails.functions";
 import type { Product } from "@/lib/types";
 import { asOptions } from "@/lib/types";
 import { resolveImage, resolveGallery } from "@/lib/images";
@@ -672,6 +673,7 @@ function MeasurementBookingDialog({
 }) {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [area, setArea] = useState<string>("Cairo");
   const [address, setAddress] = useState("");
   const [day, setDay] = useState<string>("saturday");
@@ -680,9 +682,10 @@ function MeasurementBookingDialog({
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const notifyOwnerMeasurement = useServerFn(notifyOwnerNewMeasurementBooking);
+  const sendCustomerConfirm = useServerFn(sendMeasurementBookingConfirmationEmail);
 
   const reset = () => {
-    setFullName(""); setPhone(""); setArea("Cairo"); setAddress("");
+    setFullName(""); setPhone(""); setEmail(""); setArea("Cairo"); setAddress("");
     setDay("saturday"); setSlot("morning"); setNotes(""); setDone(false);
   };
 
@@ -691,6 +694,8 @@ function MeasurementBookingDialog({
     if (!fullName.trim() || fullName.length > 100) return toast.error("Please enter your full name");
     if (!/^01[0-9]{9}$/.test(phone)) return toast.error("Phone must be an 11-digit Egyptian number (01XXXXXXXXX)");
     if (address.trim().length < 3) return toast.error("Please enter your full address");
+    const trimmedEmail = email.trim();
+    if (trimmedEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) return toast.error("Please enter a valid email");
     setSubmitting(true);
     const { data: row, error } = await supabase.from("measurement_bookings").insert({
       product_id: productId,
@@ -702,7 +707,8 @@ function MeasurementBookingDialog({
       preferred_day: day,
       time_slot: slot,
       notes: notes.trim() || null,
-    }).select("id").maybeSingle();
+      customer_email: trimmedEmail || null,
+    } as never).select("id").maybeSingle();
     setSubmitting(false);
     if (error) {
       toast.error("Couldn't submit booking", { description: error.message });
@@ -712,6 +718,11 @@ function MeasurementBookingDialog({
       notifyOwnerMeasurement({ data: { bookingId: row.id } }).catch((e: unknown) =>
         console.error("Owner measurement booking notify failed", e),
       );
+      if (trimmedEmail) {
+        sendCustomerConfirm({ data: { bookingId: row.id } }).catch((e: unknown) =>
+          console.error("Customer measurement confirm failed", e),
+        );
+      }
     }
     setDone(true);
   };
@@ -746,6 +757,11 @@ function MeasurementBookingDialog({
               <div className="space-y-1.5">
                 <Label htmlFor="mb-phone">Phone number</Label>
                 <Input id="mb-phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="01XXXXXXXXX" inputMode="tel" required />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="mb-email">Email (optional)</Label>
+                <Input id="mb-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
+                <p className="text-xs text-muted-foreground">We'll send a booking confirmation if you provide one.</p>
               </div>
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
