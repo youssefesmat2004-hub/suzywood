@@ -4,6 +4,7 @@ import { z } from "zod";
 import { useServerFn } from "@tanstack/react-start";
 import { notifyOwnerNewBooking } from "@/lib/owner-notifications.functions";
 import { submitBooking } from "@/lib/public-submissions.functions";
+import { sendBookingConfirmationEmail } from "@/lib/booking-emails.functions";
 import { Layout } from "@/components/site/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,6 +47,7 @@ const SLOTS = [
 const schema = z.object({
   full_name: z.string().trim().min(1, "Please enter your full name").max(100),
   phone: z.string().trim().regex(/^01[0-9]{9}$/, "Egyptian phone format, e.g. 01012345678"),
+  customer_email: z.string().trim().email("Enter a valid email").max(254).optional().or(z.literal("")),
   contact_method: z.enum(["whatsapp", "phone"], { required_error: "Choose a contact method" }),
   preferred_day: z.enum(["saturday","sunday","monday","tuesday","wednesday","thursday"], { required_error: "Choose a day" }),
   time_slot: z.enum(["morning","afternoon","evening"], { required_error: "Choose a time slot" }),
@@ -57,9 +59,11 @@ function BookPage() {
   const [done, setDone] = useState<{ method: string } | null>(null);
   const notifyOwner = useServerFn(notifyOwnerNewBooking);
   const submit = useServerFn(submitBooking);
+  const sendConfirm = useServerFn(sendBookingConfirmationEmail);
   const [form, setForm] = useState({
     full_name: "",
     phone: "",
+    customer_email: "",
     contact_method: "" as "whatsapp" | "phone" | "",
     preferred_day: "" as typeof DAYS[number]["value"] | "",
     time_slot: "" as typeof SLOTS[number]["value"] | "",
@@ -70,7 +74,7 @@ function BookPage() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const parsed = schema.safeParse({ ...form, notes: form.notes || undefined });
+    const parsed = schema.safeParse({ ...form, notes: form.notes || undefined, customer_email: form.customer_email || undefined });
     if (!parsed.success) {
       toast.error(parsed.error.issues[0]?.message ?? "Please complete the form");
       return;
@@ -83,6 +87,7 @@ function BookPage() {
       preferred_day: parsed.data.preferred_day as "saturday" | "sunday" | "monday" | "tuesday" | "wednesday" | "thursday",
       time_slot: parsed.data.time_slot as "morning" | "afternoon" | "evening",
       notes: parsed.data.notes ?? null,
+      customer_email: parsed.data.customer_email || null,
     } }).catch(() => null);
     setSubmitting(false);
     if (!res || !res.ok) {
@@ -93,6 +98,11 @@ function BookPage() {
     notifyOwner({ data: { bookingId: res.id } }).catch((e) =>
       console.error("Owner booking notify failed", e),
     );
+    if (parsed.data.customer_email) {
+      sendConfirm({ data: { bookingId: res.id } }).catch((e) =>
+        console.error("Customer booking confirm failed", e),
+      );
+    }
 
     // Open WhatsApp pre-filled message to admin (click-to-send)
     const dayLabel = DAYS.find((d) => d.value === parsed.data.preferred_day)?.label ?? parsed.data.preferred_day;
@@ -173,6 +183,12 @@ function BookPage() {
             <Label htmlFor="phone">Phone Number *</Label>
             <Input id="phone" value={form.phone} onChange={(e) => update("phone", e.target.value)} placeholder="01012345678" inputMode="numeric" required />
             <p className="text-xs text-muted-foreground">Egyptian number starting with 01</p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="customer_email">Email (optional)</Label>
+            <Input id="customer_email" type="email" value={form.customer_email} onChange={(e) => update("customer_email", e.target.value)} placeholder="you@example.com" />
+            <p className="text-xs text-muted-foreground">We'll send a booking confirmation if you provide one.</p>
           </div>
 
           <div className="space-y-3">
