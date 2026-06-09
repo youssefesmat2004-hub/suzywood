@@ -135,7 +135,7 @@ function BookPage() {
           <p className="text-lg text-muted-foreground mb-8">
             We will contact you shortly via <span className="text-foreground font-medium">{done.method}</span>.
           </p>
-          <Button onClick={() => { setDone(null); setForm({ full_name: "", phone: "", contact_method: "", preferred_day: "", time_slot: "", notes: "" }); }} variant="outline">
+          <Button onClick={() => { setDone(null); setForm({ full_name: "", phone: "", customer_email: "", contact_method: "", preferred_day: "", time_slot: "", notes: "" }); }} variant="outline">
             Book another session
           </Button>
         </section>
