@@ -435,9 +435,11 @@ export type Database = {
           customer_email: string
           customer_name: string
           customer_phone: string
+          delivery_notes: string | null
           id: string
           instapay_reference: string | null
           internal_notes: string | null
+          notes: string | null
           order_number: string
           owner_notification_sent_at: string | null
           payment_method: string | null
@@ -448,6 +450,7 @@ export type Database = {
           shipping_fee: number
           shipping_governorate: string
           shipping_notes: string | null
+          special_instructions: string | null
           status: Database["public"]["Enums"]["order_status"]
           subtotal: number
           total: number
@@ -462,9 +465,11 @@ export type Database = {
           customer_email: string
           customer_name: string
           customer_phone: string
+          delivery_notes?: string | null
           id?: string
           instapay_reference?: string | null
           internal_notes?: string | null
+          notes?: string | null
           order_number?: string
           owner_notification_sent_at?: string | null
           payment_method?: string | null
@@ -475,6 +480,7 @@ export type Database = {
           shipping_fee?: number
           shipping_governorate: string
           shipping_notes?: string | null
+          special_instructions?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           subtotal: number
           total: number
@@ -489,9 +495,11 @@ export type Database = {
           customer_email?: string
           customer_name?: string
           customer_phone?: string
+          delivery_notes?: string | null
           id?: string
           instapay_reference?: string | null
           internal_notes?: string | null
+          notes?: string | null
           order_number?: string
           owner_notification_sent_at?: string | null
           payment_method?: string | null
@@ -502,6 +510,7 @@ export type Database = {
           shipping_fee?: number
           shipping_governorate?: string
           shipping_notes?: string | null
+          special_instructions?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           subtotal?: number
           total?: number
