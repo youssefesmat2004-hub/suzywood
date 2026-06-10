@@ -5,7 +5,6 @@ import { asOptions } from "@/lib/types";
 import { resolveImage } from "@/lib/images";
 import { useCart } from "@/lib/cart";
 import { toast } from "sonner";
-import { applyDiscount, isDiscountable, DISCOUNT_LABEL } from "@/lib/pricing";
 
 export function ProductCard({ product }: { product: Product }) {
   const cart = useCart();
@@ -14,8 +13,6 @@ export function ProductCard({ product }: { product: Product }) {
   const hasVariants = !!product.has_variants || sizes.length > 1 || finishes.length > 1;
   const soldOut = (product.stock_quantity ?? 1) <= 0;
   const isSafetyGate = product.category_slug === "safety-gates";
-  const discounted = applyDiscount(product.starting_price);
-  const showDiscount = !isSafetyGate && isDiscountable(product.starting_price);
   const HIDE_FINISHES_LABEL = new Set([
     "cribs",
     "kids-beds",
@@ -44,7 +41,7 @@ export function ProductCard({ product }: { product: Product }) {
       finish: finish?.value ?? "",
       finishLabel: finish?.label ?? "",
       engraving: "",
-      unitPrice: discounted,
+      unitPrice: product.starting_price,
       quantity: 1,
     });
     toast.success("Added to cart", { description: product.name });
@@ -109,17 +106,9 @@ export function ProductCard({ product }: { product: Product }) {
           ) : (
             <div>
               <p className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">From</p>
-              {product.starting_price === 0 ? (
-                <p className="font-serif text-xl text-primary">Price upon measurement</p>
-              ) : showDiscount ? (
-                <div className="flex items-baseline gap-2 flex-wrap">
-                  <p className="font-serif text-xl text-primary">EGP {discounted.toLocaleString()}</p>
-                  <p className="text-xs text-muted-foreground line-through">EGP {product.starting_price.toLocaleString()}</p>
-                  <span className="text-[10px] font-semibold uppercase tracking-wider rounded-full bg-destructive/10 text-destructive px-2 py-0.5">{DISCOUNT_LABEL}</span>
-                </div>
-              ) : (
-                <p className="font-serif text-xl text-primary">EGP {product.starting_price.toLocaleString()}</p>
-              )}
+              <p className="font-serif text-xl text-primary">
+                {product.starting_price === 0 ? "Price upon measurement" : `EGP ${product.starting_price.toLocaleString()}`}
+              </p>
             </div>
           )}
           <span className="text-xs text-muted-foreground">View details →</span>

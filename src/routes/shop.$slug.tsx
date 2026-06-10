@@ -9,9 +9,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { useServerFn } from "@tanstack/react-start";
-import { notifyOwnerNewMeasurementBooking } from "@/lib/owner-notifications.functions";
-import { sendMeasurementBookingConfirmationEmail } from "@/lib/booking-emails.functions";
 import type { Product } from "@/lib/types";
 import { asOptions } from "@/lib/types";
 import { resolveImage, resolveGallery } from "@/lib/images";
@@ -21,7 +18,6 @@ import { WishlistButton } from "@/components/site/WishlistButton";
 import { useCart } from "@/lib/cart";
 import { Check, ShoppingBag, Minus, Plus, Ruler, CalendarCheck, Sparkles } from "lucide-react";
 import { toast } from "sonner";
-import { applyDiscount, isDiscountable, DISCOUNT_LABEL } from "@/lib/pricing";
 
 type Variant = {
   id: string;
@@ -205,24 +201,13 @@ function ProductPage() {
   const finishLabel = category?.finish_label?.trim() || "Wood Finish";
   const stock = customMode ? 99 : (selectedVariant ? selectedVariant.stock_quantity : (product.stock_quantity ?? 99));
   const soldOut = !customMode && stock <= 0;
-  // 5% storewide discount applies to the product/variant component only.
-  // Surcharges (custom size, engraving, ottoman, portable changing table) are NOT discounted.
-  const productBaseOriginal = customMode
-    ? product.starting_price
-    : (selectedVariant ? selectedVariant.price : product.starting_price);
-  const productBaseDiscounted = applyDiscount(productBaseOriginal);
   const basePrice = customMode
-    ? productBaseDiscounted + customSurcharge
-    : productBaseDiscounted;
+    ? product.starting_price + customSurcharge
+    : (selectedVariant ? selectedVariant.price : product.starting_price);
   const unitPrice = basePrice
     + (engravingApplied ? engravingSurcharge : 0)
     + (ottomanApplied ? ottomanPrice : 0)
     + (portableApplied ? portablePrice : 0);
-  const unitPriceOriginal = (customMode ? productBaseOriginal + customSurcharge : productBaseOriginal)
-    + (engravingApplied ? engravingSurcharge : 0)
-    + (ottomanApplied ? ottomanPrice : 0)
-    + (portableApplied ? portablePrice : 0);
-  const showDiscount = isDiscountable(productBaseOriginal);
 
   const stockBadge = soldOut
     ? { label: "Sold out", className: "bg-destructive/10 text-destructive" }
@@ -313,21 +298,10 @@ function ProductPage() {
               </div>
               <h1 className="font-serif text-4xl md:text-5xl mt-5">{product.name}</h1>
               {product.tagline && <p className="mt-3 text-muted-foreground">{product.tagline}</p>}
-              {unitPrice === 0 ? (
-                <p className="mt-6 font-serif text-3xl text-primary">Price upon measurement</p>
-              ) : showDiscount ? (
-                <div className="mt-6 flex items-baseline gap-3 flex-wrap">
-                  <p className="font-serif text-3xl text-primary">
-                    {selectedVariant ? "" : "From "}EGP {unitPrice.toLocaleString()}
-                  </p>
-                  <p className="text-lg text-muted-foreground line-through">EGP {unitPriceOriginal.toLocaleString()}</p>
-                  <span className="text-xs font-semibold uppercase tracking-wider rounded-full bg-destructive/10 text-destructive px-2.5 py-1">{DISCOUNT_LABEL}</span>
-                </div>
-              ) : (
-                <p className="mt-6 font-serif text-3xl text-primary">
-                  {selectedVariant ? "" : "From "}EGP {unitPrice.toLocaleString()}
-                </p>
-              )}
+              <p className="mt-6 font-serif text-3xl text-primary">
+                {selectedVariant ? "" : "From "}
+                {unitPrice === 0 ? "Price upon measurement" : `EGP ${unitPrice.toLocaleString()}`}
+              </p>
             </div>
 
             {product.description && <p className="text-foreground/80 leading-relaxed">{product.description}</p>}
@@ -348,17 +322,7 @@ function ProductPage() {
                           disabled={out}
                           className={`px-4 py-2 rounded-full border text-sm transition-colors ${isSel ? "border-primary bg-primary text-primary-foreground" : "border-border hover:border-primary"} ${out ? "opacity-50 line-through cursor-not-allowed" : ""}`}
                         >
-                          {v.name} — {Number(v.price) === 0
-                            ? "Price upon measurement"
-                            : isDiscountable(Number(v.price))
-                              ? `EGP ${applyDiscount(Number(v.price)).toLocaleString()}`
-                              : `EGP ${Number(v.price).toLocaleString()}`}
-                          {isDiscountable(Number(v.price)) && (
-                            <span className={`ml-2 text-xs line-through ${isSel ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
-                              EGP {Number(v.price).toLocaleString()}
-                            </span>
-                          )}
-                          {out ? " (Out of stock)" : ""}
+                          {v.name} — {Number(v.price) === 0 ? "Price upon measurement" : `EGP ${Number(v.price).toLocaleString()}`}{out ? " (Out of stock)" : ""}
                         </button>
                       );
                     })}
@@ -673,7 +637,6 @@ function MeasurementBookingDialog({
 }) {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
   const [area, setArea] = useState<string>("Cairo");
   const [address, setAddress] = useState("");
   const [day, setDay] = useState<string>("saturday");
@@ -681,11 +644,9 @@ function MeasurementBookingDialog({
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
-  const notifyOwnerMeasurement = useServerFn(notifyOwnerNewMeasurementBooking);
-  const sendCustomerConfirm = useServerFn(sendMeasurementBookingConfirmationEmail);
 
   const reset = () => {
-    setFullName(""); setPhone(""); setEmail(""); setArea("Cairo"); setAddress("");
+    setFullName(""); setPhone(""); setArea("Cairo"); setAddress("");
     setDay("saturday"); setSlot("morning"); setNotes(""); setDone(false);
   };
 
@@ -694,10 +655,8 @@ function MeasurementBookingDialog({
     if (!fullName.trim() || fullName.length > 100) return toast.error("Please enter your full name");
     if (!/^01[0-9]{9}$/.test(phone)) return toast.error("Phone must be an 11-digit Egyptian number (01XXXXXXXXX)");
     if (address.trim().length < 3) return toast.error("Please enter your full address");
-    const trimmedEmail = email.trim();
-    if (trimmedEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) return toast.error("Please enter a valid email");
     setSubmitting(true);
-    const { data: row, error } = await supabase.from("measurement_bookings").insert({
+    const { error } = await supabase.from("measurement_bookings").insert({
       product_id: productId,
       product_name: productName,
       full_name: fullName.trim(),
@@ -707,22 +666,11 @@ function MeasurementBookingDialog({
       preferred_day: day,
       time_slot: slot,
       notes: notes.trim() || null,
-      customer_email: trimmedEmail || null,
-    } as never).select("id").maybeSingle();
+    });
     setSubmitting(false);
     if (error) {
       toast.error("Couldn't submit booking", { description: error.message });
       return;
-    }
-    if (row?.id) {
-      notifyOwnerMeasurement({ data: { bookingId: row.id } }).catch((e: unknown) =>
-        console.error("Owner measurement booking notify failed", e),
-      );
-      if (trimmedEmail) {
-        sendCustomerConfirm({ data: { bookingId: row.id } }).catch((e: unknown) =>
-          console.error("Customer measurement confirm failed", e),
-        );
-      }
     }
     setDone(true);
   };
@@ -757,11 +705,6 @@ function MeasurementBookingDialog({
               <div className="space-y-1.5">
                 <Label htmlFor="mb-phone">Phone number</Label>
                 <Input id="mb-phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="01XXXXXXXXX" inputMode="tel" required />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="mb-email">Email (optional)</Label>
-                <Input id="mb-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
-                <p className="text-xs text-muted-foreground">We'll send a booking confirmation if you provide one.</p>
               </div>
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">

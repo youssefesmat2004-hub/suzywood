@@ -18,8 +18,6 @@ export type Database = {
         Row: {
           contact_method: Database["public"]["Enums"]["booking_contact_method"]
           created_at: string
-          customer_email: string | null
-          customer_notification_sent_at: string | null
           full_name: string
           id: string
           notes: string | null
@@ -33,8 +31,6 @@ export type Database = {
         Insert: {
           contact_method: Database["public"]["Enums"]["booking_contact_method"]
           created_at?: string
-          customer_email?: string | null
-          customer_notification_sent_at?: string | null
           full_name: string
           id?: string
           notes?: string | null
@@ -48,8 +44,6 @@ export type Database = {
         Update: {
           contact_method?: Database["public"]["Enums"]["booking_contact_method"]
           created_at?: string
-          customer_email?: string | null
-          customer_notification_sent_at?: string | null
           full_name?: string
           id?: string
           notes?: string | null
@@ -180,7 +174,6 @@ export type Database = {
           id: string
           is_read: boolean
           message: string
-          owner_notification_sent_at: string | null
           phone: string | null
         }
         Insert: {
@@ -190,7 +183,6 @@ export type Database = {
           id?: string
           is_read?: boolean
           message: string
-          owner_notification_sent_at?: string | null
           phone?: string | null
         }
         Update: {
@@ -200,7 +192,6 @@ export type Database = {
           id?: string
           is_read?: boolean
           message?: string
-          owner_notification_sent_at?: string | null
           phone?: string | null
         }
         Relationships: []
@@ -279,12 +270,9 @@ export type Database = {
           address: string
           area: string
           created_at: string
-          customer_email: string | null
-          customer_notification_sent_at: string | null
           full_name: string
           id: string
           notes: string | null
-          owner_notification_sent_at: string | null
           phone: string
           preferred_day: string
           product_id: string | null
@@ -299,12 +287,9 @@ export type Database = {
           address: string
           area: string
           created_at?: string
-          customer_email?: string | null
-          customer_notification_sent_at?: string | null
           full_name: string
           id?: string
           notes?: string | null
-          owner_notification_sent_at?: string | null
           phone: string
           preferred_day: string
           product_id?: string | null
@@ -319,12 +304,9 @@ export type Database = {
           address?: string
           area?: string
           created_at?: string
-          customer_email?: string | null
-          customer_notification_sent_at?: string | null
           full_name?: string
           id?: string
           notes?: string | null
-          owner_notification_sent_at?: string | null
           phone?: string
           preferred_day?: string
           product_id?: string | null
@@ -343,7 +325,6 @@ export type Database = {
           email: string
           full_name: string | null
           id: string
-          owner_notification_sent_at: string | null
           unsubscribed_at: string | null
         }
         Insert: {
@@ -351,7 +332,6 @@ export type Database = {
           email: string
           full_name?: string | null
           id?: string
-          owner_notification_sent_at?: string | null
           unsubscribed_at?: string | null
         }
         Update: {
@@ -359,7 +339,6 @@ export type Database = {
           email?: string
           full_name?: string | null
           id?: string
-          owner_notification_sent_at?: string | null
           unsubscribed_at?: string | null
         }
         Relationships: []
@@ -435,11 +414,9 @@ export type Database = {
           customer_email: string
           customer_name: string
           customer_phone: string
-          delivery_notes: string | null
           id: string
           instapay_reference: string | null
           internal_notes: string | null
-          notes: string | null
           order_number: string
           owner_notification_sent_at: string | null
           payment_method: string | null
@@ -450,7 +427,6 @@ export type Database = {
           shipping_fee: number
           shipping_governorate: string
           shipping_notes: string | null
-          special_instructions: string | null
           status: Database["public"]["Enums"]["order_status"]
           subtotal: number
           total: number
@@ -465,11 +441,9 @@ export type Database = {
           customer_email: string
           customer_name: string
           customer_phone: string
-          delivery_notes?: string | null
           id?: string
           instapay_reference?: string | null
           internal_notes?: string | null
-          notes?: string | null
           order_number?: string
           owner_notification_sent_at?: string | null
           payment_method?: string | null
@@ -480,7 +454,6 @@ export type Database = {
           shipping_fee?: number
           shipping_governorate: string
           shipping_notes?: string | null
-          special_instructions?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           subtotal: number
           total: number
@@ -495,11 +468,9 @@ export type Database = {
           customer_email?: string
           customer_name?: string
           customer_phone?: string
-          delivery_notes?: string | null
           id?: string
           instapay_reference?: string | null
           internal_notes?: string | null
-          notes?: string | null
           order_number?: string
           owner_notification_sent_at?: string | null
           payment_method?: string | null
@@ -510,7 +481,6 @@ export type Database = {
           shipping_fee?: number
           shipping_governorate?: string
           shipping_notes?: string | null
-          special_instructions?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           subtotal?: number
           total?: number
@@ -725,7 +695,6 @@ export type Database = {
           created_at: string
           id: string
           is_published: boolean
-          owner_notification_sent_at: string | null
           product_id: string
           rating: number
           title: string | null
@@ -736,7 +705,6 @@ export type Database = {
           created_at?: string
           id?: string
           is_published?: boolean
-          owner_notification_sent_at?: string | null
           product_id: string
           rating: number
           title?: string | null
@@ -747,7 +715,6 @@ export type Database = {
           created_at?: string
           id?: string
           is_published?: boolean
-          owner_notification_sent_at?: string | null
           product_id?: string
           rating?: number
           title?: string | null

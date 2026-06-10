@@ -9,7 +9,6 @@ const bookingSchema = z.object({
   preferred_day: z.enum(["saturday", "sunday", "monday", "tuesday", "wednesday", "thursday"]),
   time_slot: z.enum(["morning", "afternoon", "evening"]),
   notes: z.string().max(2000).nullish(),
-  customer_email: z.string().trim().email().max(254).nullish(),
 });
 
 export const submitBooking = createServerFn({ method: "POST" })
@@ -24,8 +23,7 @@ export const submitBooking = createServerFn({ method: "POST" })
         preferred_day: data.preferred_day,
         time_slot: data.time_slot,
         notes: data.notes ?? null,
-        customer_email: data.customer_email ?? null,
-      }] as never)
+      }])
       .select("id")
       .single();
     if (error || !row) return { ok: false as const, error: error?.message ?? "insert_failed" };

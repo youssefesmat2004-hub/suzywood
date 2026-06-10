@@ -18,7 +18,6 @@ import { toast } from "sonner";
 import craft from "@/assets/craft-story.jpg";
 import { useSiteContent } from "@/lib/site-content";
 import { useState } from "react";
-import { applyDiscount, isDiscountable, DISCOUNT_LABEL } from "@/lib/pricing";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -78,7 +77,7 @@ function Index() {
       finish: finish?.value ?? "",
       finishLabel: finish?.label ?? "",
       engraving: "",
-      unitPrice: applyDiscount(p.starting_price),
+      unitPrice: p.starting_price,
       quantity: 1,
     });
     toast.success("Added to cart", {
@@ -161,17 +160,9 @@ function Index() {
                 </div>
                 <div className="p-5">
                   <h3 className="font-serif text-lg leading-tight">{p.name}</h3>
-                  {isSafetyGate ? (
-                    <p className="text-sm text-primary mt-1.5 font-medium">Custom Measurement Required</p>
-                  ) : isDiscountable(p.starting_price) ? (
-                    <div className="mt-1.5 flex items-baseline gap-2 flex-wrap">
-                      <p className="text-sm text-primary font-medium">EGP {applyDiscount(p.starting_price).toLocaleString()}</p>
-                      <p className="text-xs text-muted-foreground line-through">EGP {p.starting_price.toLocaleString()}</p>
-                      <span className="text-[9px] font-semibold uppercase tracking-wider rounded-full bg-destructive/10 text-destructive px-1.5 py-0.5">{DISCOUNT_LABEL}</span>
-                    </div>
-                  ) : (
-                    <p className="text-sm text-primary mt-1.5 font-medium">EGP {p.starting_price.toLocaleString()}</p>
-                  )}
+                  <p className="text-sm text-primary mt-1.5 font-medium">
+                    {isSafetyGate ? "Custom Measurement Required" : `EGP ${p.starting_price.toLocaleString()}`}
+                  </p>
                 </div>
               </Link>
             );
