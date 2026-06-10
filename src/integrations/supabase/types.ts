@@ -447,6 +447,7 @@ export type Database = {
           owner_notification_sent_at: string | null
           payment_method: string | null
           payment_proof_url: string | null
+          promo_code: string | null
           remaining_amount: number | null
           shipping_address: string
           shipping_city: string
@@ -481,6 +482,7 @@ export type Database = {
           owner_notification_sent_at?: string | null
           payment_method?: string | null
           payment_proof_url?: string | null
+          promo_code?: string | null
           remaining_amount?: number | null
           shipping_address: string
           shipping_city: string
@@ -515,6 +517,7 @@ export type Database = {
           owner_notification_sent_at?: string | null
           payment_method?: string | null
           payment_proof_url?: string | null
+          promo_code?: string | null
           remaining_amount?: number | null
           shipping_address?: string
           shipping_city?: string
