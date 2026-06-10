@@ -436,6 +436,7 @@ export type Database = {
           customer_name: string
           customer_phone: string
           delivery_notes: string | null
+          deposit_amount: number | null
           discount_amount: number | null
           discount_code: string | null
           id: string
@@ -456,6 +457,7 @@ export type Database = {
           status: Database["public"]["Enums"]["order_status"]
           subtotal: number
           total: number
+          transaction_id: string | null
           updated_at: string
           upfront_amount: number | null
           user_id: string | null
@@ -468,6 +470,7 @@ export type Database = {
           customer_name: string
           customer_phone: string
           delivery_notes?: string | null
+          deposit_amount?: number | null
           discount_amount?: number | null
           discount_code?: string | null
           id?: string
@@ -488,6 +491,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["order_status"]
           subtotal: number
           total: number
+          transaction_id?: string | null
           updated_at?: string
           upfront_amount?: number | null
           user_id?: string | null
@@ -500,6 +504,7 @@ export type Database = {
           customer_name?: string
           customer_phone?: string
           delivery_notes?: string | null
+          deposit_amount?: number | null
           discount_amount?: number | null
           discount_code?: string | null
           id?: string
@@ -520,6 +525,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["order_status"]
           subtotal?: number
           total?: number
+          transaction_id?: string | null
           updated_at?: string
           upfront_amount?: number | null
           user_id?: string | null
