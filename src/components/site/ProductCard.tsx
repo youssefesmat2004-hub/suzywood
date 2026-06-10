@@ -101,7 +101,7 @@ export function ProductCard({ product }: { product: Product }) {
           {isSafetyGate ? (
             <div>
               <p className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">Pricing</p>
-              <p className="font-serif text-lg text-primary">Custom Measurement Required</p>
+              <p className="font-serif text-lg text-primary">Price upon measurement</p>
             </div>
           ) : (
             <div>

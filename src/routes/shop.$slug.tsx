@@ -608,6 +608,24 @@ function SafetyGateRightColumn({ product }: { product: Product }) {
         </div>
         <h1 className="font-serif text-4xl md:text-5xl mt-5">{product.name}</h1>
         {product.tagline && <p className="mt-3 text-muted-foreground">{product.tagline}</p>}
+        <p className="mt-6 font-serif text-2xl text-primary">Price upon measurement</p>
+      </div>
+
+      {product.description && <p className="text-foreground/80 leading-relaxed">{product.description}</p>}
+
+      <div className="rounded-2xl border border-border bg-muted/30 p-5 space-y-2">
+        <p className="text-sm leading-relaxed">
+          <strong>This product requires custom measurements.</strong> Our team will visit you to measure your space and give you an exact quote.
+        </p>
+      </div>
+
+      <div className="space-y-3">
+        <p className="text-[11px] uppercase tracking-[0.22em] text-secondary">What's included</p>
+        <ul className="space-y-2 text-sm">
+          <li className="flex items-start gap-2"><Check className="h-4 w-4 text-secondary mt-0.5" /> 250 EGP measurement visit</li>
+          <li className="flex items-start gap-2"><Check className="h-4 w-4 text-secondary mt-0.5" /> Expert advice on the best fit</li>
+          <li className="flex items-start gap-2"><Check className="h-4 w-4 text-secondary mt-0.5" /> Custom quote within 24 hours</li>
+        </ul>
       </div>
 
       <div className="flex flex-col gap-3 pt-2">
