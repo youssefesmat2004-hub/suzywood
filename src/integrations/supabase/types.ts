@@ -366,6 +366,8 @@ export type Database = {
       }
       order_items: {
         Row: {
+          bed_rails: boolean
+          bed_rails_price: number
           custom_length_cm: number | null
           custom_surcharge: number | null
           custom_width_cm: number | null
@@ -381,6 +383,8 @@ export type Database = {
           unit_price: number
         }
         Insert: {
+          bed_rails?: boolean
+          bed_rails_price?: number
           custom_length_cm?: number | null
           custom_surcharge?: number | null
           custom_width_cm?: number | null
@@ -396,6 +400,8 @@ export type Database = {
           unit_price: number
         }
         Update: {
+          bed_rails?: boolean
+          bed_rails_price?: number
           custom_length_cm?: number | null
           custom_surcharge?: number | null
           custom_width_cm?: number | null

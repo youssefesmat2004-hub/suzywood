@@ -20,6 +20,7 @@ type OrderItem = {
   engraving: string | null;
   custom_width_cm: number | null;
   custom_length_cm: number | null;
+  bed_rails: boolean | null;
   products: { image_url: string | null } | null;
 };
 
@@ -46,7 +47,7 @@ const TABS: { value: WorkStatus; label: string }[] = [
 // instapay_reference, payment_proof_url, internal_notes, customer_email,
 // shipping_address.
 const ORDER_SELECT =
-  "id, order_number, customer_name, customer_phone, status, created_at, shipping_notes, assigned_carpenter, order_items(id, product_name, quantity, size, finish, engraving, custom_width_cm, custom_length_cm, products(image_url))";
+  "id, order_number, customer_name, customer_phone, status, created_at, shipping_notes, assigned_carpenter, order_items(id, product_name, quantity, size, finish, engraving, custom_width_cm, custom_length_cm, bed_rails, products(image_url))";
 
 export function CarpenterDashboard({
   carpenterId,
@@ -530,6 +531,11 @@ function OrderCard({
                       </span>
                     )}
                     {it.engraving && <span>نقش: {it.engraving}</span>}
+                  </div>
+                )}
+                {it.bed_rails && (
+                  <div className="mt-1 inline-flex items-center gap-1 rounded-md bg-amber-100 text-amber-900 border border-amber-200 px-2 py-0.5 text-[12px] font-semibold">
+                    🛏️ مع حواجز السرير (Bed Rails)
                   </div>
                 )}
               </div>

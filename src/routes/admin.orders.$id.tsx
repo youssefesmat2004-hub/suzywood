@@ -16,6 +16,8 @@ type OrderItem = {
   size: string | null;
   finish: string | null;
   image_url?: string | null;
+  bed_rails?: boolean | null;
+  bed_rails_price?: number | null;
 };
 
 type Order = {
@@ -95,7 +97,7 @@ function OrderDetailPage() {
       }
       const { data: itemRows, error: itemsErr } = await supabase
         .from("order_items")
-        .select("id, product_id, product_name, quantity, unit_price, size, finish")
+        .select("id, product_id, product_name, quantity, unit_price, size, finish, bed_rails, bed_rails_price")
         .eq("order_id", id);
       if (itemsErr) {
         toast.error(`Couldn't load order items: ${itemsErr.message}`);
@@ -284,6 +286,11 @@ function OrderDetailPage() {
                       {it.size && <> · {it.size}</>}
                       {it.finish && <> · {it.finish}</>}
                     </p>
+                    {it.bed_rails && (
+                      <p className="text-xs mt-1 inline-flex items-center gap-1 rounded-md bg-amber-100 text-amber-900 border border-amber-200 px-2 py-0.5">
+                        🛏️ Bed Rails included (+EGP {Number(it.bed_rails_price ?? 0).toLocaleString()})
+                      </p>
+                    )}
                   </div>
                   {!isCarpenter && (
                     <div className="text-right">

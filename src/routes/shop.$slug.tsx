@@ -160,6 +160,8 @@ function ProductPage() {
   const finishes = asOptions(product.finishes);
   const gallery = resolveGallery(product.gallery);
   const isSafetyGate = category?.slug === "safety-gates";
+  const isToddlerBed = category?.slug === "kids-beds";
+  const BED_RAILS_PRICE = 2000;
   const [size, setSize] = useState(sizes[0]?.value ?? "");
   const [finish, setFinish] = useState(finishes[0]?.value ?? "");
   const [engraving, setEngraving] = useState("");
@@ -171,6 +173,7 @@ function ProductPage() {
   const [active, setActive] = useState(0);
   const [withOttoman, setWithOttoman] = useState(false);
   const [withPortable, setWithPortable] = useState(false);
+  const [withBedRails, setWithBedRails] = useState(false);
 
   const selectedVariant = useMemo(
     () => (customMode ? null : variants.find((v) => v.id === variantId) ?? null),
@@ -198,6 +201,7 @@ function ProductPage() {
   const portableEnabled = !!category?.portable_changing_table_enabled;
   const portablePrice = Number(category?.portable_changing_table_price ?? 0);
   const portableApplied = portableEnabled && withPortable;
+  const bedRailsApplied = isToddlerBed && withBedRails;
   const finishLabel = category?.finish_label?.trim() || "Wood Finish";
   const stock = customMode ? 99 : (selectedVariant ? selectedVariant.stock_quantity : (product.stock_quantity ?? 99));
   const soldOut = !customMode && stock <= 0;
@@ -207,7 +211,8 @@ function ProductPage() {
   const unitPrice = basePrice
     + (engravingApplied ? engravingSurcharge : 0)
     + (ottomanApplied ? ottomanPrice : 0)
-    + (portableApplied ? portablePrice : 0);
+    + (portableApplied ? portablePrice : 0)
+    + (bedRailsApplied ? BED_RAILS_PRICE : 0);
 
   const stockBadge = soldOut
     ? { label: "Sold out", className: "bg-destructive/10 text-destructive" }
@@ -227,16 +232,19 @@ function ProductPage() {
         return;
       }
       const customLabel = `Custom: ${w} x ${l} cm`;
+      const bedRailsSuffix = bedRailsApplied ? " + Bed Rails" : "";
       cart.add({
         productId: product.id,
         slug: product.slug,
-        name: product.name + ` · ${customLabel}`,
+        name: product.name + ` · ${customLabel}` + bedRailsSuffix,
         image: resolveImage(product.image_url),
         size: customLabel, sizeLabel: customLabel, finish: "", finishLabel: "",
         engraving: engraving.slice(0, 20),
         unitPrice,
         quantity: qty,
         customSize: { widthCm: w, lengthCm: l, surcharge: customSurcharge },
+        bedRails: bedRailsApplied,
+        bedRailsPrice: bedRailsApplied ? BED_RAILS_PRICE : 0,
       });
       toast.success("Added to cart", { description: `${product.name} · ${customLabel} × ${qty}` });
       return;
@@ -246,10 +254,11 @@ function ProductPage() {
     const variantSuffix = selectedVariant ? ` · ${selectedVariant.name}` : "";
     const ottomanSuffix = ottomanApplied ? " + Ottoman Leg Rest" : "";
     const portableSuffix = portableApplied ? " + Portable Changing Table" : "";
+    const bedRailsSuffix = bedRailsApplied ? " + Bed Rails" : "";
     cart.add({
       productId: product.id,
       slug: product.slug,
-      name: product.name + variantSuffix + ottomanSuffix + portableSuffix,
+      name: product.name + variantSuffix + ottomanSuffix + portableSuffix + bedRailsSuffix,
       image: selectedVariant?.image_url ? resolveImage(selectedVariant.image_url) : resolveImage(product.image_url),
       size: [size || "std", ottomanApplied ? "ottoman" : null, portableApplied ? "portable" : null].filter(Boolean).join("+"),
       sizeLabel: [sizeLabel, ottomanApplied ? "Ottoman Leg Rest" : null, portableApplied ? "Portable Changing Table" : null].filter(Boolean).join(" · "),
@@ -257,8 +266,10 @@ function ProductPage() {
       engraving: engraving.slice(0, 20),
       unitPrice,
       quantity: qty,
+      bedRails: bedRailsApplied,
+      bedRailsPrice: bedRailsApplied ? BED_RAILS_PRICE : 0,
     });
-    toast.success("Added to cart", { description: `${product.name}${variantSuffix}${ottomanSuffix}${portableSuffix} × ${qty}`, action: { label: "View cart", onClick: () => navigate({ to: "/cart" }) } });
+    toast.success("Added to cart", { description: `${product.name}${variantSuffix}${ottomanSuffix}${portableSuffix}${bedRailsSuffix} × ${qty}`, action: { label: "View cart", onClick: () => navigate({ to: "/cart" }) } });
   };
 
   return (
@@ -492,6 +503,27 @@ function ProductPage() {
                       {category?.portable_changing_table_note && (
                         <p className="text-xs text-muted-foreground italic mt-1">{category.portable_changing_table_note}</p>
                       )}
+                    </div>
+                  </label>
+                </div>
+              )}
+
+              {isToddlerBed && (
+                <div className="space-y-2">
+                  {!ottomanEnabled && !portableEnabled && <Label>Add-on</Label>}
+                  <label className={`flex items-start gap-3 rounded-xl border p-4 cursor-pointer transition-colors ${withBedRails ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"}`}>
+                    <input
+                      type="checkbox"
+                      className="mt-1 h-4 w-4 accent-primary"
+                      checked={withBedRails}
+                      onChange={(e) => setWithBedRails(e.target.checked)}
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-medium text-sm">Add Bed Rails</span>
+                        <span className="text-sm text-primary font-medium">+{BED_RAILS_PRICE.toLocaleString()} EGP</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground italic mt-1">Protective side rails to keep little ones safe at night.</p>
                     </div>
                   </label>
                 </div>

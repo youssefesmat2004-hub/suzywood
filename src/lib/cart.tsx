@@ -17,6 +17,8 @@ export type CartItem = {
     lengthCm: number;
     surcharge: number;
   };
+  bedRails?: boolean;
+  bedRailsPrice?: number;
 };
 
 type CartCtx = {
@@ -55,13 +57,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const customKey = item.customSize
         ? `${item.customSize.widthCm}x${item.customSize.lengthCm}`
         : "";
+      const bedRailsKey = item.bedRails ? "br" : "";
       const idx = curr.findIndex(
         (i) =>
           i.productId === item.productId &&
           i.size === item.size &&
           i.finish === item.finish &&
           i.engraving === item.engraving &&
-          (i.customSize ? `${i.customSize.widthCm}x${i.customSize.lengthCm}` : "") === customKey,
+          (i.customSize ? `${i.customSize.widthCm}x${i.customSize.lengthCm}` : "") === customKey &&
+          ((i.bedRails ? "br" : "") === bedRailsKey),
       );
       if (idx >= 0) {
         const next = [...curr];
