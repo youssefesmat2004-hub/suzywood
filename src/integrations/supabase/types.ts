@@ -446,7 +446,9 @@ export type Database = {
           order_number: string
           owner_notification_sent_at: string | null
           payment_method: string | null
+          payment_proof_path: string | null
           payment_proof_url: string | null
+          payment_status: string | null
           promo_code: string | null
           remaining_amount: number | null
           shipping_address: string
@@ -482,7 +484,9 @@ export type Database = {
           order_number?: string
           owner_notification_sent_at?: string | null
           payment_method?: string | null
+          payment_proof_path?: string | null
           payment_proof_url?: string | null
+          payment_status?: string | null
           promo_code?: string | null
           remaining_amount?: number | null
           shipping_address: string
@@ -492,8 +496,8 @@ export type Database = {
           shipping_notes?: string | null
           special_instructions?: string | null
           status?: Database["public"]["Enums"]["order_status"]
-          subtotal: number
-          total: number
+          subtotal?: number
+          total?: number
           total_amount?: number | null
           transaction_id?: string | null
           updated_at?: string
@@ -518,7 +522,9 @@ export type Database = {
           order_number?: string
           owner_notification_sent_at?: string | null
           payment_method?: string | null
+          payment_proof_path?: string | null
           payment_proof_url?: string | null
+          payment_status?: string | null
           promo_code?: string | null
           remaining_amount?: number | null
           shipping_address?: string
