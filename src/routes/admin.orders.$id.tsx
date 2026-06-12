@@ -76,6 +76,52 @@ export const Route = createFileRoute("/admin/orders/$id")({
   component: OrderDetailPage,
 });
 
+function DeliveryFeeEditor({
+  order,
+  onSaved,
+}: {
+  order: { id: string; subtotal: number; upfront_amount: number | null };
+  onSaved: (fee: number, total: number, remaining: number) => void;
+}) {
+  const [value, setValue] = useState<string>("");
+  const [saving, setSaving] = useState(false);
+  const save = async () => {
+    const fee = Math.max(0, Number(value));
+    if (!Number.isFinite(fee)) { toast.error("Enter a valid number"); return; }
+    setSaving(true);
+    const total = Number(order.subtotal) + fee;
+    const remaining = total - Number(order.upfront_amount ?? 0);
+    const { error } = await supabase
+      .from("orders")
+      .update({ shipping_fee: fee, total, total_amount: total, remaining_amount: remaining } as never)
+      .eq("id", order.id);
+    setSaving(false);
+    if (error) { toast.error(error.message); return; }
+    onSaved(fee, total, remaining);
+    toast.success("Delivery fee updated");
+  };
+  return (
+    <span className="inline-flex items-center gap-2">
+      <input
+        type="number"
+        min={0}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        placeholder="EGP"
+        className="w-24 h-8 rounded-md border px-2 text-sm bg-background"
+      />
+      <button
+        type="button"
+        disabled={saving || !value}
+        onClick={save}
+        className="text-xs rounded-md px-2 py-1 bg-primary text-primary-foreground disabled:opacity-50"
+      >
+        {saving ? "…" : "Set"}
+      </button>
+    </span>
+  );
+}
+
 function OrderDetailPage() {
   const { isCarpenter } = useIsAdmin();
   const { id } = Route.useParams();
