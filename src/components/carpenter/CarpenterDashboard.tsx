@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { verifyCarpenterPin } from "@/lib/carpenter.functions";
 import { playCarpenterAlert, unlockCarpenterAudio } from "@/lib/carpenter-sound";
 import { resolveImage } from "@/lib/images";
+import { getAreaLabel } from "@/lib/delivery";
 
 export type CarpenterId = 1 | 2 | 3;
 
@@ -32,6 +33,7 @@ type Order = {
   status: WorkStatus | string;
   created_at: string;
   shipping_notes: string | null;
+  delivery_area: string | null;
   assigned_carpenter: number | null;
   order_items: OrderItem[];
 };
@@ -47,7 +49,7 @@ const TABS: { value: WorkStatus; label: string }[] = [
 // instapay_reference, payment_proof_url, internal_notes, customer_email,
 // shipping_address.
 const ORDER_SELECT =
-  "id, order_number, customer_name, customer_phone, status, created_at, shipping_notes, assigned_carpenter, order_items(id, product_name, quantity, size, finish, engraving, custom_width_cm, custom_length_cm, bed_rails, products(image_url))";
+  "id, order_number, customer_name, customer_phone, status, created_at, shipping_notes, delivery_area, assigned_carpenter, order_items(id, product_name, quantity, size, finish, engraving, custom_width_cm, custom_length_cm, bed_rails, products(image_url))";
 
 export function CarpenterDashboard({
   carpenterId,
@@ -550,6 +552,12 @@ function OrderCard({
           <div className="text-sm text-amber-900 whitespace-pre-wrap leading-relaxed">
             {order.shipping_notes}
           </div>
+        </div>
+      )}
+
+      {order.delivery_area && (
+        <div className="mt-3 inline-flex items-center gap-2 rounded-md border border-sky-200 bg-sky-50 text-sky-900 px-2.5 py-1 text-xs">
+          📍 منطقة التوصيل: <strong>{getAreaLabel(order.delivery_area as never)}</strong>
         </div>
       )}
 

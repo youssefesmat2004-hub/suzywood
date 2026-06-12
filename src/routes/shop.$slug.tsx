@@ -245,6 +245,7 @@ function ProductPage() {
         customSize: { widthCm: w, lengthCm: l, surcharge: customSurcharge },
         bedRails: bedRailsApplied,
         bedRailsPrice: bedRailsApplied ? BED_RAILS_PRICE : 0,
+        categorySlug: category?.slug,
       });
       toast.success("Added to cart", { description: `${product.name} · ${customLabel} × ${qty}` });
       return;
@@ -268,6 +269,7 @@ function ProductPage() {
       quantity: qty,
       bedRails: bedRailsApplied,
       bedRailsPrice: bedRailsApplied ? BED_RAILS_PRICE : 0,
+      categorySlug: category?.slug,
     });
     toast.success("Added to cart", { description: `${product.name}${variantSuffix}${ottomanSuffix}${portableSuffix}${bedRailsSuffix} × ${qty}`, action: { label: "View cart", onClick: () => navigate({ to: "/cart" }) } });
   };

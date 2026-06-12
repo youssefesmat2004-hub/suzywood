@@ -441,6 +441,7 @@ export type Database = {
           customer_email: string
           customer_name: string
           customer_phone: string
+          delivery_area: string | null
           delivery_notes: string | null
           deposit_amount: number | null
           discount_amount: number | null
@@ -450,6 +451,7 @@ export type Database = {
           internal_notes: string | null
           notes: string | null
           order_number: string
+          order_size_type: string | null
           owner_notification_sent_at: string | null
           payment_method: string | null
           payment_proof_path: string | null
@@ -479,6 +481,7 @@ export type Database = {
           customer_email: string
           customer_name: string
           customer_phone: string
+          delivery_area?: string | null
           delivery_notes?: string | null
           deposit_amount?: number | null
           discount_amount?: number | null
@@ -488,6 +491,7 @@ export type Database = {
           internal_notes?: string | null
           notes?: string | null
           order_number?: string
+          order_size_type?: string | null
           owner_notification_sent_at?: string | null
           payment_method?: string | null
           payment_proof_path?: string | null
@@ -517,6 +521,7 @@ export type Database = {
           customer_email?: string
           customer_name?: string
           customer_phone?: string
+          delivery_area?: string | null
           delivery_notes?: string | null
           deposit_amount?: number | null
           discount_amount?: number | null
@@ -526,6 +531,7 @@ export type Database = {
           internal_notes?: string | null
           notes?: string | null
           order_number?: string
+          order_size_type?: string | null
           owner_notification_sent_at?: string | null
           payment_method?: string | null
           payment_proof_path?: string | null
@@ -872,20 +878,37 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      create_order_with_items: {
-        Args: {
-          _details: Json
-          _instapay_reference: string
-          _items: Json
-          _payment_proof_path: string
-          _promo_code: string
-          _upfront_rate: number
-        }
-        Returns: {
-          id: string
-          order_number: string
-        }[]
-      }
+      create_order_with_items:
+        | {
+            Args: {
+              _details: Json
+              _instapay_reference: string
+              _items: Json
+              _payment_proof_path: string
+              _promo_code: string
+              _upfront_rate: number
+            }
+            Returns: {
+              id: string
+              order_number: string
+            }[]
+          }
+        | {
+            Args: {
+              _delivery_area?: string
+              _details: Json
+              _instapay_reference: string
+              _items: Json
+              _order_size_type?: string
+              _payment_proof_path: string
+              _promo_code: string
+              _upfront_rate: number
+            }
+            Returns: {
+              id: string
+              order_number: string
+            }[]
+          }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

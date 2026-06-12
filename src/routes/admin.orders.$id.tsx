@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { sendOrderStatusEmail } from "@/lib/order-emails.functions";
 import { useIsAdmin } from "@/lib/admin";
+import { getAreaLabel } from "@/lib/delivery";
 
 type OrderItem = {
   id: string;
@@ -30,6 +31,8 @@ type Order = {
   shipping_city: string;
   shipping_governorate: string;
   shipping_notes: string | null;
+  delivery_area: string | null;
+  order_size_type: string | null;
   status: string;
   subtotal: number;
   shipping_fee: number;
@@ -73,6 +76,52 @@ export const Route = createFileRoute("/admin/orders/$id")({
   component: OrderDetailPage,
 });
 
+function DeliveryFeeEditor({
+  order,
+  onSaved,
+}: {
+  order: { id: string; subtotal: number; upfront_amount: number | null };
+  onSaved: (fee: number, total: number, remaining: number) => void;
+}) {
+  const [value, setValue] = useState<string>("");
+  const [saving, setSaving] = useState(false);
+  const save = async () => {
+    const fee = Math.max(0, Number(value));
+    if (!Number.isFinite(fee)) { toast.error("Enter a valid number"); return; }
+    setSaving(true);
+    const total = Number(order.subtotal) + fee;
+    const remaining = total - Number(order.upfront_amount ?? 0);
+    const { error } = await supabase
+      .from("orders")
+      .update({ shipping_fee: fee, total, total_amount: total, remaining_amount: remaining } as never)
+      .eq("id", order.id);
+    setSaving(false);
+    if (error) { toast.error(error.message); return; }
+    onSaved(fee, total, remaining);
+    toast.success("Delivery fee updated");
+  };
+  return (
+    <span className="inline-flex items-center gap-2">
+      <input
+        type="number"
+        min={0}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        placeholder="EGP"
+        className="w-24 h-8 rounded-md border px-2 text-sm bg-background"
+      />
+      <button
+        type="button"
+        disabled={saving || !value}
+        onClick={save}
+        className="text-xs rounded-md px-2 py-1 bg-primary text-primary-foreground disabled:opacity-50"
+      >
+        {saving ? "…" : "Set"}
+      </button>
+    </span>
+  );
+}
+
 function OrderDetailPage() {
   const { isCarpenter } = useIsAdmin();
   const { id } = Route.useParams();
@@ -87,7 +136,7 @@ function OrderDetailPage() {
     (async () => {
       const { data: orderRow, error: orderErr } = await supabase
         .from("orders")
-        .select("id, order_number, customer_name, customer_email, customer_phone, shipping_address, shipping_city, shipping_governorate, shipping_notes, status, subtotal, shipping_fee, total, upfront_amount, remaining_amount, created_at, instapay_reference, payment_proof_url, assigned_carpenter")
+        .select("id, order_number, customer_name, customer_email, customer_phone, shipping_address, shipping_city, shipping_governorate, shipping_notes, delivery_area, order_size_type, status, subtotal, shipping_fee, total, upfront_amount, remaining_amount, created_at, instapay_reference, payment_proof_url, assigned_carpenter")
         .eq("id", id)
         .single();
       if (orderErr || !orderRow) {
@@ -305,7 +354,20 @@ function OrderDetailPage() {
             {!isCarpenter && (
               <div className="mt-4 pt-4 border-t space-y-1 text-sm">
                 <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>EGP {Number(order.subtotal).toLocaleString()}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Delivery fee</span><span>EGP {Number(order.shipping_fee).toLocaleString()}</span></div>
+                <div className="flex justify-between items-center gap-3">
+                  <span className="text-muted-foreground">
+                    Delivery fee
+                    {order.delivery_area && <> — {getAreaLabel(order.delivery_area as never)} ({order.order_size_type ?? "big"})</>}
+                  </span>
+                  {order.delivery_area === "other" ? (
+                    <DeliveryFeeEditor
+                      order={order}
+                      onSaved={(fee, total, remaining) => setOrder({ ...order, shipping_fee: fee, total, remaining_amount: remaining })}
+                    />
+                  ) : (
+                    <span>EGP {Number(order.shipping_fee).toLocaleString()}</span>
+                  )}
+                </div>
                 <div className="flex justify-between font-semibold pt-2 border-t mt-2"><span>Total</span><span>EGP {Number(order.total).toLocaleString()}</span></div>
               </div>
             )}
@@ -363,6 +425,12 @@ function OrderDetailPage() {
             <div className="text-sm space-y-1 text-muted-foreground">
               <p className="text-foreground">{order.shipping_address}</p>
               <p>{order.shipping_city}, {order.shipping_governorate}</p>
+              {order.delivery_area && (
+                <p className="text-foreground">
+                  Area: <strong>{getAreaLabel(order.delivery_area as never)}</strong>
+                  <span className="text-muted-foreground"> · {order.order_size_type ?? "big"} order</span>
+                </p>
+              )}
               {order.shipping_notes && <p className="italic mt-2">Note: {order.shipping_notes}</p>}
             </div>
           </section>

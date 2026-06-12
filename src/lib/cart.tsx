@@ -19,6 +19,7 @@ export type CartItem = {
   };
   bedRails?: boolean;
   bedRailsPrice?: number;
+  categorySlug?: string;
 };
 
 type CartCtx = {

@@ -15,13 +15,16 @@ import { toast } from "sonner";
 import qrImageFallback from "@/assets/instapay-qr.jpeg";
 import { Upload, Check, Tag, MessageCircle } from "lucide-react";
 import { resolveImage } from "@/lib/images";
+import { DELIVERY_AREAS, getAreaLabel, getDeliveryFee, isSmallOrder, type DeliveryAreaKey } from "@/lib/delivery";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({ meta: [{ title: "Checkout — Suzy Wood" }] }),
   component: Checkout,
 });
 
-const SHIPPING = 1000;
 const INSTAPAY_NUMBER = "01096313532";
 const INSTAPAY_HANDLE = "axady@instapay";
 const ADMIN_WHATSAPP = "201096313532";
@@ -33,6 +36,7 @@ const REMAINING_PERCENT = Math.round(REMAINING_RATE * 100);
 type Details = {
   name: string; email: string; phone: string;
   address: string; city: string; governorate: string; notes: string;
+  deliveryArea: DeliveryAreaKey;
 };
 
 function Checkout() {
@@ -49,6 +53,7 @@ function Checkout() {
   const [promoCode, setPromoCode] = useState("");
   const [promoApplying, setPromoApplying] = useState(false);
   const [promo, setPromo] = useState<{ id: string; code: string; discount: number } | null>(null);
+  const [deliveryArea, setDeliveryArea] = useState<DeliveryAreaKey | "">("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [qrUrl, setQrUrl] = useState<string | null>(null);
   const [qrLoadFailed, setQrLoadFailed] = useState(false);
@@ -67,12 +72,15 @@ function Checkout() {
     })();
     return () => { cancelled = true; };
   }, []);
+  const sizeType = isSmallOrder(items) ? "small" : "big";
+  const isOther = deliveryArea === "other";
+  const shipping = deliveryArea ? getDeliveryFee(deliveryArea, sizeType) : 0;
   const discount = promo?.discount ?? 0;
   const subtotalAfter = Math.max(0, subtotal - discount);
-  const total = subtotalAfter + SHIPPING;
+  const total = subtotalAfter + shipping;
   const upfront = Math.round(subtotalAfter * UPFRONT_RATE);
   const remainingProduct = Math.max(0, subtotalAfter - upfront);
-  const remainingOnDelivery = remainingProduct + SHIPPING;
+  const remainingOnDelivery = remainingProduct + shipping;
 
   const applyPromo = async () => {
     const code = promoCode.trim().toUpperCase();
@@ -91,6 +99,10 @@ function Checkout() {
   const onDetailsSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (items.length === 0) return;
+    if (!deliveryArea) {
+      toast.error("Please select your delivery area");
+      return;
+    }
     const fd = new FormData(e.currentTarget);
     setDetails({
       name: String(fd.get("name") ?? ""),
@@ -98,8 +110,9 @@ function Checkout() {
       phone: String(fd.get("phone") ?? ""),
       address: String(fd.get("address") ?? ""),
       city: String(fd.get("city") ?? ""),
-      governorate: String(fd.get("governorate") ?? ""),
+      governorate: getAreaLabel(deliveryArea),
       notes: String(fd.get("notes") ?? ""),
+      deliveryArea,
     });
     setStep("pay");
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -153,7 +166,9 @@ function Checkout() {
       _promo_code: promo?.code ?? "",
       _instapay_reference: reference.trim(),
       _payment_proof_path: proofPath ?? "",
-    });
+      _delivery_area: details.deliveryArea,
+      _order_size_type: sizeType,
+    } as never);
 
     setSubmitting(false);
     const order = Array.isArray(rpc) ? rpc[0] : rpc;
@@ -203,19 +218,42 @@ function Checkout() {
             <div className="space-y-1"><Label htmlFor="email">Email</Label><Input id="email" type="email" name="email" required defaultValue={details?.email ?? user?.email ?? ""} /></div>
             <div className="space-y-1"><Label htmlFor="address">Address</Label><Textarea id="address" name="address" required maxLength={500} rows={2} defaultValue={details?.address ?? ""} /></div>
             <div className="grid sm:grid-cols-2 gap-5">
-              <div className="space-y-1"><Label htmlFor="city">City / Area</Label><Input id="city" name="city" required maxLength={100} placeholder="e.g. New Cairo" defaultValue={details?.city ?? ""} /></div>
-              <div className="space-y-1"><Label htmlFor="governorate">Governorate</Label><Input id="governorate" name="governorate" required maxLength={100} placeholder="e.g. Cairo" defaultValue={details?.governorate ?? ""} /></div>
+              <div className="space-y-1">
+                <Label htmlFor="delivery-area">Delivery area *</Label>
+                <Select value={deliveryArea} onValueChange={(v) => setDeliveryArea(v as DeliveryAreaKey)}>
+                  <SelectTrigger id="delivery-area"><SelectValue placeholder="Select your area" /></SelectTrigger>
+                  <SelectContent>
+                    {DELIVERY_AREAS.map((a) => (
+                      <SelectItem key={a.value} value={a.value}>
+                        {a.label}
+                        {a.value !== "other" && (
+                          <span className="text-muted-foreground"> — EGP {a.fees[sizeType].toLocaleString()}</span>
+                        )}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Order type: <strong>{sizeType === "small" ? "Small" : "Big"}</strong> — fees depend on area + size.
+                </p>
+              </div>
+              <div className="space-y-1"><Label htmlFor="city">Neighborhood / street</Label><Input id="city" name="city" required maxLength={100} placeholder="e.g. Street 9, Building 12" defaultValue={details?.city ?? ""} /></div>
             </div>
+            {isOther && (
+              <div className="rounded-xl bg-amber-50 border border-amber-200 text-amber-900 p-3 text-sm">
+                Delivery fee will be confirmed via WhatsApp after your order is placed.
+              </div>
+            )}
             <div className="space-y-1"><Label htmlFor="notes">Delivery notes (optional)</Label><Textarea id="notes" name="notes" maxLength={500} rows={2} defaultValue={details?.notes ?? ""} /></div>
 
             <div className="rounded-xl bg-muted/50 border border-border p-4 text-sm text-muted-foreground">
               Next step: pay <strong>EGP {upfront.toLocaleString()}</strong> upfront via{" "}
               <strong>InstaPay</strong> — this is {UPFRONT_PERCENT}% of the furniture total after discounts.
               Pay <strong>EGP {remainingOnDelivery.toLocaleString()}</strong> on delivery: {REMAINING_PERCENT}% furniture balance{" "}
-              (EGP {remainingProduct.toLocaleString()}) + delivery (EGP {SHIPPING.toLocaleString()}).
+              (EGP {remainingProduct.toLocaleString()}) + delivery {isOther ? "(TBD)" : `(EGP ${shipping.toLocaleString()})`}.
             </div>
 
-            <Button type="submit" size="lg" className="w-full">
+            <Button type="submit" size="lg" className="w-full" disabled={!deliveryArea}>
               Continue to payment — Pay {UPFRONT_PERCENT}% now (EGP {upfront.toLocaleString()})
             </Button>
           </form>
@@ -227,7 +265,7 @@ function Checkout() {
                 Send exactly <strong className="text-foreground">EGP {upfront.toLocaleString()}</strong>{" "}
                 using the QR below to confirm your order. This is {UPFRONT_PERCENT}% of the furniture total after discounts.
                 On delivery, pay <strong className="text-foreground">EGP {remainingOnDelivery.toLocaleString()}</strong>: {REMAINING_PERCENT}% furniture balance{" "}
-                (EGP {remainingProduct.toLocaleString()}) + delivery (EGP {SHIPPING.toLocaleString()}).
+                (EGP {remainingProduct.toLocaleString()}) + delivery {isOther ? "(TBD)" : `(EGP ${shipping.toLocaleString()})`}.
               </p>
             </div>
 
@@ -363,7 +401,10 @@ function Checkout() {
                   <span>− EGP {promo.discount.toLocaleString()}</span>
                 </div>
               )}
-              <div className="flex justify-between"><span>Shipping</span><span>EGP {SHIPPING.toLocaleString()}</span></div>
+              <div className="flex justify-between">
+                <span>Delivery{deliveryArea ? ` — ${getAreaLabel(deliveryArea)}` : ""}</span>
+                <span>{isOther ? "TBD" : `EGP ${shipping.toLocaleString()}`}</span>
+              </div>
               <div className="flex justify-between font-serif text-lg pt-2"><span>Total</span><span className="text-primary">EGP {total.toLocaleString()}</span></div>
             </div>
 
@@ -399,7 +440,7 @@ function Checkout() {
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Delivery</span>
-                <span className="font-medium">EGP {SHIPPING.toLocaleString()}</span>
+                <span className="font-medium">{isOther ? "TBD" : `EGP ${shipping.toLocaleString()}`}</span>
               </div>
               <div className="flex justify-between border-t border-border pt-2">
                 <span className="text-muted-foreground">Due on delivery</span>
