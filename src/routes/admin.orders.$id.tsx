@@ -30,6 +30,8 @@ type Order = {
   shipping_city: string;
   shipping_governorate: string;
   shipping_notes: string | null;
+  delivery_area: string | null;
+  order_size_type: string | null;
   status: string;
   subtotal: number;
   shipping_fee: number;
@@ -87,7 +89,7 @@ function OrderDetailPage() {
     (async () => {
       const { data: orderRow, error: orderErr } = await supabase
         .from("orders")
-        .select("id, order_number, customer_name, customer_email, customer_phone, shipping_address, shipping_city, shipping_governorate, shipping_notes, status, subtotal, shipping_fee, total, upfront_amount, remaining_amount, created_at, instapay_reference, payment_proof_url, assigned_carpenter")
+        .select("id, order_number, customer_name, customer_email, customer_phone, shipping_address, shipping_city, shipping_governorate, shipping_notes, delivery_area, order_size_type, status, subtotal, shipping_fee, total, upfront_amount, remaining_amount, created_at, instapay_reference, payment_proof_url, assigned_carpenter")
         .eq("id", id)
         .single();
       if (orderErr || !orderRow) {
