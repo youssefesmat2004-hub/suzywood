@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { sendOrderStatusEmail } from "@/lib/order-emails.functions";
 import { useIsAdmin } from "@/lib/admin";
+import { getAreaLabel } from "@/lib/delivery";
 
 type OrderItem = {
   id: string;
@@ -307,7 +308,20 @@ function OrderDetailPage() {
             {!isCarpenter && (
               <div className="mt-4 pt-4 border-t space-y-1 text-sm">
                 <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>EGP {Number(order.subtotal).toLocaleString()}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Delivery fee</span><span>EGP {Number(order.shipping_fee).toLocaleString()}</span></div>
+                <div className="flex justify-between items-center gap-3">
+                  <span className="text-muted-foreground">
+                    Delivery fee
+                    {order.delivery_area && <> — {getAreaLabel(order.delivery_area as never)} ({order.order_size_type ?? "big"})</>}
+                  </span>
+                  {order.delivery_area === "other" ? (
+                    <DeliveryFeeEditor
+                      order={order}
+                      onSaved={(fee, total, remaining) => setOrder({ ...order, shipping_fee: fee, total, remaining_amount: remaining })}
+                    />
+                  ) : (
+                    <span>EGP {Number(order.shipping_fee).toLocaleString()}</span>
+                  )}
+                </div>
                 <div className="flex justify-between font-semibold pt-2 border-t mt-2"><span>Total</span><span>EGP {Number(order.total).toLocaleString()}</span></div>
               </div>
             )}
