@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { verifyCarpenterPin } from "@/lib/carpenter.functions";
 import { playCarpenterAlert, unlockCarpenterAudio } from "@/lib/carpenter-sound";
 import { resolveImage } from "@/lib/images";
+import { getAreaLabel } from "@/lib/delivery";
 
 export type CarpenterId = 1 | 2 | 3;
 
@@ -551,6 +552,12 @@ function OrderCard({
           <div className="text-sm text-amber-900 whitespace-pre-wrap leading-relaxed">
             {order.shipping_notes}
           </div>
+        </div>
+      )}
+
+      {order.delivery_area && (
+        <div className="mt-3 inline-flex items-center gap-2 rounded-md border border-sky-200 bg-sky-50 text-sky-900 px-2.5 py-1 text-xs">
+          📍 منطقة التوصيل: <strong>{getAreaLabel(order.delivery_area as never)}</strong>
         </div>
       )}
 
