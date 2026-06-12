@@ -425,6 +425,12 @@ function OrderDetailPage() {
             <div className="text-sm space-y-1 text-muted-foreground">
               <p className="text-foreground">{order.shipping_address}</p>
               <p>{order.shipping_city}, {order.shipping_governorate}</p>
+              {order.delivery_area && (
+                <p className="text-foreground">
+                  Area: <strong>{getAreaLabel(order.delivery_area as never)}</strong>
+                  <span className="text-muted-foreground"> · {order.order_size_type ?? "big"} order</span>
+                </p>
+              )}
               {order.shipping_notes && <p className="italic mt-2">Note: {order.shipping_notes}</p>}
             </div>
           </section>
