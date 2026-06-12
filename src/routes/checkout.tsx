@@ -15,13 +15,16 @@ import { toast } from "sonner";
 import qrImageFallback from "@/assets/instapay-qr.jpeg";
 import { Upload, Check, Tag, MessageCircle } from "lucide-react";
 import { resolveImage } from "@/lib/images";
+import { DELIVERY_AREAS, getAreaLabel, getDeliveryFee, isSmallOrder, type DeliveryAreaKey } from "@/lib/delivery";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({ meta: [{ title: "Checkout — Suzy Wood" }] }),
   component: Checkout,
 });
 
-const SHIPPING = 1000;
 const INSTAPAY_NUMBER = "01096313532";
 const INSTAPAY_HANDLE = "axady@instapay";
 const ADMIN_WHATSAPP = "201096313532";
@@ -33,6 +36,7 @@ const REMAINING_PERCENT = Math.round(REMAINING_RATE * 100);
 type Details = {
   name: string; email: string; phone: string;
   address: string; city: string; governorate: string; notes: string;
+  deliveryArea: DeliveryAreaKey;
 };
 
 function Checkout() {
@@ -49,6 +53,7 @@ function Checkout() {
   const [promoCode, setPromoCode] = useState("");
   const [promoApplying, setPromoApplying] = useState(false);
   const [promo, setPromo] = useState<{ id: string; code: string; discount: number } | null>(null);
+  const [deliveryArea, setDeliveryArea] = useState<DeliveryAreaKey | "">("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [qrUrl, setQrUrl] = useState<string | null>(null);
   const [qrLoadFailed, setQrLoadFailed] = useState(false);
@@ -67,12 +72,15 @@ function Checkout() {
     })();
     return () => { cancelled = true; };
   }, []);
+  const sizeType = isSmallOrder(items) ? "small" : "big";
+  const isOther = deliveryArea === "other";
+  const shipping = deliveryArea ? getDeliveryFee(deliveryArea, sizeType) : 0;
   const discount = promo?.discount ?? 0;
   const subtotalAfter = Math.max(0, subtotal - discount);
-  const total = subtotalAfter + SHIPPING;
+  const total = subtotalAfter + shipping;
   const upfront = Math.round(subtotalAfter * UPFRONT_RATE);
   const remainingProduct = Math.max(0, subtotalAfter - upfront);
-  const remainingOnDelivery = remainingProduct + SHIPPING;
+  const remainingOnDelivery = remainingProduct + shipping;
 
   const applyPromo = async () => {
     const code = promoCode.trim().toUpperCase();
@@ -91,6 +99,10 @@ function Checkout() {
   const onDetailsSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (items.length === 0) return;
+    if (!deliveryArea) {
+      toast.error("Please select your delivery area");
+      return;
+    }
     const fd = new FormData(e.currentTarget);
     setDetails({
       name: String(fd.get("name") ?? ""),
@@ -98,8 +110,9 @@ function Checkout() {
       phone: String(fd.get("phone") ?? ""),
       address: String(fd.get("address") ?? ""),
       city: String(fd.get("city") ?? ""),
-      governorate: String(fd.get("governorate") ?? ""),
+      governorate: getAreaLabel(deliveryArea),
       notes: String(fd.get("notes") ?? ""),
+      deliveryArea,
     });
     setStep("pay");
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -153,7 +166,9 @@ function Checkout() {
       _promo_code: promo?.code ?? "",
       _instapay_reference: reference.trim(),
       _payment_proof_path: proofPath ?? "",
-    });
+      _delivery_area: details.deliveryArea,
+      _order_size_type: sizeType,
+    } as never);
 
     setSubmitting(false);
     const order = Array.isArray(rpc) ? rpc[0] : rpc;
