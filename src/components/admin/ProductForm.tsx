@@ -416,7 +416,7 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
           </div>
           <div className="space-y-1.5">
             <Label>Lead time (weeks)</Label>
-            <Input type="number" min={0} value={v.lead_time_weeks} onChange={(e) => setV({ ...v, lead_time_weeks: Number(e.target.value) })} />
+            <Input type="number" min={1} max={4} value={v.lead_time_weeks} onChange={(e) => setV({ ...v, lead_time_weeks: Number(e.target.value) })} />
           </div>
         </div>
         <div className="space-y-1.5">
