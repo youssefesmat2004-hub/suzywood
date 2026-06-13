@@ -9,11 +9,8 @@ export const Route = createFileRoute("/cart")({
   component: Cart,
 });
 
-const SHIPPING = 1000;
-
 function Cart() {
   const { items, remove, setQuantity, subtotal } = useCart();
-  const total = subtotal + (items.length > 0 ? SHIPPING : 0);
 
   return (
     <Layout>
@@ -49,8 +46,8 @@ function Cart() {
             </div>
             <aside className="bg-muted/40 border border-border rounded-2xl p-6 h-fit space-y-4">
               <div className="flex justify-between text-sm"><span>Subtotal</span><span>EGP {subtotal.toLocaleString()}</span></div>
-              <div className="flex justify-between text-sm"><span>Shipping</span><span>EGP {SHIPPING.toLocaleString()}</span></div>
-              <div className="border-t border-border pt-4 flex justify-between"><span className="font-serif text-lg">Total</span><span className="font-serif text-xl text-primary">EGP {total.toLocaleString()}</span></div>
+              <p className="text-xs text-muted-foreground">Delivery fee calculated at checkout based on your area.</p>
+              <div className="border-t border-border pt-4 flex justify-between"><span className="font-serif text-lg">Total</span><span className="font-serif text-xl text-primary">EGP {subtotal.toLocaleString()}</span></div>
               <Button asChild size="lg" className="w-full"><Link to="/checkout">Proceed to Checkout</Link></Button>
             </aside>
           </div>
