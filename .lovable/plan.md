@@ -1,16 +1,13 @@
-## Goal
-Restrict product lead time to a range of 1–4 weeks (currently unbounded 0+).
+## Problem
 
-## Changes
+The cart page shows a hardcoded "Shipping EGP 1,000" line and adds it to the total. Since shipping now depends on the delivery area (selected at checkout), this is misleading.
 
-### Database
-- Clamp the one existing out-of-range product (`The Masterpiece Crib`, currently 5 weeks) down to 4.
-- Add a `CHECK` constraint on `products.lead_time_weeks` enforcing values between 1 and 4.
+## Fix
 
-### Admin Product Form
-- Change the "Lead time (weeks)" input from `min={0}` to `min={1}` and add `max={4}`.
-- Keep the default value at 4 weeks.
+Edit `src/routes/cart.tsx`:
 
-### Files
-- `supabase/migrations/<new>.sql`
-- `src/components/admin/ProductForm.tsx`
+- Remove the `SHIPPING = 1000` constant.
+- Remove the "Shipping" line from the order summary.
+- Show `Total` = `subtotal` only, with a small helper note: "Delivery fee calculated at checkout based on your area."
+
+No changes to checkout, cart logic, or backend — area selection and fee calculation already happen on the checkout page.
