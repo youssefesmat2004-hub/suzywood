@@ -126,6 +126,7 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
       lead_time_weeks: 4,
       is_active: true,
       is_featured: false,
+      portable_changing_table_enabled: null,
     },
   );
   const [variants, setVariants] = useState<Variant[]>([]);
@@ -322,6 +323,7 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
       lead_time_weeks: Number(v.lead_time_weeks),
       is_active: v.is_active,
       is_featured: v.is_featured,
+      portable_changing_table_enabled: v.portable_changing_table_enabled ?? null,
     };
 
     let pid = productId;
