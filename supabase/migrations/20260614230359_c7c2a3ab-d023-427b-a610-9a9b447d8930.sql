@@ -1,0 +1,1 @@
+UPDATE public.products SET portable_changing_table_enabled = false WHERE slug = 'theminimalist';
