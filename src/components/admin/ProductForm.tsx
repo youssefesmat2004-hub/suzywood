@@ -77,6 +77,7 @@ export type ProductFormValue = {
   lead_time_weeks: number;
   is_active: boolean;
   is_featured: boolean;
+  portable_changing_table_enabled?: boolean | null;
 };
 
 const slugify = (s: string) =>
