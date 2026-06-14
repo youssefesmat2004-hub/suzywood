@@ -576,7 +576,7 @@ function ProductPage() {
             </div>
 
             <p className="text-xs text-muted-foreground pt-4 border-t border-border">
-              Flat 1,000 EGP delivery across all governorates of Egypt.
+              {"\n"}
             </p>
             </>
             )}
