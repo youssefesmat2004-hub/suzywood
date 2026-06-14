@@ -624,6 +624,7 @@ export type Database = {
           lead_time_weeks: number
           materials: string | null
           name: string
+          portable_changing_table_enabled: boolean | null
           safety_info: string | null
           sizes: Json
           slug: string
@@ -646,6 +647,7 @@ export type Database = {
           lead_time_weeks?: number
           materials?: string | null
           name: string
+          portable_changing_table_enabled?: boolean | null
           safety_info?: string | null
           sizes?: Json
           slug: string
@@ -668,6 +670,7 @@ export type Database = {
           lead_time_weeks?: number
           materials?: string | null
           name?: string
+          portable_changing_table_enabled?: boolean | null
           safety_info?: string | null
           sizes?: Json
           slug?: string

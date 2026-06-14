@@ -77,6 +77,7 @@ export type ProductFormValue = {
   lead_time_weeks: number;
   is_active: boolean;
   is_featured: boolean;
+  portable_changing_table_enabled?: boolean | null;
 };
 
 const slugify = (s: string) =>
@@ -125,6 +126,7 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
       lead_time_weeks: 4,
       is_active: true,
       is_featured: false,
+      portable_changing_table_enabled: null,
     },
   );
   const [variants, setVariants] = useState<Variant[]>([]);
@@ -321,6 +323,7 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
       lead_time_weeks: Number(v.lead_time_weeks),
       is_active: v.is_active,
       is_featured: v.is_featured,
+      portable_changing_table_enabled: v.portable_changing_table_enabled ?? null,
     };
 
     let pid = productId;
@@ -428,9 +431,24 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
           <div className="space-y-1.5"><Label>Care info</Label><Input value={v.care_info} onChange={(e) => setV({ ...v, care_info: e.target.value })} /></div>
           <div className="space-y-1.5"><Label>Safety info</Label><Input value={v.safety_info} onChange={(e) => setV({ ...v, safety_info: e.target.value })} /></div>
         </div>
-        <div className="flex gap-6 pt-2">
+        <div className="flex flex-wrap gap-6 pt-2">
           <label className="flex items-center gap-2"><Switch checked={v.is_active} onCheckedChange={(c) => setV({ ...v, is_active: c })} /><span className="text-sm">Active (visible on shop)</span></label>
           <label className="flex items-center gap-2"><Switch checked={v.is_featured} onCheckedChange={(c) => setV({ ...v, is_featured: c })} /><span className="text-sm">Featured</span></label>
+          <div className="flex items-center gap-2">
+            <span className="text-sm">Portable Changing Table</span>
+            <select
+              className="h-9 rounded-md border border-input bg-background px-2 py-1 text-sm"
+              value={v.portable_changing_table_enabled === null ? "" : String(v.portable_changing_table_enabled)}
+              onChange={(e) => {
+                const val = e.target.value;
+                setV({ ...v, portable_changing_table_enabled: val === "" ? null : val === "true" });
+              }}
+            >
+              <option value="">Use category default</option>
+              <option value="true">Enabled</option>
+              <option value="false">Disabled</option>
+            </select>
+          </div>
         </div>
       </section>
 

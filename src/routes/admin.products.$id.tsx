@@ -37,6 +37,7 @@ function EditProduct() {
         lead_time_weeks: row.lead_time_weeks ?? 4,
         is_active: row.is_active,
         is_featured: row.is_featured,
+        portable_changing_table_enabled: row.portable_changing_table_enabled ?? null,
       });
     })();
   }, [id]);

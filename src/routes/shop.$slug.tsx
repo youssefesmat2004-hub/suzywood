@@ -198,7 +198,7 @@ function ProductPage() {
   const ottomanEnabled = !!category?.ottoman_addon_enabled;
   const ottomanPrice = Number(category?.ottoman_addon_price ?? 0);
   const ottomanApplied = ottomanEnabled && withOttoman;
-  const portableEnabled = !!category?.portable_changing_table_enabled;
+  const portableEnabled = (product.portable_changing_table_enabled ?? category?.portable_changing_table_enabled) ?? false;
   const portablePrice = Number(category?.portable_changing_table_price ?? 0);
   const portableApplied = portableEnabled && withPortable;
   const bedRailsApplied = isToddlerBed && withBedRails;

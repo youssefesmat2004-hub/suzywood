@@ -1,0 +1,1 @@
+ALTER TABLE public.products ADD COLUMN portable_changing_table_enabled boolean DEFAULT NULL;
