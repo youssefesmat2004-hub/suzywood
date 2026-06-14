@@ -34,6 +34,7 @@ export type Product = {
   stock_quantity?: number;
   has_variants?: boolean;
   category_slug?: string;
+  portable_changing_table_enabled?: boolean | null;
 };
 
 export type Review = {
