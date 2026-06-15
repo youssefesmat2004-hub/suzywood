@@ -207,6 +207,7 @@ export type Database = {
       }
       custom_build_requests: {
         Row: {
+          accepted_email_sent_at: string | null
           created_at: string
           description: string
           email: string
@@ -215,11 +216,13 @@ export type Database = {
           inspiration_image_url: string | null
           owner_notification_sent_at: string | null
           phone: string
+          rejected_email_sent_at: string | null
           room_type: string
           status: string
           user_id: string | null
         }
         Insert: {
+          accepted_email_sent_at?: string | null
           created_at?: string
           description: string
           email: string
@@ -228,11 +231,13 @@ export type Database = {
           inspiration_image_url?: string | null
           owner_notification_sent_at?: string | null
           phone: string
+          rejected_email_sent_at?: string | null
           room_type: string
           status?: string
           user_id?: string | null
         }
         Update: {
+          accepted_email_sent_at?: string | null
           created_at?: string
           description?: string
           email?: string
@@ -241,6 +246,7 @@ export type Database = {
           inspiration_image_url?: string | null
           owner_notification_sent_at?: string | null
           phone?: string
+          rejected_email_sent_at?: string | null
           room_type?: string
           status?: string
           user_id?: string | null

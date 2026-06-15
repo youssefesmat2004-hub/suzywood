@@ -1,11 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MessageCircle, Mail, Trash2, Copy } from "lucide-react";
+import { MessageCircle, Mail, Trash2, Copy, Check, X } from "lucide-react";
 import { toast } from "sonner";
+import { sendCustomBuildStatusEmail } from "@/lib/custom-build-emails.functions";
 
 export const Route = createFileRoute("/admin/custom-builds")({
   head: () => ({ meta: [{ title: "Custom Builds — Suzy Wood Admin" }, { name: "robots", content: "noindex,nofollow" }] }),
@@ -22,9 +24,18 @@ type CB = {
   status: string;
   created_at: string;
   inspiration_image_url: string | null;
+  accepted_email_sent_at: string | null;
+  rejected_email_sent_at: string | null;
 };
 
 const STATUSES = ["new", "contacted", "accepted", "declined", "completed"];
+const STATUS_LABELS: Record<string, string> = {
+  new: "Pending",
+  contacted: "Contacted",
+  accepted: "Accepted",
+  declined: "Rejected",
+  completed: "Completed",
+};
 const STATUS_COLOR: Record<string, string> = {
   new: "bg-amber-100 text-amber-800 border-amber-200",
   contacted: "bg-blue-100 text-blue-800 border-blue-200",
@@ -36,6 +47,7 @@ const STATUS_COLOR: Record<string, string> = {
 function AdminCustomBuilds() {
   const [rows, setRows] = useState<CB[]>([]);
   const [loading, setLoading] = useState(true);
+  const sendStatusEmail = useServerFn(sendCustomBuildStatusEmail);
 
   const load = async () => {
     const { data, error } = await supabase
@@ -63,7 +75,35 @@ function AdminCustomBuilds() {
     if (error) {
       toast.error(error.message);
       setRows((r) => r.map((x) => (x.id === row.id ? { ...x, status: prev } : x)));
-    } else toast.success(`Marked as ${status}`);
+      return;
+    }
+    toast.success(`Marked as ${STATUS_LABELS[status] ?? status}`);
+
+    if (status === "accepted" && !row.accepted_email_sent_at) {
+      try {
+        const res = await sendStatusEmail({ data: { requestId: row.id, kind: "accepted" } });
+        if (res?.ok) {
+          toast.success("Acceptance email sent to customer");
+          setRows((r) => r.map((x) => (x.id === row.id ? { ...x, accepted_email_sent_at: new Date().toISOString() } : x)));
+        } else if (res?.error) {
+          toast.error(`Email failed: ${res.error}`);
+        }
+      } catch (e: any) {
+        toast.error(`Email failed: ${e?.message ?? "unknown error"}`);
+      }
+    } else if (status === "declined" && !row.rejected_email_sent_at) {
+      try {
+        const res = await sendStatusEmail({ data: { requestId: row.id, kind: "rejected" } });
+        if (res?.ok) {
+          toast.success("Rejection email sent to customer");
+          setRows((r) => r.map((x) => (x.id === row.id ? { ...x, rejected_email_sent_at: new Date().toISOString() } : x)));
+        } else if (res?.error) {
+          toast.error(`Email failed: ${res.error}`);
+        }
+      } catch (e: any) {
+        toast.error(`Email failed: ${e?.message ?? "unknown error"}`);
+      }
+    }
   };
 
   const remove = async (row: CB) => {
@@ -112,12 +152,31 @@ function AdminCustomBuilds() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
+                  {row.status !== "accepted" && (
+                    <Button
+                      size="sm"
+                      onClick={() => updateStatus(row, "accepted")}
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                    >
+                      <Check className="h-4 w-4 mr-1" /> Accept
+                    </Button>
+                  )}
+                  {row.status !== "declined" && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => updateStatus(row, "declined")}
+                      className="border-rose-300 text-rose-700 hover:bg-rose-50"
+                    >
+                      <X className="h-4 w-4 mr-1" /> Reject
+                    </Button>
+                  )}
                   <Select value={row.status} onValueChange={(v) => updateStatus(row, v)}>
                     <SelectTrigger className={`h-8 w-36 border ${STATUS_COLOR[row.status] ?? ""}`}>
-                      <SelectValue />
+                      <SelectValue>{STATUS_LABELS[row.status] ?? row.status}</SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                      {STATUSES.map((s) => <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>)}
+                      {STATUSES.map((s) => <SelectItem key={s} value={s}>{STATUS_LABELS[s] ?? s}</SelectItem>)}
                     </SelectContent>
                   </Select>
                   <Button size="sm" variant="outline" asChild>
@@ -134,6 +193,11 @@ function AdminCustomBuilds() {
                   </Button>
                 </div>
               </div>
+              {(row.accepted_email_sent_at || row.rejected_email_sent_at) && (
+                <div className="mt-2 text-xs text-emerald-700 inline-flex items-center gap-1">
+                  <Check className="h-3 w-3" /> Customer notified by email
+                </div>
+              )}
               <div className="mt-3 p-3 rounded bg-muted/50 text-sm whitespace-pre-wrap relative">
                 <button onClick={() => copy(row.description)} className="absolute top-2 right-2 p-1 hover:bg-background rounded" title="Copy">
                   <Copy className="h-3.5 w-3.5" />
