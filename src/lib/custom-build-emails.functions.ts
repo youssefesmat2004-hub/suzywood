@@ -193,11 +193,14 @@ export const sendCustomBuildStatusEmail = createServerFn({ method: "POST" })
       return { ok: false, error: `Resend error ${res.status}` };
     }
 
-    const stampField =
-      data.kind === "accepted" ? "accepted_email_sent_at" : "rejected_email_sent_at";
+    const nowIso = new Date().toISOString();
+    const update =
+      data.kind === "accepted"
+        ? { accepted_email_sent_at: nowIso }
+        : { rejected_email_sent_at: nowIso };
     await supabaseAdmin
       .from("custom_build_requests")
-      .update({ [stampField]: new Date().toISOString() })
+      .update(update)
       .eq("id", data.requestId);
 
     return { ok: true };
