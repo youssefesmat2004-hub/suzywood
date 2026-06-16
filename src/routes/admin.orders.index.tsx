@@ -2,10 +2,12 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { Search, Plus, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsAdmin } from "@/lib/admin";
+import { useServerFn } from "@tanstack/react-start";
+import { createManualOrder } from "@/lib/manual-orders.functions";
 
 type Order = {
   id: string;
@@ -15,6 +17,7 @@ type Order = {
   status: string;
   total: number;
   created_at: string;
+  is_manual_order?: boolean | null;
 };
 
 const STATUS_FILTERS = [
@@ -49,7 +52,7 @@ export const Route = createFileRoute("/admin/orders/")({
 });
 
 function OrdersPage() {
-  const { isCarpenter } = useIsAdmin();
+  const { isCarpenter, isAdmin } = useIsAdmin();
   const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -57,12 +60,13 @@ function OrdersPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [fromDate, setFromDate] = useState<string>("");
   const [toDate, setToDate] = useState<string>("");
+  const [showManual, setShowManual] = useState(false);
 
   useEffect(() => {
     (async () => {
       const { data, error } = await supabase
         .from("orders")
-        .select("id, order_number, customer_name, customer_email, status, total, created_at")
+        .select("id, order_number, customer_name, customer_email, status, total, created_at, is_manual_order")
         .order("created_at", { ascending: false });
       if (error) toast.error(error.message);
       setOrders((data ?? []) as Order[]);
@@ -120,8 +124,21 @@ function OrdersPage() {
 
   return (
     <div>
-      <h1 className="font-serif text-3xl mb-2">Orders</h1>
-      <p className="text-sm text-muted-foreground mb-6">Manage all customer orders.</p>
+      <div className="flex items-start justify-between gap-4 flex-wrap mb-6">
+        <div>
+          <h1 className="font-serif text-3xl mb-2">Orders</h1>
+          <p className="text-sm text-muted-foreground">Manage all customer orders.</p>
+        </div>
+        {isAdmin && (
+          <button
+            type="button"
+            onClick={() => setShowManual(true)}
+            className="inline-flex items-center gap-2 rounded-md bg-emerald-600 text-white text-sm font-medium px-4 py-2 hover:bg-emerald-700"
+          >
+            <Plus className="h-4 w-4" /> Add WhatsApp Order
+          </button>
+        )}
+      </div>
 
       <div className="flex flex-wrap gap-2 mb-4">
         {STATUS_FILTERS.map((f) => (
@@ -208,7 +225,14 @@ function OrdersPage() {
                 >
                   <td className="px-4 py-3 font-mono text-xs">{o.order_number}</td>
                   <td className="px-4 py-3">
-                    <div>{o.customer_name}</div>
+                    <div className="flex items-center gap-2">
+                      <span>{o.customer_name}</span>
+                      {o.is_manual_order && (
+                        <span className="inline-flex items-center gap-1 text-[10px] rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 px-1.5 py-0.5">
+                          <MessageCircle className="h-3 w-3" /> WhatsApp
+                        </span>
+                      )}
+                    </div>
                     <div className="text-xs text-muted-foreground">{o.customer_email}</div>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">
@@ -230,6 +254,163 @@ function OrdersPage() {
           </table>
         </div>
       </div>
+
+      {showManual && (
+        <ManualOrderModal
+          onClose={() => setShowManual(false)}
+          onCreated={(o) => {
+            setShowManual(false);
+            navigate({ to: "/admin/orders/$id", params: { id: o.id } });
+          }}
+        />
+      )}
     </div>
+  );
+}
+
+function ManualOrderModal({
+  onClose,
+  onCreated,
+}: {
+  onClose: () => void;
+  onCreated: (o: { id: string; order_number: string }) => void;
+}) {
+  const createFn = useServerFn(createManualOrder);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    customer_name: "",
+    customer_email: "",
+    customer_phone: "",
+    shipping_address: "",
+    product_description: "",
+    total: "",
+    upfront: "",
+    remaining: "",
+    status: "pending_payment" as "pending_payment" | "confirmed" | "shipped" | "delivered",
+  });
+
+  const setTotal = (v: string) => {
+    const n = Number(v);
+    if (Number.isFinite(n) && n > 0) {
+      const up = Math.round(n * 0.7);
+      setForm((f) => ({ ...f, total: v, upfront: String(up), remaining: String(n - up) }));
+    } else {
+      setForm((f) => ({ ...f, total: v }));
+    }
+  };
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const total = Number(form.total);
+    const upfront = Number(form.upfront);
+    const remaining = Number(form.remaining);
+    if (!Number.isFinite(total) || total < 0) { toast.error("Enter a valid price"); return; }
+    setSaving(true);
+    try {
+      const res = await createFn({
+        data: {
+          customer_name: form.customer_name.trim(),
+          customer_email: form.customer_email.trim(),
+          customer_phone: form.customer_phone.trim(),
+          shipping_address: form.shipping_address.trim(),
+          product_description: form.product_description.trim(),
+          total,
+          upfront_amount: upfront,
+          remaining_amount: remaining,
+          status: form.status,
+        },
+      });
+      toast.success(`Manual order ${res.order_number} created`);
+      onCreated({ id: res.id, order_number: res.order_number });
+    } catch (err: any) {
+      toast.error(err?.message ?? "Failed to create order");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 overflow-y-auto">
+      <div className="bg-background rounded-xl shadow-xl w-full max-w-lg my-8">
+        <div className="flex items-center justify-between px-6 py-4 border-b">
+          <h2 className="font-serif text-xl">Add WhatsApp Order</h2>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground text-sm">Cancel</button>
+        </div>
+        <form onSubmit={submit} className="px-6 py-5 space-y-4 text-sm">
+          <Field label="Customer name" required>
+            <Input required value={form.customer_name} onChange={(e) => setForm({ ...form, customer_name: e.target.value })} />
+          </Field>
+          <Field label="Customer email" required>
+            <Input type="email" required value={form.customer_email} onChange={(e) => setForm({ ...form, customer_email: e.target.value })} />
+          </Field>
+          <Field label="Customer phone" required>
+            <Input required value={form.customer_phone} onChange={(e) => setForm({ ...form, customer_phone: e.target.value })} />
+          </Field>
+          <Field label="Delivery address" required>
+            <textarea
+              required
+              rows={2}
+              value={form.shipping_address}
+              onChange={(e) => setForm({ ...form, shipping_address: e.target.value })}
+              className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+            />
+          </Field>
+          <Field label="Product description" required>
+            <textarea
+              required
+              rows={3}
+              placeholder="e.g. Custom crib 130x65cm with drawer"
+              value={form.product_description}
+              onChange={(e) => setForm({ ...form, product_description: e.target.value })}
+              className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+            />
+          </Field>
+          <Field label="Total price (EGP)" required>
+            <Input type="number" min={0} required value={form.total} onChange={(e) => setTotal(e.target.value)} />
+          </Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Deposit (70%)">
+              <Input type="number" min={0} value={form.upfront} onChange={(e) => setForm({ ...form, upfront: e.target.value })} />
+            </Field>
+            <Field label="Remaining (30%)">
+              <Input type="number" min={0} value={form.remaining} onChange={(e) => setForm({ ...form, remaining: e.target.value })} />
+            </Field>
+          </div>
+          <Field label="Order status">
+            <select
+              value={form.status}
+              onChange={(e) => setForm({ ...form, status: e.target.value as typeof form.status })}
+              className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+            >
+              <option value="pending_payment">Pending Payment</option>
+              <option value="confirmed">Payment Confirmed</option>
+              <option value="shipped">Out for Delivery</option>
+              <option value="delivered">Delivered</option>
+            </select>
+          </Field>
+          <div className="flex justify-end gap-2 pt-2">
+            <button type="button" onClick={onClose} className="text-sm rounded-md border px-4 py-2 hover:bg-muted">Cancel</button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="text-sm rounded-md bg-primary text-primary-foreground px-4 py-2 font-medium disabled:opacity-60"
+            >
+              {saving ? "Saving…" : "Create order"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <span className="block text-xs font-medium text-muted-foreground mb-1">
+        {label}{required && <span className="text-rose-500"> *</span>}
+      </span>
+      {children}
+    </label>
   );
 }
