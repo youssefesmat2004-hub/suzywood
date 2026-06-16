@@ -455,6 +455,7 @@ export type Database = {
           id: string
           instapay_reference: string | null
           internal_notes: string | null
+          is_manual_order: boolean
           notes: string | null
           order_number: string
           order_size_type: string | null
@@ -463,6 +464,7 @@ export type Database = {
           payment_proof_path: string | null
           payment_proof_url: string | null
           payment_status: string | null
+          product_description: string | null
           promo_code: string | null
           remaining_amount: number | null
           shipping_address: string
@@ -495,6 +497,7 @@ export type Database = {
           id?: string
           instapay_reference?: string | null
           internal_notes?: string | null
+          is_manual_order?: boolean
           notes?: string | null
           order_number?: string
           order_size_type?: string | null
@@ -503,6 +506,7 @@ export type Database = {
           payment_proof_path?: string | null
           payment_proof_url?: string | null
           payment_status?: string | null
+          product_description?: string | null
           promo_code?: string | null
           remaining_amount?: number | null
           shipping_address: string
@@ -535,6 +539,7 @@ export type Database = {
           id?: string
           instapay_reference?: string | null
           internal_notes?: string | null
+          is_manual_order?: boolean
           notes?: string | null
           order_number?: string
           order_size_type?: string | null
@@ -543,6 +548,7 @@ export type Database = {
           payment_proof_path?: string | null
           payment_proof_url?: string | null
           payment_status?: string | null
+          product_description?: string | null
           promo_code?: string | null
           remaining_amount?: number | null
           shipping_address?: string
