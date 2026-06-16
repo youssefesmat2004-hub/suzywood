@@ -37,8 +37,13 @@ function renderEmail(opts: {
   total: number;
   upfront: number | null;
   remaining: number | null;
+  isManualOrder?: boolean;
+  productDescription?: string | null;
 }) {
-  const headline = STATUS_HEADLINES[opts.status] ?? `Your order status is now ${STATUS_LABELS[opts.status] ?? opts.status}`;
+  const isThankYou = opts.isManualOrder && opts.status === "confirmed";
+  const headline = isThankYou
+    ? "Thank you — your payment is confirmed!"
+    : STATUS_HEADLINES[opts.status] ?? `Your order status is now ${STATUS_LABELS[opts.status] ?? opts.status}`;
   const statusLabel = STATUS_LABELS[opts.status] ?? opts.status;
 
   const itemsRows = opts.items
@@ -73,6 +78,43 @@ function renderEmail(opts: {
         </td></tr>`
     : "";
 
+  const whatsappBlock = isThankYou
+    ? `
+        <tr><td style="padding:8px 32px 0;" align="center">
+          <a href="https://wa.me/201000000000" style="display:inline-block;margin:8px 0 4px;background:#25D366;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:6px;font-family:Arial,sans-serif;font-size:14px;font-weight:600;">Chat with us on WhatsApp</a>
+        </td></tr>`
+    : "";
+
+  const descBlock = opts.productDescription
+    ? `
+        <tr><td style="padding:8px 32px 0;">
+          <h3 style="margin:16px 0 4px;font-size:14px;color:#777;text-transform:uppercase;letter-spacing:1px;font-family:Arial,sans-serif;font-weight:600;">Your order</h3>
+          <p style="margin:0 0 12px;color:#222;font-size:14px;line-height:1.6;font-family:Arial,sans-serif;white-space:pre-wrap;">${escapeHtml(opts.productDescription)}</p>
+        </td></tr>`
+    : "";
+
+  const itemsSection = opts.productDescription
+    ? `
+        <tr><td style="padding:8px 32px 0;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-family:Arial,sans-serif;">
+            <tr>
+              <td style="padding:14px 0 0;color:#1a1a1a;font-size:14px;font-weight:600;border-top:1px solid #eee;">Total</td>
+              <td style="padding:14px 0 0;color:#1a1a1a;font-size:14px;font-weight:600;text-align:right;border-top:1px solid #eee;">EGP ${Number(opts.total).toLocaleString()}</td>
+            </tr>
+          </table>
+        </td></tr>`
+    : `
+        <tr><td style="padding:8px 32px 0;">
+          <h3 style="margin:16px 0 4px;font-size:14px;color:#777;text-transform:uppercase;letter-spacing:1px;font-family:Arial,sans-serif;font-weight:600;">Your items</h3>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-family:Arial,sans-serif;">
+            ${itemsRows}
+            <tr>
+              <td style="padding:14px 0 0;color:#1a1a1a;font-size:14px;font-weight:600;">Total</td>
+              <td style="padding:14px 0 0;color:#1a1a1a;font-size:14px;font-weight:600;text-align:right;">EGP ${Number(opts.total).toLocaleString()}</td>
+            </tr>
+          </table>
+        </td></tr>`;
+
   return `<!doctype html>
 <html><body style="margin:0;padding:0;background:#f6f4ef;font-family:Georgia,'Times New Roman',serif;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f6f4ef;padding:32px 12px;">
@@ -90,16 +132,9 @@ function renderEmail(opts: {
           </p>
         </td></tr>
         ${paymentBlock}
-        <tr><td style="padding:8px 32px 0;">
-          <h3 style="margin:16px 0 4px;font-size:14px;color:#777;text-transform:uppercase;letter-spacing:1px;font-family:Arial,sans-serif;font-weight:600;">Your items</h3>
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-family:Arial,sans-serif;">
-            ${itemsRows}
-            <tr>
-              <td style="padding:14px 0 0;color:#1a1a1a;font-size:14px;font-weight:600;">Total</td>
-              <td style="padding:14px 0 0;color:#1a1a1a;font-size:14px;font-weight:600;text-align:right;">EGP ${Number(opts.total).toLocaleString()}</td>
-            </tr>
-          </table>
-        </td></tr>
+        ${descBlock}
+        ${itemsSection}
+        ${whatsappBlock}
         <tr><td style="padding:24px 32px 32px;">
           <p style="margin:16px 0 0;color:#555;font-size:14px;line-height:1.6;font-family:Arial,sans-serif;">
             Thank you for choosing Suzy Wood — we're so grateful to be part of your story.
@@ -137,7 +172,7 @@ export const sendOrderStatusEmail = createServerFn({ method: "POST" })
 
     const { data: order, error } = await supabase
       .from("orders")
-      .select("id, order_number, customer_name, customer_email, status, total, upfront_amount, remaining_amount, order_items(product_name, quantity, unit_price, size, finish)")
+      .select("id, order_number, customer_name, customer_email, status, total, upfront_amount, remaining_amount, is_manual_order, product_description, order_items(product_name, quantity, unit_price, size, finish)")
       .eq("id", data.orderId)
       .single();
 
@@ -154,6 +189,8 @@ export const sendOrderStatusEmail = createServerFn({ method: "POST" })
       total: Number(order.total),
       upfront: order.upfront_amount != null ? Number(order.upfront_amount) : null,
       remaining: order.remaining_amount != null ? Number(order.remaining_amount) : null,
+      isManualOrder: Boolean((order as any).is_manual_order),
+      productDescription: (order as any).product_description ?? null,
     });
 
     const subject = `Order ${order.order_number}: ${STATUS_LABELS[order.status] ?? order.status}`;
