@@ -284,6 +284,9 @@ export type Database = {
         Row: {
           address: string
           area: string
+          booking_status: string
+          confirmed_date: string | null
+          confirmed_email_sent_at: string | null
           created_at: string
           customer_email: string | null
           customer_notification_sent_at: string | null
@@ -291,11 +294,16 @@ export type Database = {
           id: string
           notes: string | null
           owner_notification_sent_at: string | null
+          payment_email_sent_at: string | null
+          payment_link: string | null
           phone: string
           preferred_day: string
           product_id: string | null
           product_name: string
+          quotation_email_sent_at: string | null
+          quotation_price: number | null
           quoted_price: number | null
+          received_email_sent_at: string | null
           status: Database["public"]["Enums"]["measurement_booking_status"]
           time_slot: string
           updated_at: string
@@ -304,6 +312,9 @@ export type Database = {
         Insert: {
           address: string
           area: string
+          booking_status?: string
+          confirmed_date?: string | null
+          confirmed_email_sent_at?: string | null
           created_at?: string
           customer_email?: string | null
           customer_notification_sent_at?: string | null
@@ -311,11 +322,16 @@ export type Database = {
           id?: string
           notes?: string | null
           owner_notification_sent_at?: string | null
+          payment_email_sent_at?: string | null
+          payment_link?: string | null
           phone: string
           preferred_day: string
           product_id?: string | null
           product_name: string
+          quotation_email_sent_at?: string | null
+          quotation_price?: number | null
           quoted_price?: number | null
+          received_email_sent_at?: string | null
           status?: Database["public"]["Enums"]["measurement_booking_status"]
           time_slot: string
           updated_at?: string
@@ -324,6 +340,9 @@ export type Database = {
         Update: {
           address?: string
           area?: string
+          booking_status?: string
+          confirmed_date?: string | null
+          confirmed_email_sent_at?: string | null
           created_at?: string
           customer_email?: string | null
           customer_notification_sent_at?: string | null
@@ -331,11 +350,16 @@ export type Database = {
           id?: string
           notes?: string | null
           owner_notification_sent_at?: string | null
+          payment_email_sent_at?: string | null
+          payment_link?: string | null
           phone?: string
           preferred_day?: string
           product_id?: string | null
           product_name?: string
+          quotation_email_sent_at?: string | null
+          quotation_price?: number | null
           quoted_price?: number | null
+          received_email_sent_at?: string | null
           status?: Database["public"]["Enums"]["measurement_booking_status"]
           time_slot?: string
           updated_at?: string
