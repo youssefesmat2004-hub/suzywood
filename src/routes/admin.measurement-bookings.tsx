@@ -1,34 +1,42 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, Check, CheckCircle2, Send, BadgeCheck } from "lucide-react";
 import { toast } from "sonner";
+import { sendMeasurementBookingEmail } from "@/lib/measurement-booking-emails.functions";
 
 export const Route = createFileRoute("/admin/measurement-bookings")({
   head: () => ({ meta: [{ title: "Measurement Bookings — Suzy Wood Admin" }, { name: "robots", content: "noindex,nofollow" }] }),
   component: AdminMeasurementBookings,
 });
 
-type Status = "new" | "contacted" | "visited" | "quoted" | "ordered" | "cancelled";
+type BookingStatus = "received" | "date_confirmed" | "quotation_sent" | "payment_confirmed" | "installed";
 
 type Booking = {
   id: string;
   product_id: string | null;
   product_name: string;
   full_name: string;
+  customer_email: string | null;
   phone: string;
   area: string;
   address: string;
   preferred_day: string;
   time_slot: string;
   notes: string | null;
-  status: Status;
-  quoted_price: number | null;
+  booking_status: BookingStatus;
+  confirmed_date: string | null;
+  quotation_price: number | null;
+  payment_link: string | null;
+  confirmed_email_sent_at: string | null;
+  quotation_email_sent_at: string | null;
+  payment_email_sent_at: string | null;
   created_at: string;
 };
 
@@ -39,19 +47,30 @@ const DAY_LABELS: Record<string, string> = {
 const SLOT_LABELS: Record<string, string> = {
   morning: "Morning (9–12)", afternoon: "Afternoon (12–4)", evening: "Evening (4–8)",
 };
-const STATUS_COLOR: Record<Status, string> = {
-  new: "bg-amber-100 text-amber-800 border-amber-200",
-  contacted: "bg-blue-100 text-blue-800 border-blue-200",
-  visited: "bg-indigo-100 text-indigo-800 border-indigo-200",
-  quoted: "bg-purple-100 text-purple-800 border-purple-200",
-  ordered: "bg-emerald-100 text-emerald-800 border-emerald-200",
-  cancelled: "bg-rose-100 text-rose-800 border-rose-200",
+const STATUS_META: Record<BookingStatus, { label: string; cls: string }> = {
+  received:           { label: "Booking Received",  cls: "bg-amber-100 text-amber-800 border-amber-200" },
+  date_confirmed:     { label: "Date Confirmed",    cls: "bg-blue-100 text-blue-800 border-blue-200" },
+  quotation_sent:     { label: "Quotation Sent",    cls: "bg-purple-100 text-purple-800 border-purple-200" },
+  payment_confirmed:  { label: "Payment Confirmed", cls: "bg-emerald-100 text-emerald-800 border-emerald-200" },
+  installed:          { label: "Installed",         cls: "bg-slate-200 text-slate-800 border-slate-300" },
 };
+
+function toLocalInput(iso: string | null): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
 
 function AdminMeasurementBookings() {
   const [rows, setRows] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dateDrafts, setDateDrafts] = useState<Record<string, string>>({});
   const [priceDrafts, setPriceDrafts] = useState<Record<string, string>>({});
+  const [linkDrafts, setLinkDrafts] = useState<Record<string, string>>({});
+  const [busy, setBusy] = useState<Record<string, boolean>>({});
+
+  const sendEmail = useServerFn(sendMeasurementBookingEmail);
 
   const load = async () => {
     const { data, error } = await supabase
@@ -59,7 +78,7 @@ function AdminMeasurementBookings() {
       .select("*")
       .order("created_at", { ascending: false });
     if (error) toast.error("Couldn't load measurement bookings");
-    else setRows((data ?? []) as Booking[]);
+    else setRows(((data ?? []) as unknown) as Booking[]);
     setLoading(false);
   };
 
@@ -72,33 +91,69 @@ function AdminMeasurementBookings() {
     return () => { supabase.removeChannel(ch); };
   }, []);
 
-  const updateStatus = async (b: Booking, status: Status) => {
-    const prev = b.status;
-    setRows((r) => r.map((x) => x.id === b.id ? { ...x, status } : x));
-    const { error } = await supabase.from("measurement_bookings").update({ status }).eq("id", b.id);
-    if (error) {
-      toast.error("Couldn't update status");
-      setRows((r) => r.map((x) => x.id === b.id ? { ...x, status: prev } : x));
-      return;
-    }
-    toast.success(`Marked as ${status}`);
-  };
+  const setBusyFor = (id: string, v: boolean) =>
+    setBusy((p) => ({ ...p, [id]: v }));
 
-  const saveQuote = async (b: Booking) => {
-    const raw = priceDrafts[b.id];
-    const num = Number(raw);
-    if (!raw || !Number.isFinite(num) || num <= 0) {
-      toast.error("Enter a valid price");
-      return;
-    }
+  const confirmDate = async (b: Booking) => {
+    const raw = dateDrafts[b.id] ?? toLocalInput(b.confirmed_date);
+    if (!raw) return toast.error("Pick a date and time first");
+    const iso = new Date(raw).toISOString();
+    setBusyFor(b.id, true);
     const { error } = await supabase
       .from("measurement_bookings")
-      .update({ quoted_price: num, status: "quoted" })
+      .update({ confirmed_date: iso, booking_status: "date_confirmed" } as never)
       .eq("id", b.id);
-    if (error) { toast.error("Couldn't save quote"); return; }
-    toast.success("Quote saved");
-    setRows((r) => r.map((x) => x.id === b.id ? { ...x, quoted_price: num, status: "quoted" } : x));
-    setPriceDrafts((d) => { const c = { ...d }; delete c[b.id]; return c; });
+    if (error) { setBusyFor(b.id, false); toast.error("Couldn't confirm date", { description: error.message }); return; }
+    const res = await sendEmail({ data: { bookingId: b.id, kind: "confirmed" } });
+    setBusyFor(b.id, false);
+    if (!res?.ok) toast.error("Date saved, but email failed", { description: (res as { error?: string })?.error });
+    else toast.success("Date confirmed — customer emailed");
+    load();
+  };
+
+  const sendQuotation = async (b: Booking) => {
+    const rawPrice = priceDrafts[b.id] ?? (b.quotation_price?.toString() ?? "");
+    const link = (linkDrafts[b.id] ?? b.payment_link ?? "").trim();
+    const num = Number(rawPrice);
+    if (!rawPrice || !Number.isFinite(num) || num <= 0) return toast.error("Enter a valid quotation price");
+    if (!link) return toast.error("Enter a payment link or instructions");
+    setBusyFor(b.id, true);
+    const { error } = await supabase
+      .from("measurement_bookings")
+      .update({ quotation_price: num, payment_link: link, booking_status: "quotation_sent" } as never)
+      .eq("id", b.id);
+    if (error) { setBusyFor(b.id, false); toast.error("Couldn't save quotation", { description: error.message }); return; }
+    const res = await sendEmail({ data: { bookingId: b.id, kind: "quotation" } });
+    setBusyFor(b.id, false);
+    if (!res?.ok) toast.error("Quotation saved, but email failed", { description: (res as { error?: string })?.error });
+    else toast.success("Quotation sent");
+    load();
+  };
+
+  const markPaid = async (b: Booking) => {
+    setBusyFor(b.id, true);
+    const { error } = await supabase
+      .from("measurement_bookings")
+      .update({ booking_status: "payment_confirmed" } as never)
+      .eq("id", b.id);
+    if (error) { setBusyFor(b.id, false); toast.error("Couldn't update status"); return; }
+    const res = await sendEmail({ data: { bookingId: b.id, kind: "paid" } });
+    setBusyFor(b.id, false);
+    if (!res?.ok) toast.error("Marked as paid, but email failed", { description: (res as { error?: string })?.error });
+    else toast.success("Marked as paid — customer emailed");
+    load();
+  };
+
+  const markInstalled = async (b: Booking) => {
+    setBusyFor(b.id, true);
+    const { error } = await supabase
+      .from("measurement_bookings")
+      .update({ booking_status: "installed" } as never)
+      .eq("id", b.id);
+    setBusyFor(b.id, false);
+    if (error) { toast.error("Couldn't update status"); return; }
+    toast.success("Marked as installed");
+    load();
   };
 
   const whatsapp = (b: Booking) => {
@@ -113,83 +168,110 @@ function AdminMeasurementBookings() {
         <p className="text-sm text-muted-foreground mt-1">Safety Gates and other custom-measurement requests.</p>
       </div>
 
-      <div className="rounded-xl border bg-card">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Customer</TableHead>
-              <TableHead>Phone</TableHead>
-              <TableHead>Area</TableHead>
-              <TableHead>Address</TableHead>
-              <TableHead>Product</TableHead>
-              <TableHead>Day</TableHead>
-              <TableHead>Time</TableHead>
-              <TableHead>Notes</TableHead>
-              <TableHead>Booked</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Quote (EGP)</TableHead>
-              <TableHead></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? (
-              Array.from({ length: 3 }).map((_, i) => (
-                <TableRow key={i}><TableCell colSpan={12}><Skeleton className="h-6 w-full" /></TableCell></TableRow>
-              ))
-            ) : rows.length === 0 ? (
-              <TableRow><TableCell colSpan={12} className="text-center text-muted-foreground py-10">No measurement bookings yet</TableCell></TableRow>
-            ) : rows.map((b) => (
-              <TableRow key={b.id}>
-                <TableCell className="font-medium">{b.full_name}</TableCell>
-                <TableCell className="font-mono text-xs">{b.phone}</TableCell>
-                <TableCell>{b.area}</TableCell>
-                <TableCell className="max-w-[200px] truncate text-xs text-muted-foreground" title={b.address}>{b.address}</TableCell>
-                <TableCell className="max-w-[180px] truncate" title={b.product_name}>{b.product_name}</TableCell>
-                <TableCell>{DAY_LABELS[b.preferred_day] ?? b.preferred_day}</TableCell>
-                <TableCell>{SLOT_LABELS[b.time_slot] ?? b.time_slot}</TableCell>
-                <TableCell className="max-w-[160px] truncate text-xs text-muted-foreground" title={b.notes ?? ""}>{b.notes || "—"}</TableCell>
-                <TableCell className="text-xs text-muted-foreground">{new Date(b.created_at).toLocaleString()}</TableCell>
-                <TableCell>
-                  <Select value={b.status} onValueChange={(v) => updateStatus(b, v as Status)}>
-                    <SelectTrigger className={`h-8 w-32 border ${STATUS_COLOR[b.status]}`}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="new">New</SelectItem>
-                      <SelectItem value="contacted">Contacted</SelectItem>
-                      <SelectItem value="visited">Visited</SelectItem>
-                      <SelectItem value="quoted">Quoted</SelectItem>
-                      <SelectItem value="ordered">Ordered</SelectItem>
-                      <SelectItem value="cancelled">Cancelled</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </TableCell>
-                <TableCell>
-                  {b.status === "quoted" || b.quoted_price != null ? (
-                    <div className="flex items-center gap-2">
+      {loading ? (
+        <div className="space-y-3">
+          {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-40 w-full rounded-xl" />)}
+        </div>
+      ) : rows.length === 0 ? (
+        <div className="rounded-xl border bg-card py-12 text-center text-muted-foreground">No measurement bookings yet</div>
+      ) : (
+        <div className="grid gap-4">
+          {rows.map((b) => {
+            const status = STATUS_META[b.booking_status] ?? STATUS_META.received;
+            const isBusy = !!busy[b.id];
+            return (
+              <div key={b.id} className="rounded-xl border bg-card p-5 space-y-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="space-y-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h2 className="font-medium text-lg">{b.full_name}</h2>
+                      <span className={`text-xs px-2 py-0.5 rounded-full border ${status.cls}`}>{status.label}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">{b.product_name} · Booked {new Date(b.created_at).toLocaleString()}</p>
+                  </div>
+                  <Button size="sm" variant="outline" onClick={() => whatsapp(b)}>
+                    <MessageCircle className="h-4 w-4 mr-1" /> WhatsApp
+                  </Button>
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-3 text-sm">
+                  <div><span className="text-muted-foreground">Email:</span> {b.customer_email || <span className="text-rose-600">missing</span>}</div>
+                  <div><span className="text-muted-foreground">Phone:</span> <span className="font-mono">{b.phone}</span></div>
+                  <div><span className="text-muted-foreground">Area:</span> {b.area}</div>
+                  <div><span className="text-muted-foreground">Preferred:</span> {DAY_LABELS[b.preferred_day] ?? b.preferred_day} · {SLOT_LABELS[b.time_slot] ?? b.time_slot}</div>
+                  <div className="sm:col-span-2"><span className="text-muted-foreground">Address:</span> {b.address}</div>
+                  {b.notes && <div className="sm:col-span-2"><span className="text-muted-foreground">Notes:</span> {b.notes}</div>}
+                </div>
+
+                {/* Stage 1 → Confirm date */}
+                <div className="rounded-lg border p-3 bg-muted/30">
+                  <div className="flex flex-wrap items-end gap-2">
+                    <div className="flex-1 min-w-[220px] space-y-1">
+                      <Label className="text-xs">Confirmed date &amp; time</Label>
+                      <Input
+                        type="datetime-local"
+                        value={dateDrafts[b.id] ?? toLocalInput(b.confirmed_date)}
+                        onChange={(e) => setDateDrafts((d) => ({ ...d, [b.id]: e.target.value }))}
+                      />
+                    </div>
+                    <Button size="sm" disabled={isBusy} onClick={() => confirmDate(b)}>
+                      <CheckCircle2 className="h-4 w-4 mr-1" /> Confirm Date
+                    </Button>
+                  </div>
+                  {b.confirmed_email_sent_at && (
+                    <p className="text-xs text-emerald-700 mt-2 flex items-center gap-1"><Check className="h-3 w-3" /> Confirmation email sent</p>
+                  )}
+                </div>
+
+                {/* Stage 2 → Quotation */}
+                <div className="rounded-lg border p-3 bg-muted/30 space-y-2">
+                  <div className="grid sm:grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Quotation price (EGP)</Label>
                       <Input
                         type="number"
                         min={0}
-                        className="h-8 w-28"
-                        value={priceDrafts[b.id] ?? (b.quoted_price?.toString() ?? "")}
+                        value={priceDrafts[b.id] ?? (b.quotation_price?.toString() ?? "")}
                         onChange={(e) => setPriceDrafts((d) => ({ ...d, [b.id]: e.target.value }))}
                       />
-                      <Button size="sm" variant="outline" onClick={() => saveQuote(b)}>Save</Button>
                     </div>
-                  ) : (
-                    <span className="text-xs text-muted-foreground">—</span>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Payment link / instructions</Label>
+                      <Textarea
+                        rows={2}
+                        value={linkDrafts[b.id] ?? (b.payment_link ?? "")}
+                        onChange={(e) => setLinkDrafts((d) => ({ ...d, [b.id]: e.target.value }))}
+                        placeholder="InstaPay link or instructions"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-end">
+                    <Button size="sm" disabled={isBusy} onClick={() => sendQuotation(b)}>
+                      <Send className="h-4 w-4 mr-1" /> Send Quotation
+                    </Button>
+                  </div>
+                  {b.quotation_email_sent_at && (
+                    <p className="text-xs text-emerald-700 flex items-center gap-1"><Check className="h-3 w-3" /> Quotation email sent</p>
                   )}
-                </TableCell>
-                <TableCell>
-                  <Button size="sm" variant="outline" onClick={() => whatsapp(b)} title="Send WhatsApp">
-                    <MessageCircle className="h-4 w-4" />
+                </div>
+
+                {/* Stage 3 → Mark paid / installed */}
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button size="sm" variant="outline" disabled={isBusy || b.booking_status === "payment_confirmed" || b.booking_status === "installed"} onClick={() => markPaid(b)}>
+                    <BadgeCheck className="h-4 w-4 mr-1" /> Mark as Paid
                   </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+                  <Button size="sm" variant="outline" disabled={isBusy || b.booking_status === "installed"} onClick={() => markInstalled(b)}>
+                    Mark as Installed
+                  </Button>
+                  {b.payment_email_sent_at && (
+                    <span className="text-xs text-emerald-700 flex items-center gap-1"><Check className="h-3 w-3" /> Payment email sent</span>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
