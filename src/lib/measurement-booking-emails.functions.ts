@@ -230,9 +230,11 @@ export const sendMeasurementBookingEmail = createServerFn({ method: "POST" })
     const { subject, html } = renderEmail(data.kind, b);
     const res = await sendResend(b.customer_email, subject, html);
     if (!res.ok) return res;
+    const patch: Record<string, string> = {};
+    patch[sentCol as string] = new Date().toISOString();
     await supabaseAdmin
       .from("measurement_bookings")
-      .update({ [sentCol]: new Date().toISOString() })
+      .update(patch as never)
       .eq("id", data.bookingId);
     return { ok: true };
   });
