@@ -688,6 +688,7 @@ function MeasurementBookingDialog({
   productName: string;
 }) {
   const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [area, setArea] = useState<string>("Cairo");
   const [address, setAddress] = useState("");
@@ -698,31 +699,38 @@ function MeasurementBookingDialog({
   const [done, setDone] = useState(false);
 
   const reset = () => {
-    setFullName(""); setPhone(""); setArea("Cairo"); setAddress("");
+    setFullName(""); setEmail(""); setPhone(""); setArea("Cairo"); setAddress("");
     setDay("saturday"); setSlot("morning"); setNotes(""); setDone(false);
   };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName.trim() || fullName.length > 100) return toast.error("Please enter your full name");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return toast.error("Please enter a valid email address");
     if (!/^01[0-9]{9}$/.test(phone)) return toast.error("Phone must be an 11-digit Egyptian number (01XXXXXXXXX)");
     if (address.trim().length < 3) return toast.error("Please enter your full address");
     setSubmitting(true);
-    const { error } = await supabase.from("measurement_bookings").insert({
+    const { data: inserted, error } = await supabase.from("measurement_bookings").insert({
       product_id: productId,
       product_name: productName,
       full_name: fullName.trim(),
+      customer_email: email.trim(),
       phone: phone.trim(),
       area,
       address: address.trim(),
       preferred_day: day,
       time_slot: slot,
       notes: notes.trim() || null,
-    });
+    }).select("id").single();
     setSubmitting(false);
     if (error) {
       toast.error("Couldn't submit booking", { description: error.message });
       return;
+    }
+    if (inserted?.id) {
+      // Fire-and-forget confirmation email — don't block the success screen.
+      const { sendBookingReceivedEmail } = await import("@/lib/measurement-booking-emails.functions");
+      sendBookingReceivedEmail({ data: { bookingId: inserted.id } }).catch(() => {});
     }
     setDone(true);
   };
@@ -757,6 +765,10 @@ function MeasurementBookingDialog({
               <div className="space-y-1.5">
                 <Label htmlFor="mb-phone">Phone number</Label>
                 <Input id="mb-phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="01XXXXXXXXX" inputMode="tel" required />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="mb-email">Email</Label>
+                <Input id="mb-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" required />
               </div>
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
