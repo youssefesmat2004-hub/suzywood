@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useServerFn } from "@tanstack/react-start";
 import { notifyOwnerNewCustomBuild } from "@/lib/owner-notifications.functions";
+import { sendCustomBuildReceivedEmail } from "@/lib/customer-received-emails.functions";
 import { submitCustomBuildRequest } from "@/lib/public-submissions.functions";
 import { toast } from "sonner";
 import { ImagePlus, X, Crop as CropIcon } from "lucide-react";
@@ -17,6 +18,7 @@ export function CustomBuildForm() {
   const { user } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   const notifyOwner = useServerFn(notifyOwnerNewCustomBuild);
+  const sendReceived = useServerFn(sendCustomBuildReceivedEmail);
   const submit = useServerFn(submitCustomBuildRequest);
   const [room, setRoom] = useState("nursery");
   const [file, setFile] = useState<File | Blob | null>(null);
@@ -87,6 +89,9 @@ export function CustomBuildForm() {
     } else {
       notifyOwner({ data: { requestId: res.id } }).catch((err) =>
         console.error("Owner custom build notify failed", err),
+      );
+      sendReceived({ data: { requestId: res.id } }).catch((err) =>
+        console.error("Custom build received email failed", err),
       );
       toast.success("Request received", { description: "Our team will reach out within two working days." });
       (e.target as HTMLFormElement).reset();

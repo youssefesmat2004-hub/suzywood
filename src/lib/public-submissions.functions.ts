@@ -5,6 +5,7 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 const bookingSchema = z.object({
   full_name: z.string().trim().min(1).max(100),
   phone: z.string().trim().regex(/^01[0-9]{9}$/),
+  customer_email: z.string().trim().email().max(255).optional().nullable(),
   contact_method: z.enum(["whatsapp", "phone"]),
   preferred_day: z.enum(["saturday", "sunday", "monday", "tuesday", "wednesday", "thursday"]),
   time_slot: z.enum(["morning", "afternoon", "evening"]),
@@ -19,6 +20,7 @@ export const submitBooking = createServerFn({ method: "POST" })
       .insert([{
         full_name: data.full_name,
         phone: data.phone,
+        customer_email: data.customer_email ?? null,
         contact_method: data.contact_method,
         preferred_day: data.preferred_day,
         time_slot: data.time_slot,

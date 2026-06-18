@@ -1,0 +1,1 @@
+ALTER TABLE public.custom_build_requests ADD COLUMN IF NOT EXISTS customer_notification_sent_at timestamptz;

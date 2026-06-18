@@ -235,3 +235,56 @@ export const notifyOwnerNewCustomBuild = createServerFn({ method: "POST" })
     }
     return { ok };
   });
+
+export const notifyOwnerNewMeasurementBooking = createServerFn({ method: "POST" })
+  .inputValidator((data) => z.object({ bookingId: z.string().uuid() }).parse(data))
+  .handler(async ({ data }) => {
+    const { data: b, error } = await supabaseAdmin
+      .from("measurement_bookings")
+      .select("id, full_name, customer_email, phone, product_name, area, address, preferred_day, time_slot, notes, created_at, owner_notification_sent_at")
+      .eq("id", data.bookingId)
+      .single();
+    if (error || !b) return { ok: false };
+    if (!recent(b.created_at as string, 10)) return { ok: false, skipped: "too_old" };
+    if (b.owner_notification_sent_at) return { ok: false, skipped: "already_sent" };
+
+    const { data: claim, error: claimErr } = await supabaseAdmin
+      .from("measurement_bookings")
+      .update({ owner_notification_sent_at: new Date().toISOString() })
+      .eq("id", data.bookingId)
+      .is("owner_notification_sent_at", null)
+      .select("id")
+      .maybeSingle();
+    if (claimErr || !claim) return { ok: false, skipped: "already_sent" };
+
+    const link = `${ADMIN_BASE}/admin/measurement-bookings`;
+    const html = `<!doctype html><html><body style="margin:0;padding:0;background:#f6f4ef;font-family:Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="padding:24px 12px;background:#f6f4ef;"><tr><td align="center">
+<table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:8px;max-width:600px;width:100%;">
+  <tr><td style="padding:24px 28px 8px;">
+    <h1 style="margin:0;font-size:20px;color:#1a1a1a;">📐 New Measurement Booking</h1>
+    <p style="margin:8px 0 0;color:#555;font-size:14px;">${esc(b.product_name ?? "Safety gate / custom measurement")}</p>
+  </td></tr>
+  <tr><td style="padding:8px 28px;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="font-size:14px;color:#222;line-height:1.7;">
+      <tr><td><strong>Name:</strong></td><td>${esc(b.full_name)}</td></tr>
+      <tr><td><strong>Email:</strong></td><td>${esc(b.customer_email ?? "—")}</td></tr>
+      <tr><td><strong>Phone:</strong></td><td>${esc(b.phone)}</td></tr>
+      <tr><td><strong>Area:</strong></td><td>${esc(b.area)}</td></tr>
+      <tr><td valign="top"><strong>Address:</strong></td><td>${esc(b.address)}</td></tr>
+      <tr><td><strong>Preferred day:</strong></td><td>${esc(b.preferred_day)}</td></tr>
+      <tr><td><strong>Time slot:</strong></td><td>${esc(b.time_slot)}</td></tr>
+      ${b.notes ? `<tr><td valign="top"><strong>Notes:</strong></td><td>${esc(b.notes)}</td></tr>` : ""}
+    </table>
+  </td></tr>
+  <tr><td style="padding:20px 28px 28px;">
+    <a href="${link}" style="display:inline-block;background:#1a1a1a;color:#fff;text-decoration:none;padding:12px 20px;border-radius:6px;font-size:14px;">Open measurement bookings →</a>
+  </td></tr>
+</table></td></tr></table></body></html>`;
+
+    const ok = await sendViaResend(`📐 New Measurement Booking — ${b.full_name}`, html);
+    if (!ok) {
+      await supabaseAdmin.from("measurement_bookings").update({ owner_notification_sent_at: null }).eq("id", data.bookingId);
+    }
+    return { ok };
+  });
