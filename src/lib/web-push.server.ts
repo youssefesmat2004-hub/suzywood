@@ -27,6 +27,9 @@ function concat(...parts: Uint8Array[]): Uint8Array {
   return out;
 }
 function utf8(s: string): Uint8Array { return new TextEncoder().encode(s); }
+// Casts a Uint8Array to a BufferSource accepted by Web Crypto / fetch under
+// strict TS lib settings where Uint8Array carries an ArrayBufferLike generic.
+const bs = (u: Uint8Array) => u as unknown as BufferSource;
 
 // ---------- VAPID key management ----------
 type VapidKeys = { publicKey: string; privateJwk: JsonWebKey; subject: string };
@@ -85,14 +88,14 @@ async function signVapidJwt(endpoint: string, keys: VapidKeys): Promise<string> 
     false,
     ["sign"],
   );
-  const sig = await crypto.subtle.sign({ name: "ECDSA", hash: "SHA-256" }, privKey, utf8(signingInput));
+  const sig = await crypto.subtle.sign({ name: "ECDSA", hash: "SHA-256" }, privKey, bs(utf8(signingInput)));
   return `${signingInput}.${b64urlEncode(sig)}`;
 }
 
 // ---------- HKDF helpers (RFC 5869) ----------
 async function hmacSha256(key: Uint8Array, data: Uint8Array): Promise<Uint8Array> {
-  const k = await crypto.subtle.importKey("raw", key, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-  return new Uint8Array(await crypto.subtle.sign("HMAC", k, data));
+  const k = await crypto.subtle.importKey("raw", bs(key), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  return new Uint8Array(await crypto.subtle.sign("HMAC", k, bs(data)));
 }
 async function hkdfExpand(prk: Uint8Array, info: Uint8Array, length: number): Promise<Uint8Array> {
   // For length <= 32 we only need one block: T(1) = HMAC(PRK, info || 0x01)
@@ -118,7 +121,7 @@ async function encryptPayload(
   const as_public = new Uint8Array(await crypto.subtle.exportKey("raw", ephemeral.publicKey));
   const uaPubKey = await crypto.subtle.importKey(
     "raw",
-    ua_public,
+    bs(ua_public),
     { name: "ECDH", namedCurve: "P-256" },
     false,
     [],
@@ -142,9 +145,9 @@ async function encryptPayload(
 
   // Plaintext with single-record padding delimiter 0x02
   const plaintext = concat(payload, new Uint8Array([0x02]));
-  const cekKey = await crypto.subtle.importKey("raw", cek, { name: "AES-GCM" }, false, ["encrypt"]);
+  const cekKey = await crypto.subtle.importKey("raw", bs(cek), { name: "AES-GCM" }, false, ["encrypt"]);
   const ciphertext = new Uint8Array(
-    await crypto.subtle.encrypt({ name: "AES-GCM", iv: nonce }, cekKey, plaintext),
+    await crypto.subtle.encrypt({ name: "AES-GCM", iv: bs(nonce) }, cekKey, bs(plaintext)),
   );
 
   // RFC 8188 header: salt(16) || rs(uint32 BE) || idlen(1) || keyid(idlen)
@@ -170,7 +173,7 @@ async function sendOne(sub: PushSubRow, payload: PushPayload, keys: VapidKeys): 
         TTL: "86400",
         Authorization: `vapid t=${jwt}, k=${keys.publicKey}`,
       },
-      body,
+      body: bs(body) as BodyInit,
     });
     if (res.status === 404 || res.status === 410) return { ok: false, remove: true };
     if (!res.ok) {
