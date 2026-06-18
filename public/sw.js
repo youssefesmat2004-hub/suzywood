@@ -1,12 +1,25 @@
 // Suzy Wood admin push notification service worker.
 // This SW is intentionally minimal: no app-shell caching, just push handling.
+const SW_VERSION = "2026-06-18-admin-no-cache-v2";
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil((async () => {
+    if (self.caches) {
+      const keys = await self.caches.keys();
+      await Promise.all(keys.map((key) => self.caches.delete(key)));
+    }
+    await self.clients.claim();
+  })());
+});
+
+self.addEventListener("fetch", (event) => {
+  if (event.request.mode === "navigate") {
+    event.respondWith(fetch(event.request));
+  }
 });
 
 self.addEventListener("push", (event) => {
