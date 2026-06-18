@@ -1,31 +1,24 @@
-# Custom Build Request — Status emails & admin actions
+## Problem
 
-## What you'll see
-- Each custom build card in the admin panel already shows a colored status pill (the status dropdown). I'll keep that and add an explicit **Accept** button next to it (and a **Reject** button for symmetry), so one click both updates status and triggers the email.
-- When status moves to **Accepted** → customer gets a warm Suzy Wood-branded email confirming acceptance, recapping their request (room type, description, inspiration image if any), promising contact within 24 hours, with a WhatsApp CTA button.
-- When status moves to **Rejected/Declined** → customer gets a polite email saying we can't fulfill the request right now, with a CTA to browse standard products.
-- Emails are sent only once per status transition (tracked in DB) so toggling status back and forth won't spam the customer.
+`src/routes/admin.tsx` is the layout for everything under `/admin`, including `/admin/login`. Its `AdminGate` requires the user to already be signed in as admin/carpenter before rendering `<Outlet />`. That means on a fresh client (no Supabase session), `/admin/login` itself is gated, so it just shows "Checking access…" forever — the login form never renders, and the user can't sign in.
 
-## Status values
-The table already has a `status` column with values: `new`, `contacted`, `accepted`, `declined`, `completed`. I'll keep those (the request asked for Pending/Accepted/Rejected/Completed — I'll map `new` → "Pending" and `declined` → "Rejected" in the UI labels so no data migration is needed, and your existing requests keep working).
+This is most visible when opening the PWA installed to the home screen: it has its own storage and no existing session, so it lands on the gate with no way out.
 
-## Technical changes
+## Fix
 
-**Migration**
-- Add `accepted_email_sent_at timestamptz` and `rejected_email_sent_at timestamptz` to `custom_build_requests` (prevents duplicate sends).
+Edit `src/routes/admin.tsx` so the gate skips for the login route:
 
-**New server function** `src/lib/custom-build-emails.functions.ts`
-- `sendCustomBuildStatusEmail({ requestId, kind: 'accepted' | 'rejected' })`
-- Uses `requireSupabaseAuth` + admin role check (matching the pattern in `order-emails.functions.ts`).
-- Loads the request via `supabaseAdmin`, checks the corresponding `*_sent_at` is null, renders the HTML, sends via Resend connector gateway, stamps `*_sent_at`.
-- Two HTML templates styled to match the existing order email (cream `#f6f4ef` background, serif headings, rounded card, brand accent). Accepted template includes a green WhatsApp button linking to the store WhatsApp number; rejected template includes a CTA button to `/shop`.
+1. Read the current pathname with `useRouterState({ select: s => s.location.pathname })`.
+2. If pathname is `/admin/login`, render `<Outlet />` directly (no `AdminLayout` wrapper, no gate, no push setup).
+3. For all other admin paths, keep current behavior:
+   - While auth is loading or role check is loading → "Checking access…"
+   - If not signed in → `navigate("/admin/login", replace: true)`
+   - If signed in but not staff → `navigate("/admin/login", replace: true)`
+   - Otherwise → render `AdminLayout` with `<Outlet />` and `AdminPushSetup` (admin-only).
+4. Guard the redirect so we don't push `/admin/login` when we're already on it (avoids redundant navigations during the initial loading flicker).
 
-**Admin UI** (`src/routes/admin.custom-builds.tsx`)
-- Relabel statuses: `new`→"Pending", `declined`→"Rejected".
-- Add prominent **Accept** (green) and **Reject** (outline) buttons on each card. Clicking calls `updateStatus(row, 'accepted'|'declined')` which, on success, also invokes the new server function.
-- The status `<Select>` dropdown also triggers the email when changed to accepted/declined (same code path).
-- Show a small "✓ Customer notified" line under the status pill when `accepted_email_sent_at` / `rejected_email_sent_at` is set.
+No other files need to change. Login page (`admin.login.tsx`) continues to handle "already signed in as admin → go to /admin" itself.
 
-## Out of scope
-- No changes to the customer-facing custom build form.
-- No changes to the existing owner notification email that fires when a request is first submitted.
+## Why not move login outside `/admin/`
+
+Keeping the URL `/admin/login` matches existing links, bookmarks, and the PWA's manifest scope. A pathname check inside the gate is the smallest, safest change.

@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { useIsAdmin } from "@/lib/admin";
@@ -12,11 +12,14 @@ export const Route = createFileRoute("/admin")({
 });
 
 function AdminGate() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isLoginRoute = pathname === "/admin/login";
   const { user, loading: authLoading } = useAuth();
   const { isStaff, loading } = useIsAdmin();
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (isLoginRoute) return;
     if (authLoading) return;
     if (!user) {
       navigate({ to: "/admin/login", replace: true });
@@ -25,7 +28,11 @@ function AdminGate() {
     if (!loading && !isStaff) {
       navigate({ to: "/admin/login", replace: true });
     }
-  }, [user, authLoading, isStaff, loading, navigate]);
+  }, [user, authLoading, isStaff, loading, navigate, isLoginRoute]);
+
+  if (isLoginRoute) {
+    return <Outlet />;
+  }
 
   if (authLoading || loading || !isStaff) {
     return (
