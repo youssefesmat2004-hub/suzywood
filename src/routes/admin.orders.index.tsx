@@ -292,7 +292,7 @@ function ManualOrderModal({
   const setTotal = (v: string) => {
     const n = Number(v);
     if (Number.isFinite(n) && n > 0) {
-      const up = Math.round(n * 0.7);
+      const up = Math.round(n * 0.75);
       setForm((f) => ({ ...f, total: v, upfront: String(up), remaining: String(n - up) }));
     } else {
       setForm((f) => ({ ...f, total: v }));
