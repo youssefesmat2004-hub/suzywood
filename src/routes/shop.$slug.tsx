@@ -731,6 +731,8 @@ function MeasurementBookingDialog({
       // Fire-and-forget confirmation email — don't block the success screen.
       const { sendBookingReceivedEmail } = await import("@/lib/measurement-booking-emails.functions");
       sendBookingReceivedEmail({ data: { bookingId: inserted.id } }).catch(() => {});
+      const { notifyOwnerNewMeasurementBooking } = await import("@/lib/owner-notifications.functions");
+      notifyOwnerNewMeasurementBooking({ data: { bookingId: inserted.id } }).catch(() => {});
     }
     setDone(true);
   };
