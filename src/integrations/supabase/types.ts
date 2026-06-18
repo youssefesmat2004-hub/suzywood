@@ -209,6 +209,7 @@ export type Database = {
         Row: {
           accepted_email_sent_at: string | null
           created_at: string
+          customer_notification_sent_at: string | null
           description: string
           email: string
           full_name: string
@@ -224,6 +225,7 @@ export type Database = {
         Insert: {
           accepted_email_sent_at?: string | null
           created_at?: string
+          customer_notification_sent_at?: string | null
           description: string
           email: string
           full_name: string
@@ -239,6 +241,7 @@ export type Database = {
         Update: {
           accepted_email_sent_at?: string | null
           created_at?: string
+          customer_notification_sent_at?: string | null
           description?: string
           email?: string
           full_name?: string
