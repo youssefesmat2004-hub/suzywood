@@ -3,6 +3,8 @@ import { useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { useIsAdmin } from "@/lib/admin";
 import { AdminLayout } from "@/components/admin/AdminLayout";
+import { AdminPushSetup } from "@/components/admin/AdminPushSetup";
+import { useIsAdmin as _useIsAdmin } from "@/lib/admin";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin — Suzy Wood" }, { name: "robots", content: "noindex,nofollow" }] }),
@@ -36,6 +38,13 @@ function AdminGate() {
   return (
     <AdminLayout>
       <Outlet />
+      <AdminOnlyPush />
     </AdminLayout>
   );
+}
+
+function AdminOnlyPush() {
+  const { isAdmin } = _useIsAdmin();
+  if (!isAdmin) return null;
+  return <AdminPushSetup />;
 }
