@@ -298,7 +298,8 @@ function ManualOrderModal({
     const n = Number(v);
     if (Number.isFinite(n) && n > 0) {
       const up = Math.round(n * WHATSAPP_ORDER_DEPOSIT_RATE);
-      setForm((f) => ({ ...f, total: v, upfront: String(up), remaining: String(n - up) }));
+      const remaining = Math.round(n * WHATSAPP_ORDER_REMAINING_RATE);
+      setForm((f) => ({ ...f, total: v, upfront: String(up), remaining: String(remaining) }));
     } else {
       setForm((f) => ({ ...f, total: v }));
     }
