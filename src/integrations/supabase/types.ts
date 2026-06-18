@@ -797,6 +797,39 @@ export type Database = {
         }
         Relationships: []
       }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          id: string
+          last_used_at: string | null
+          p256dh: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          last_used_at?: string | null
+          p256dh: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          last_used_at?: string | null
+          p256dh?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       reviews: {
         Row: {
           body: string | null
@@ -883,6 +916,30 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      web_push_config: {
+        Row: {
+          created_at: string
+          id: boolean
+          vapid_private_key: string
+          vapid_public_key: string
+          vapid_subject: string
+        }
+        Insert: {
+          created_at?: string
+          id?: boolean
+          vapid_private_key: string
+          vapid_public_key: string
+          vapid_subject?: string
+        }
+        Update: {
+          created_at?: string
+          id?: boolean
+          vapid_private_key?: string
+          vapid_public_key?: string
+          vapid_subject?: string
         }
         Relationships: []
       }
