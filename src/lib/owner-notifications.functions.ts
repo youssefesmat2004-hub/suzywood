@@ -6,6 +6,15 @@ const OWNER_EMAILS = ["Youssef.esmat2004@gmail.com", "suzzy.wael@gmail.com"];
 const FROM = "Suzy Wood <info@suzywoodofficial.com>";
 const ADMIN_BASE = "https://suzywoodofficial.com";
 
+async function pushAdmins(payload: { title: string; body: string; url?: string; tag?: string }) {
+  try {
+    const { sendPushToAdmins } = await import("@/lib/web-push.server");
+    await sendPushToAdmins(payload);
+  } catch (e) {
+    console.error("pushAdmins failed", e);
+  }
+}
+
 function esc(s: string) {
   return String(s ?? "")
     .replace(/&/g, "&amp;")
@@ -128,6 +137,16 @@ export const notifyOwnerNewOrder = createServerFn({ method: "POST" })
     if (!ok) {
       await supabaseAdmin.from("orders").update({ owner_notification_sent_at: null }).eq("id", data.orderId);
     }
+    const firstItem = items[0];
+    const productSummary = firstItem
+      ? `${firstItem.product_name}${items.length > 1 ? ` + ${items.length - 1} more` : ""}`
+      : `Order ${order.order_number}`;
+    await pushAdmins({
+      title: "New Order! 🪵",
+      body: `${order.customer_name} — ${productSummary}`,
+      url: `/admin/orders/${order.id}`,
+      tag: `order-${order.id}`,
+    });
     return { ok };
   });
 
@@ -178,6 +197,12 @@ export const notifyOwnerNewBooking = createServerFn({ method: "POST" })
     if (!ok) {
       await supabaseAdmin.from("bookings").update({ owner_notification_sent_at: null }).eq("id", data.bookingId);
     }
+    await pushAdmins({
+      title: "New Booking 🪵",
+      body: `${b.full_name} — ${b.preferred_day} (${b.time_slot})`,
+      url: "/admin/bookings",
+      tag: `booking-${b.id}`,
+    });
     return { ok };
   });
 
@@ -233,6 +258,12 @@ export const notifyOwnerNewCustomBuild = createServerFn({ method: "POST" })
     if (!ok) {
       await supabaseAdmin.from("custom_build_requests").update({ owner_notification_sent_at: null }).eq("id", data.requestId);
     }
+    await pushAdmins({
+      title: "New Custom Build Request 🪵",
+      body: `${b.full_name} — ${b.room_type}`,
+      url: "/admin/custom-builds",
+      tag: `custom-${b.id}`,
+    });
     return { ok };
   });
 
@@ -286,5 +317,11 @@ export const notifyOwnerNewMeasurementBooking = createServerFn({ method: "POST" 
     if (!ok) {
       await supabaseAdmin.from("measurement_bookings").update({ owner_notification_sent_at: null }).eq("id", data.bookingId);
     }
+    await pushAdmins({
+      title: "New Measurement Booking 🪵",
+      body: `${b.full_name} — ${b.product_name ?? "Safety gate"}`,
+      url: "/admin/measurement-bookings",
+      tag: `measure-${b.id}`,
+    });
     return { ok };
   });

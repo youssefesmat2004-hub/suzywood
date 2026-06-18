@@ -1,0 +1,15 @@
+{
+  "name": "Suzy Wood Admin",
+  "short_name": "Suzy Wood",
+  "description": "Manage Suzy Wood orders, bookings and custom build requests.",
+  "start_url": "/admin",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f6f4ef",
+  "theme_color": "#2b2418",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
