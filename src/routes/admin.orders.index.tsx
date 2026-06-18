@@ -369,13 +369,29 @@ function ManualOrderModal({
             <Input type="number" min={0} required value={form.total} onChange={(e) => setTotal(e.target.value)} />
           </Field>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Deposit (70%)">
+            <Field label="Deposit (75%)">
               <Input type="number" min={0} value={form.upfront} onChange={(e) => setForm({ ...form, upfront: e.target.value })} />
             </Field>
-            <Field label="Remaining (30%)">
+            <Field label="Remaining (25%)">
               <Input type="number" min={0} value={form.remaining} onChange={(e) => setForm({ ...form, remaining: e.target.value })} />
             </Field>
           </div>
+          {Number.isFinite(Number(form.total)) && Number(form.total) > 0 && (
+            <div className="rounded-lg bg-muted/60 border px-4 py-3 text-sm space-y-1">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Deposit (75%)</span>
+                <span className="font-medium">EGP {Number(form.upfront).toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Remaining (25%)</span>
+                <span className="font-medium">EGP {Number(form.remaining).toLocaleString()}</span>
+              </div>
+              <div className="border-t pt-1 mt-1 flex justify-between">
+                <span className="text-muted-foreground">Total</span>
+                <span className="font-semibold">EGP {Number(form.total).toLocaleString()}</span>
+              </div>
+            </div>
+          )}
           <Field label="Order status">
             <select
               value={form.status}
