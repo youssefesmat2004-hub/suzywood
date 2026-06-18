@@ -47,6 +47,11 @@ const statusColor: Record<string, string> = {
   cancelled: "bg-rose-100 text-rose-800 border-rose-200",
 };
 
+const WHATSAPP_ORDER_DEPOSIT_RATE = 0.75;
+const WHATSAPP_ORDER_REMAINING_RATE = 1 - WHATSAPP_ORDER_DEPOSIT_RATE;
+const WHATSAPP_ORDER_DEPOSIT_LABEL = "Deposit Amount (75%)";
+const WHATSAPP_ORDER_REMAINING_LABEL = "Remaining Amount (25%)";
+
 export const Route = createFileRoute("/admin/orders/")({
   component: OrdersPage,
 });
@@ -292,7 +297,7 @@ function ManualOrderModal({
   const setTotal = (v: string) => {
     const n = Number(v);
     if (Number.isFinite(n) && n > 0) {
-      const up = Math.round(n * 0.75);
+      const up = Math.round(n * WHATSAPP_ORDER_DEPOSIT_RATE);
       setForm((f) => ({ ...f, total: v, upfront: String(up), remaining: String(n - up) }));
     } else {
       setForm((f) => ({ ...f, total: v }));
@@ -369,21 +374,22 @@ function ManualOrderModal({
             <Input type="number" min={0} required value={form.total} onChange={(e) => setTotal(e.target.value)} />
           </Field>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Deposit (75%)">
+            <Field label={WHATSAPP_ORDER_DEPOSIT_LABEL}>
               <Input type="number" min={0} value={form.upfront} onChange={(e) => setForm({ ...form, upfront: e.target.value })} />
             </Field>
-            <Field label="Remaining (25%)">
+            <Field label={WHATSAPP_ORDER_REMAINING_LABEL}>
               <Input type="number" min={0} value={form.remaining} onChange={(e) => setForm({ ...form, remaining: e.target.value })} />
             </Field>
           </div>
           {Number.isFinite(Number(form.total)) && Number(form.total) > 0 && (
             <div className="rounded-lg bg-muted/60 border px-4 py-3 text-sm space-y-1">
+              <div className="text-xs font-medium text-muted-foreground">Auto-calculated from total price: 75% deposit / 25% remaining</div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Deposit (75%)</span>
+                <span className="text-muted-foreground">{WHATSAPP_ORDER_DEPOSIT_LABEL}</span>
                 <span className="font-medium">EGP {Number(form.upfront).toLocaleString()}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Remaining (25%)</span>
+                <span className="text-muted-foreground">{WHATSAPP_ORDER_REMAINING_LABEL}</span>
                 <span className="font-medium">EGP {Number(form.remaining).toLocaleString()}</span>
               </div>
               <div className="border-t pt-1 mt-1 flex justify-between">
