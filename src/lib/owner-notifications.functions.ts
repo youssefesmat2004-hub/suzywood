@@ -6,6 +6,15 @@ const OWNER_EMAILS = ["Youssef.esmat2004@gmail.com", "suzzy.wael@gmail.com"];
 const FROM = "Suzy Wood <info@suzywoodofficial.com>";
 const ADMIN_BASE = "https://suzywoodofficial.com";
 
+async function pushAdmins(payload: { title: string; body: string; url?: string; tag?: string }) {
+  try {
+    const { sendPushToAdmins } = await import("@/lib/web-push.server");
+    await sendPushToAdmins(payload);
+  } catch (e) {
+    console.error("pushAdmins failed", e);
+  }
+}
+
 function esc(s: string) {
   return String(s ?? "")
     .replace(/&/g, "&amp;")
