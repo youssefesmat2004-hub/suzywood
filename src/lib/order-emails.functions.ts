@@ -13,11 +13,31 @@ const STATUS_LABELS: Record<string, string> = {
 
 const STATUS_HEADLINES: Record<string, string> = {
   pending_payment: "We're awaiting payment for your order",
-  confirmed: "Your payment is confirmed — we'll be in touch about delivery",
-  in_production: "Your payment is confirmed — we'll be in touch about delivery",
-  shipped: "Your order is out for delivery",
-  delivered: "Your order has been delivered — thank you!",
+  confirmed: "Payment confirmed — we're on it! 🪵",
+  in_production: "Payment confirmed — we're on it! 🪵",
+  shipped: "Your order is on the way! 🚚",
+  delivered: "Your order has arrived — thank you! 🪵",
   cancelled: "Your order has been cancelled",
+};
+
+const STATUS_SUBJECTS: Record<string, string> = {
+  confirmed: "Payment Confirmed - We're On It! 🪵 - Suzy Wood",
+  in_production: "Payment Confirmed - We're On It! 🪵 - Suzy Wood",
+  shipped: "Your Order is On the Way! 🚚🪵 - Suzy Wood",
+  delivered: "Thank You! Your Order Has Arrived 🪵 - Suzy Wood",
+};
+
+const WHATSAPP_URL = "https://wa.me/201096313532";
+
+const STATUS_BODY: Record<string, string> = {
+  confirmed:
+    "Thank you so much for your payment — we truly appreciate your trust in us. Your order is now being handcrafted by our team, and we'll keep you updated on the progress every step of the way.",
+  in_production:
+    "Thank you so much for your payment — we truly appreciate your trust in us. Your order is now being handcrafted by our team, and we'll keep you updated on the progress every step of the way.",
+  shipped:
+    "Great news! Your order is out for delivery and on its way to you. Please have the remaining 25% balance ready to settle on delivery.",
+  delivered:
+    "Thank you so much for choosing Suzy Wood — it means the world to us. We hope you and your little one absolutely love your new piece. If you have a moment, we'd love to see a photo or hear what you think — your reviews keep our small team going. 💛",
 };
 
 function escapeHtml(s: string) {
@@ -40,11 +60,21 @@ function renderEmail(opts: {
   isManualOrder?: boolean;
   productDescription?: string | null;
 }) {
-  const isThankYou = opts.isManualOrder && opts.status === "confirmed";
-  const headline = isThankYou
-    ? "Thank you — your payment is confirmed!"
-    : STATUS_HEADLINES[opts.status] ?? `Your order status is now ${STATUS_LABELS[opts.status] ?? opts.status}`;
+  const headline =
+    STATUS_HEADLINES[opts.status] ??
+    `Your order status is now ${STATUS_LABELS[opts.status] ?? opts.status}`;
   const statusLabel = STATUS_LABELS[opts.status] ?? opts.status;
+  const customBody = STATUS_BODY[opts.status] ?? null;
+  const showWhatsApp = ["confirmed", "in_production", "shipped", "delivered"].includes(opts.status);
+  const showPaymentBlock = opts.status !== "delivered" && opts.upfront != null && opts.remaining != null;
+  const showItemsBlock = opts.status !== "delivered";
+  const remainingNote = opts.status === "shipped" && opts.remaining != null
+    ? `<tr><td style="padding:8px 32px 0;">
+        <p style="margin:0;color:#1a1a1a;font-size:14px;line-height:1.6;font-family:Arial,sans-serif;background:#faf6ef;padding:14px 16px;border-radius:8px;">
+          <strong>Remaining due on delivery (25%):</strong> EGP ${Number(opts.remaining).toLocaleString()}
+        </p>
+      </td></tr>`
+    : "";
 
   const itemsRows = opts.items
     .map((it) => {
@@ -61,7 +91,7 @@ function renderEmail(opts: {
     })
     .join("");
 
-  const paymentBlock = opts.upfront != null && opts.remaining != null
+  const paymentBlock = showPaymentBlock
     ? `
         <tr><td style="padding:8px 32px 0;">
           <h3 style="margin:16px 0 4px;font-size:14px;color:#777;text-transform:uppercase;letter-spacing:1px;font-family:Arial,sans-serif;font-weight:600;">Payment summary</h3>
@@ -78,10 +108,10 @@ function renderEmail(opts: {
         </td></tr>`
     : "";
 
-  const whatsappBlock = isThankYou
+  const whatsappBlock = showWhatsApp
     ? `
-        <tr><td style="padding:8px 32px 0;" align="center">
-          <a href="https://wa.me/201000000000" style="display:inline-block;margin:8px 0 4px;background:#25D366;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:6px;font-family:Arial,sans-serif;font-size:14px;font-weight:600;">Chat with us on WhatsApp</a>
+        <tr><td style="padding:16px 32px 0;" align="center">
+          <a href="${WHATSAPP_URL}" style="display:inline-block;margin:8px 0 4px;background:#25D366;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:999px;font-family:Arial,sans-serif;font-size:14px;font-weight:600;">💬 Chat with us on WhatsApp</a>
         </td></tr>`
     : "";
 
@@ -93,7 +123,9 @@ function renderEmail(opts: {
         </td></tr>`
     : "";
 
-  const itemsSection = opts.productDescription
+  const itemsSection = !showItemsBlock
+    ? ""
+    : opts.productDescription
     ? `
         <tr><td style="padding:8px 32px 0;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-family:Arial,sans-serif;">
@@ -126,11 +158,15 @@ function renderEmail(opts: {
         <tr><td style="padding:8px 32px 0;">
           <h2 style="margin:0 0 8px;font-size:20px;color:#1a1a1a;font-weight:normal;">${escapeHtml(headline)}</h2>
           <p style="margin:0 0 4px;color:#555;font-size:14px;font-family:Arial,sans-serif;">Hi ${escapeHtml(opts.customerName)},</p>
-          <p style="margin:8px 0 16px;color:#555;font-size:14px;line-height:1.6;font-family:Arial,sans-serif;">
+          ${customBody
+            ? `<p style="margin:8px 0 16px;color:#555;font-size:14px;line-height:1.6;font-family:Arial,sans-serif;">${escapeHtml(customBody)}</p>
+          <p style="margin:0 0 16px;color:#777;font-size:13px;line-height:1.6;font-family:Arial,sans-serif;">Order reference: <strong>${escapeHtml(opts.orderNumber)}</strong></p>`
+            : `<p style="margin:8px 0 16px;color:#555;font-size:14px;line-height:1.6;font-family:Arial,sans-serif;">
             We're writing to let you know your order <strong>${escapeHtml(opts.orderNumber)}</strong> is now
             <strong style="color:#1a1a1a;">${escapeHtml(statusLabel)}</strong>.
-          </p>
+          </p>`}
         </td></tr>
+        ${remainingNote}
         ${paymentBlock}
         ${descBlock}
         ${itemsSection}
@@ -193,7 +229,9 @@ export const sendOrderStatusEmail = createServerFn({ method: "POST" })
       productDescription: (order as any).product_description ?? null,
     });
 
-    const subject = `Order ${order.order_number}: ${STATUS_LABELS[order.status] ?? order.status}`;
+    const subject =
+      STATUS_SUBJECTS[order.status] ??
+      `Order ${order.order_number}: ${STATUS_LABELS[order.status] ?? order.status}`;
 
     const res = await fetch("https://connector-gateway.lovable.dev/resend/emails", {
       method: "POST",
