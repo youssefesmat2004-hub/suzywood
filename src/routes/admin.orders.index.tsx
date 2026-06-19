@@ -301,29 +301,41 @@ function ManualOrderModal({
     customer_phone: "",
     shipping_address: "",
     product_description: "",
-    total: "",
+    product_price: "",
+    delivery_area: "",
+    delivery_cost: "0",
     upfront: "",
     remaining: "",
     status: "pending_payment" as "pending_payment" | "confirmed" | "shipped" | "delivered",
   });
 
-  const setTotal = (v: string) => {
-    const n = Number(v);
-    if (Number.isFinite(n) && n > 0) {
-      const up = Math.round(n * WHATSAPP_ORDER_DEPOSIT_RATE);
-      const remaining = Math.round(n * WHATSAPP_ORDER_REMAINING_RATE);
-      setForm((f) => ({ ...f, total: v, upfront: String(up), remaining: String(remaining) }));
+  const productPrice = Number(form.product_price);
+  const deliveryCost = Number(form.delivery_cost);
+  const total = (Number.isFinite(productPrice) ? productPrice : 0)
+    + (Number.isFinite(deliveryCost) ? deliveryCost : 0);
+
+  const recalc = (productPriceStr: string, deliveryCostStr: string) => {
+    const p = Number(productPriceStr);
+    const d = Number(deliveryCostStr);
+    const t = (Number.isFinite(p) ? p : 0) + (Number.isFinite(d) ? d : 0);
+    if (t > 0) {
+      const up = Math.round(t * WHATSAPP_ORDER_DEPOSIT_RATE);
+      const rem = Math.round(t * WHATSAPP_ORDER_REMAINING_RATE);
+      setForm((f) => ({ ...f, product_price: productPriceStr, delivery_cost: deliveryCostStr, upfront: String(up), remaining: String(rem) }));
     } else {
-      setForm((f) => ({ ...f, total: v }));
+      setForm((f) => ({ ...f, product_price: productPriceStr, delivery_cost: deliveryCostStr }));
     }
   };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const total = Number(form.total);
+    const price = Number(form.product_price);
+    const delivery = Number(form.delivery_cost);
     const upfront = Number(form.upfront);
     const remaining = Number(form.remaining);
-    if (!Number.isFinite(total) || total < 0) { toast.error("Enter a valid price"); return; }
+    if (!Number.isFinite(price) || price < 0) { toast.error("Enter a valid product price"); return; }
+    if (!Number.isFinite(delivery) || delivery < 0) { toast.error("Enter a valid delivery cost"); return; }
+    if (!form.delivery_area) { toast.error("Select a delivery area"); return; }
     setSaving(true);
     try {
       const res = await createFn({
@@ -333,7 +345,9 @@ function ManualOrderModal({
           customer_phone: form.customer_phone.trim(),
           shipping_address: form.shipping_address.trim(),
           product_description: form.product_description.trim(),
-          total,
+          total: price,
+          delivery_area: form.delivery_area as any,
+          delivery_cost: delivery,
           upfront_amount: upfront,
           remaining_amount: remaining,
           status: form.status,
@@ -384,9 +398,27 @@ function ManualOrderModal({
               className="w-full rounded-md border bg-background px-3 py-2 text-sm"
             />
           </Field>
-          <Field label="Total price (EGP)" required>
-            <Input type="number" min={0} required value={form.total} onChange={(e) => setTotal(e.target.value)} />
+          <Field label="Product price (EGP)" required>
+            <Input type="number" min={0} required value={form.product_price} onChange={(e) => recalc(e.target.value, form.delivery_cost)} />
           </Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Delivery Area" required>
+              <select
+                required
+                value={form.delivery_area}
+                onChange={(e) => setForm({ ...form, delivery_area: e.target.value })}
+                className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+              >
+                <option value="">Select area…</option>
+                {DELIVERY_AREAS.map((a) => (
+                  <option key={a.value} value={a.value}>{a.label}</option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Delivery Cost (EGP)" required>
+              <Input type="number" min={0} required value={form.delivery_cost} onChange={(e) => recalc(form.product_price, e.target.value)} />
+            </Field>
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <Field label={WHATSAPP_ORDER_DEPOSIT_LABEL}>
               <Input type="number" min={0} value={form.upfront} onChange={(e) => setForm({ ...form, upfront: e.target.value })} />
@@ -395,9 +427,23 @@ function ManualOrderModal({
               <Input type="number" min={0} value={form.remaining} onChange={(e) => setForm({ ...form, remaining: e.target.value })} />
             </Field>
           </div>
-          {Number.isFinite(Number(form.total)) && Number(form.total) > 0 && (
+          {total > 0 && (
             <div className="rounded-lg bg-muted/60 border px-4 py-3 text-sm space-y-1">
-              <div className="text-xs font-medium text-muted-foreground">Auto-calculated from total price: 75% deposit / 25% remaining</div>
+              <div className="text-xs font-medium text-muted-foreground">Auto-calculated from total (product + delivery): 75% deposit / 25% remaining</div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Product price</span>
+                <span className="font-medium">EGP {(Number(form.product_price) || 0).toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">
+                  Delivery{form.delivery_area ? ` — ${DELIVERY_AREAS.find((a) => a.value === form.delivery_area)?.label ?? ""}` : ""}
+                </span>
+                <span className="font-medium">EGP {(Number(form.delivery_cost) || 0).toLocaleString()}</span>
+              </div>
+              <div className="border-t pt-1 mt-1 flex justify-between">
+                <span className="text-muted-foreground">Total</span>
+                <span className="font-semibold">EGP {total.toLocaleString()}</span>
+              </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">{WHATSAPP_ORDER_DEPOSIT_LABEL}</span>
                 <span className="font-medium">EGP {Number(form.upfront).toLocaleString()}</span>
@@ -405,10 +451,6 @@ function ManualOrderModal({
               <div className="flex justify-between">
                 <span className="text-muted-foreground">{WHATSAPP_ORDER_REMAINING_LABEL}</span>
                 <span className="font-medium">EGP {Number(form.remaining).toLocaleString()}</span>
-              </div>
-              <div className="border-t pt-1 mt-1 flex justify-between">
-                <span className="text-muted-foreground">Total</span>
-                <span className="font-semibold">EGP {Number(form.total).toLocaleString()}</span>
               </div>
             </div>
           )}
