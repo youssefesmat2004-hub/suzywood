@@ -3,6 +3,10 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const STATUSES = ["pending_payment", "confirmed", "shipped", "delivered"] as const;
+const DELIVERY_AREAS = [
+  "maadi","zamalek","dokki","masr-al-gedida","nasr-city",
+  "new-cairo","shorouk-madinty","obour","sheikh-zayed","other",
+] as const;
 
 const schema = z.object({
   customer_name: z.string().trim().min(1).max(120),
@@ -13,6 +17,8 @@ const schema = z.object({
   total: z.number().nonnegative().max(10_000_000),
   upfront_amount: z.number().nonnegative().max(10_000_000),
   remaining_amount: z.number().nonnegative().max(10_000_000),
+  delivery_area: z.enum(DELIVERY_AREAS),
+  delivery_cost: z.number().nonnegative().max(10_000_000),
   status: z.enum(STATUSES),
 });
 
@@ -41,9 +47,11 @@ export const createManualOrder = createServerFn({ method: "POST" })
         shipping_city: "",
         shipping_governorate: "",
         subtotal: data.total,
-        shipping_fee: 0,
-        total: data.total,
-        total_amount: data.total,
+        shipping_fee: data.delivery_cost,
+        delivery_area: data.delivery_area,
+        delivery_cost: data.delivery_cost,
+        total: data.total + data.delivery_cost,
+        total_amount: data.total + data.delivery_cost,
         upfront_amount: data.upfront_amount,
         deposit_amount: data.upfront_amount,
         remaining_amount: data.remaining_amount,
