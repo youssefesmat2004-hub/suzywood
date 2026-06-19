@@ -1,0 +1,2 @@
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS delivery_area TEXT;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS delivery_cost NUMERIC DEFAULT 0;
