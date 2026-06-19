@@ -48,6 +48,19 @@ const statusColor: Record<string, string> = {
 };
 
 const WHATSAPP_ORDER_DEPOSIT_RATE = 0.75;
+
+const DELIVERY_AREAS: { value: string; label: string; }[] = [
+  { value: "maadi", label: "Maadi" },
+  { value: "zamalek", label: "Zamalek" },
+  { value: "dokki", label: "Dokki" },
+  { value: "masr-al-gedida", label: "Masr Al Gedida" },
+  { value: "nasr-city", label: "Nasr City" },
+  { value: "new-cairo", label: "New Cairo" },
+  { value: "shorouk-madinty", label: "Shorouk-Madinty" },
+  { value: "obour", label: "Obour" },
+  { value: "sheikh-zayed", label: "Sheikh Zayed" },
+  { value: "other", label: "Other" },
+];
 const WHATSAPP_ORDER_REMAINING_RATE = 1 - WHATSAPP_ORDER_DEPOSIT_RATE;
 const WHATSAPP_ORDER_DEPOSIT_LABEL = "Deposit Amount (75%)";
 const WHATSAPP_ORDER_REMAINING_LABEL = "Remaining Amount (25%)";
