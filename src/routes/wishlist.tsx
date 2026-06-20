@@ -7,7 +7,17 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Product } from "@/lib/types";
 
 export const Route = createFileRoute("/wishlist")({
-  head: () => ({ meta: [{ title: "Wishlist — Suzy Wood" }] }),
+  head: () => ({
+    meta: [
+      { title: "Your Wishlist — Suzy Wood" },
+      { name: "description", content: "Save your favourite Suzy Wood nursery and toddler pieces to your wishlist and come back to them anytime." },
+      { property: "og:title", content: "Your Wishlist — Suzy Wood" },
+      { property: "og:description", content: "Saved Suzy Wood pieces in your personal wishlist." },
+      { property: "og:url", content: "https://suzywoodofficial.com/wishlist" },
+      { name: "robots", content: "noindex" },
+    ],
+    links: [{ rel: "canonical", href: "https://suzywoodofficial.com/wishlist" }],
+  }),
   component: Wishlist,
 });
 

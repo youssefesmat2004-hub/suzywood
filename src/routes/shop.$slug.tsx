@@ -109,6 +109,7 @@ export const Route = createFileRoute("/shop/$slug")({
     const p = loaderData?.product;
     if (!p) return { meta: [{ title: "Piece not found — Suzy Wood" }] };
     const img = resolveImage(p.image_url);
+    const url = `https://suzywoodofficial.com/shop/${p.slug}`;
     return {
       meta: [
         { title: `${p.name} — Suzy Wood` },
@@ -117,6 +118,30 @@ export const Route = createFileRoute("/shop/$slug")({
         { property: "og:description", content: p.tagline ?? "" },
         { property: "og:image", content: img },
         { name: "twitter:image", content: img },
+        { property: "og:url", content: url },
+        { property: "og:type", content: "product" },
+      ],
+      links: [{ rel: "canonical", href: url }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Product",
+            name: p.name,
+            description: p.tagline ?? undefined,
+            image: img,
+            sku: p.slug,
+            brand: { "@type": "Brand", name: "Suzy Wood" },
+            offers: {
+              "@type": "Offer",
+              url,
+              priceCurrency: "EGP",
+              price: p.starting_price,
+              availability: "https://schema.org/InStock",
+            },
+          }),
+        },
       ],
     };
   },

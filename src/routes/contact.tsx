@@ -14,7 +14,11 @@ export const Route = createFileRoute("/contact")({
     meta: [
       { title: "Contact — Suzy Wood" },
       { name: "description", content: "Get in touch with Suzy Wood about your nursery project." },
+      { property: "og:title", content: "Contact Suzy Wood — Custom Nursery Furniture in Cairo" },
+      { property: "og:description", content: "Talk to the Suzy Wood team about custom nursery and toddler furniture, delivery across Egypt, and made-to-order pieces." },
+      { property: "og:url", content: "https://suzywoodofficial.com/contact" },
     ],
+    links: [{ rel: "canonical", href: "https://suzywoodofficial.com/contact" }],
   }),
   component: Contact,
 });

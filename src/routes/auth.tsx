@@ -9,7 +9,17 @@ import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/auth")({
-  head: () => ({ meta: [{ title: "Sign in — Suzy Wood" }, { name: "description", content: "Sign in or create your Suzy Wood account." }] }),
+  head: () => ({
+    meta: [
+      { title: "Sign in or Create Account — Suzy Wood" },
+      { name: "description", content: "Sign in to your Suzy Wood account to track orders, manage your wishlist and save delivery details — or create a new account in seconds." },
+      { property: "og:title", content: "Sign in or Create Account — Suzy Wood" },
+      { property: "og:description", content: "Access your Suzy Wood account to track orders and manage your wishlist." },
+      { property: "og:url", content: "https://suzywoodofficial.com/auth" },
+      { name: "robots", content: "noindex" },
+    ],
+    links: [{ rel: "canonical", href: "https://suzywoodofficial.com/auth" }],
+  }),
   component: Auth,
 });
 

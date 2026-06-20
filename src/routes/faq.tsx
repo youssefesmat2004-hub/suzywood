@@ -11,7 +11,9 @@ export const Route = createFileRoute("/faq")({
       { name: "description", content: "Common questions about ordering, delivery, custom builds, care and returns." },
       { property: "og:title", content: "FAQ — Suzy Wood" },
       { property: "og:description", content: "Answers to common questions about Suzy Wood orders." },
+      { property: "og:url", content: "https://suzywoodofficial.com/faq" },
     ],
+    links: [{ rel: "canonical", href: "https://suzywoodofficial.com/faq" }],
   }),
   component: FAQPage,
 });
