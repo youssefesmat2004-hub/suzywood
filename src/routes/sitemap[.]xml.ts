@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
+import { rooms } from "@/lib/rooms";
 
 const BASE_URL = "https://suzywoodofficial.com";
 
@@ -15,17 +16,14 @@ const getSitemapData = createServerFn({ method: "GET" }).handler(async () => {
   const [
     { data: products },
     { data: categories },
-    { data: rooms },
   ] = await Promise.all([
     supabase.from("products").select("slug, updated_at").eq("is_active", true),
-    supabase.from("categories").select("slug, updated_at").eq("is_active", true),
-    supabase.from("rooms").select("slug, updated_at"),
+    supabase.from("categories").select("slug, created_at"),
   ]);
 
   return {
     products: products ?? [],
     categories: categories ?? [],
-    rooms: rooms ?? [],
   };
 });
 
@@ -33,7 +31,7 @@ export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
       GET: async () => {
-        const { products, categories, rooms } = await getSitemapData();
+        const { products, categories } = await getSitemapData();
 
         const entries: SitemapEntry[] = [
           { path: "/", changefreq: "weekly", priority: "1.0" },
@@ -50,11 +48,13 @@ export const Route = createFileRoute("/sitemap.xml")({
             path: `/shop/category/${c.slug}`,
             changefreq: "weekly" as const,
             priority: "0.8",
+            lastmod: c.created_at,
           })),
           ...products.map((p) => ({
             path: `/shop/${p.slug}`,
             changefreq: "weekly" as const,
             priority: "0.9",
+            lastmod: p.updated_at,
           })),
           ...rooms.map((r) => ({
             path: `/rooms/${r.slug}`,
