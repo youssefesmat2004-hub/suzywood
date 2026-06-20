@@ -11,7 +11,9 @@ export const Route = createFileRoute("/privacy")({
       { name: "description", content: "How Suzy Wood collects and uses your personal information." },
       { property: "og:title", content: "Privacy Policy — Suzy Wood" },
       { property: "og:description", content: "How Suzy Wood handles your data." },
+      { property: "og:url", content: "https://suzywoodofficial.com/privacy" },
     ],
+    links: [{ rel: "canonical", href: "https://suzywoodofficial.com/privacy" }],
   }),
   component: PrivacyPage,
 });

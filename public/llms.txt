@@ -1,0 +1,21 @@
+# Suzy Wood
+
+> Suzy Wood is a Cairo-based studio crafting heirloom-quality, made-to-order nursery and toddler furniture in solid wood with non-toxic finishes.
+
+We design and build cribs, beds, dressers, wardrobes, and changing tables for babies and toddlers. Every piece is made to order in our Cairo workshop and delivered across Egypt.
+
+## Pages
+
+- [Home](/): Brand overview, featured pieces, and how we work.
+- [Shop the Collection](/shop): Browse all handcrafted nursery and toddler furniture.
+- [Our Craft](/our-craft): How we design and build pieces in our Cairo workshop.
+- [Custom Builds](/custom-builds): Commission a one-of-a-kind piece tailored to your space.
+- [Book a Measurement](/book): Schedule an at-home measurement visit.
+- [Track Your Order](/track-order): Check the status of an existing order.
+- [Contact](/contact): Get in touch about a project or order.
+- [FAQ](/faq): Answers about ordering, delivery, custom builds, care, and returns.
+
+## Optional
+
+- [Privacy Policy](/privacy)
+- [Terms & Conditions](/terms)

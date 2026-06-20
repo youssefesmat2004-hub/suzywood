@@ -10,7 +10,9 @@ export const Route = createFileRoute("/terms")({
       { name: "description", content: "Suzy Wood terms and conditions covering orders, delivery and warranty." },
       { property: "og:title", content: "Terms & Conditions — Suzy Wood" },
       { property: "og:description", content: "Suzy Wood terms covering orders, delivery and warranty." },
+      { property: "og:url", content: "https://suzywoodofficial.com/terms" },
     ],
+    links: [{ rel: "canonical", href: "https://suzywoodofficial.com/terms" }],
   }),
   component: TermsPage,
 });

@@ -50,7 +50,11 @@ export const Route = createFileRoute("/shop/")({
     meta: [
       { title: "Shop the Collection — Suzy Wood" },
       { name: "description", content: "Browse handcrafted, made-to-order nursery and toddler furniture from Suzy Wood." },
+      { property: "og:title", content: "Shop the Collection — Suzy Wood" },
+      { property: "og:description", content: "Browse cribs, beds, dressers and changing tables — handcrafted in Cairo and made to order." },
+      { property: "og:url", content: "https://suzywoodofficial.com/shop" },
     ],
+    links: [{ rel: "canonical", href: "https://suzywoodofficial.com/shop" }],
   }),
   loader: async () => {
     const [{ data: categories }, { data: products }] = await Promise.all([

@@ -26,6 +26,36 @@ export const Route = createFileRoute("/")({
       { name: "description", content: "Crafting safe, beautiful spaces for your little ones. Solid wood, non-toxic, made to order in Cairo." },
       { property: "og:title", content: "Suzy Wood — Handcrafted Kids Interiors" },
       { property: "og:description", content: "Heirloom-quality nursery furniture, made to order." },
+      { property: "og:url", content: "https://suzywoodofficial.com/" },
+    ],
+    links: [{ rel: "canonical", href: "https://suzywoodofficial.com/" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "Organization",
+              name: "Suzy Wood",
+              url: "https://suzywoodofficial.com/",
+              logo: "https://suzywoodofficial.com/icons/icon-512.png",
+              sameAs: ["https://www.instagram.com/suzywoodofficial"],
+              contactPoint: [{
+                "@type": "ContactPoint",
+                telephone: "+20-109-631-3532",
+                contactType: "customer service",
+                areaServed: "EG",
+              }],
+            },
+            {
+              "@type": "WebSite",
+              name: "Suzy Wood",
+              url: "https://suzywoodofficial.com/",
+            },
+          ],
+        }),
+      },
     ],
   }),
   loader: async () => {

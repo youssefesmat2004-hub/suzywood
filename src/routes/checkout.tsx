@@ -21,7 +21,17 @@ import {
 } from "@/components/ui/select";
 
 export const Route = createFileRoute("/checkout")({
-  head: () => ({ meta: [{ title: "Checkout — Suzy Wood" }] }),
+  head: () => ({
+    meta: [
+      { title: "Secure Checkout — Suzy Wood" },
+      { name: "description", content: "Complete your Suzy Wood order with InstaPay or bank transfer and choose delivery across Cairo and Egypt." },
+      { property: "og:title", content: "Secure Checkout — Suzy Wood" },
+      { property: "og:description", content: "Finalise your Suzy Wood order with secure payment options." },
+      { property: "og:url", content: "https://suzywoodofficial.com/checkout" },
+      { name: "robots", content: "noindex" },
+    ],
+    links: [{ rel: "canonical", href: "https://suzywoodofficial.com/checkout" }],
+  }),
   component: Checkout,
 });
 

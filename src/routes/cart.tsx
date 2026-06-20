@@ -5,7 +5,17 @@ import { useCart } from "@/lib/cart";
 import { Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/cart")({
-  head: () => ({ meta: [{ title: "Cart — Suzy Wood" }] }),
+  head: () => ({
+    meta: [
+      { title: "Your Cart — Suzy Wood" },
+      { name: "description", content: "Review the handcrafted pieces in your Suzy Wood cart and continue to secure checkout with delivery across Egypt." },
+      { property: "og:title", content: "Your Cart — Suzy Wood" },
+      { property: "og:description", content: "Review your selected Suzy Wood pieces before checkout." },
+      { property: "og:url", content: "https://suzywoodofficial.com/cart" },
+      { name: "robots", content: "noindex" },
+    ],
+    links: [{ rel: "canonical", href: "https://suzywoodofficial.com/cart" }],
+  }),
   component: Cart,
 });
 
