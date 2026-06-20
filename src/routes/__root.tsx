@@ -42,6 +42,7 @@ export const Route = createRootRoute({
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "default" },
       { name: "apple-mobile-web-app-title", content: "Suzy Wood" },
+      { name: "google-site-verification", content: "TvUTzCggrrzGc2m4_7SBb0GsJ0Oa9QZmNkza_sd00h8" },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
