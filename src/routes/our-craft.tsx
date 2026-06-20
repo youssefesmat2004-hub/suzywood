@@ -31,7 +31,7 @@ function OurCraft() {
         </div>
 
         <div className="mt-16 aspect-[16/8] rounded-3xl overflow-hidden shadow-elegant">
-          <img src={craft} alt="Workshop" loading="lazy" width={1280} height={1280} className="h-full w-full object-cover" />
+          <img src={craft} alt="Woodworker crafting furniture in the Cairo workshop" loading="lazy" width={1280} height={1280} className="h-full w-full object-cover" />
         </div>
 
         <div className="mt-20 grid md:grid-cols-3 gap-12">
@@ -41,7 +41,7 @@ function OurCraft() {
             { t: "Built to Be Inherited", d: "Some Hardware Pieces are replaceable, and every piece can be refinished decades from now for extra cost" },
           ].map((b) => (
             <div key={b.t}>
-              <h3 className="font-serif text-2xl">{b.t}</h3>
+              <h2 className="font-serif text-2xl">{b.t}</h2>
               <p className="mt-3 text-muted-foreground leading-relaxed">{b.d}</p>
             </div>
           ))}
