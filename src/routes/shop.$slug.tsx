@@ -287,7 +287,7 @@ function ProductPage() {
             {images.length > 1 && (
               <div className="mt-4 flex gap-3">
                 {images.map((src, i) => (
-                  <button key={i} onClick={() => setActive(i)} className={`h-20 w-20 rounded-xl overflow-hidden border-2 transition-all ${active === i ? "border-primary" : "border-transparent opacity-70 hover:opacity-100"}`}>
+                  <button key={i} onClick={() => setActive(i)} aria-label={`View product image ${i + 1}`} className={`h-20 w-20 rounded-xl overflow-hidden border-2 transition-all ${active === i ? "border-primary" : "border-transparent opacity-70 hover:opacity-100"}`}>
                     <img src={src} alt="" loading="lazy" width={160} height={160} className="h-full w-full object-cover" />
                   </button>
                 ))}

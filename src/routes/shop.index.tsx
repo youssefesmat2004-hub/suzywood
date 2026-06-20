@@ -128,6 +128,7 @@ function Shop() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search products…"
+              aria-label="Search products"
               className="pl-9"
             />
           </div>
