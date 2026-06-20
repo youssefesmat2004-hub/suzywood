@@ -13,6 +13,7 @@ import { Route as WishlistRouteImport } from './routes/wishlist'
 import { Route as TrackOrderRouteImport } from './routes/track-order'
 import { Route as ThankYouRouteImport } from './routes/thank-you'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ShopRouteImport } from './routes/shop'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PaymentRouteImport } from './routes/payment'
@@ -73,6 +74,11 @@ const ThankYouRoute = ThankYouRouteImport.update({
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ShopRoute = ShopRouteImport.update({
@@ -300,6 +306,7 @@ export interface FileRoutesByFullPath {
   '/payment': typeof PaymentRoute
   '/privacy': typeof PrivacyRoute
   '/shop': typeof ShopRouteWithChildren
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/thank-you': typeof ThankYouRoute
   '/track-order': typeof TrackOrderRoute
@@ -345,6 +352,7 @@ export interface FileRoutesByTo {
   '/our-craft': typeof OurCraftRoute
   '/payment': typeof PaymentRoute
   '/privacy': typeof PrivacyRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/thank-you': typeof ThankYouRoute
   '/track-order': typeof TrackOrderRoute
@@ -392,6 +400,7 @@ export interface FileRoutesById {
   '/payment': typeof PaymentRoute
   '/privacy': typeof PrivacyRoute
   '/shop': typeof ShopRouteWithChildren
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/thank-you': typeof ThankYouRoute
   '/track-order': typeof TrackOrderRoute
@@ -441,6 +450,7 @@ export interface FileRouteTypes {
     | '/payment'
     | '/privacy'
     | '/shop'
+    | '/sitemap.xml'
     | '/terms'
     | '/thank-you'
     | '/track-order'
@@ -486,6 +496,7 @@ export interface FileRouteTypes {
     | '/our-craft'
     | '/payment'
     | '/privacy'
+    | '/sitemap.xml'
     | '/terms'
     | '/thank-you'
     | '/track-order'
@@ -532,6 +543,7 @@ export interface FileRouteTypes {
     | '/payment'
     | '/privacy'
     | '/shop'
+    | '/sitemap.xml'
     | '/terms'
     | '/thank-you'
     | '/track-order'
@@ -580,6 +592,7 @@ export interface RootRouteChildren {
   PaymentRoute: typeof PaymentRoute
   PrivacyRoute: typeof PrivacyRoute
   ShopRoute: typeof ShopRouteWithChildren
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
   ThankYouRoute: typeof ThankYouRoute
   TrackOrderRoute: typeof TrackOrderRoute
@@ -615,6 +628,13 @@ declare module '@tanstack/react-router' {
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/shop': {
@@ -997,6 +1017,7 @@ const rootRouteChildren: RootRouteChildren = {
   PaymentRoute: PaymentRoute,
   PrivacyRoute: PrivacyRoute,
   ShopRoute: ShopRouteWithChildren,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
   ThankYouRoute: ThankYouRoute,
   TrackOrderRoute: TrackOrderRoute,
