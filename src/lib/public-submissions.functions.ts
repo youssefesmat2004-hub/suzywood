@@ -39,7 +39,6 @@ const customBuildSchema = z.object({
   room_type: z.enum(["nursery", "toddler", "playroom", "other"]),
   description: z.string().trim().min(10).max(2000),
   inspiration_image_url: z.string().url().max(1024).nullish(),
-  user_id: z.string().uuid().nullish(),
 });
 
 export const submitCustomBuildRequest = createServerFn({ method: "POST" })
@@ -54,7 +53,10 @@ export const submitCustomBuildRequest = createServerFn({ method: "POST" })
         room_type: data.room_type,
         description: data.description,
         inspiration_image_url: data.inspiration_image_url ?? null,
-        user_id: data.user_id ?? null,
+        // user_id is intentionally null for public submissions; never trust a
+        // client-supplied user_id. Authenticated linking must be done via a
+        // server middleware that derives the id from the session.
+        user_id: null,
         status: "new",
       }] as never)
       .select("id")

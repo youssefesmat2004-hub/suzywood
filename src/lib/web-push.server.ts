@@ -3,7 +3,7 @@
 
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
-const VAPID_SUBJECT = "mailto:info@suzywoodofficial.com";
+const DEFAULT_VAPID_SUBJECT = "mailto:info@suzywoodofficial.com";
 
 // ---------- base64url helpers ----------
 function b64urlEncode(buf: ArrayBuffer | Uint8Array): string {
@@ -36,38 +36,28 @@ type VapidKeys = { publicKey: string; privateJwk: JsonWebKey; subject: string };
 
 let cachedKeys: VapidKeys | null = null;
 
+// VAPID keys are loaded from environment secrets only — never from the database.
+// Set these via Lovable Cloud secrets:
+//   VAPID_PUBLIC_KEY    — base64url-encoded raw P-256 public key
+//   VAPID_PRIVATE_KEY   — JSON-stringified JWK of the P-256 private key
+//   VAPID_SUBJECT       — optional, defaults to mailto:info@suzywoodofficial.com
 export async function getVapidKeys(): Promise<VapidKeys> {
   if (cachedKeys) return cachedKeys;
-  const { data, error } = await supabaseAdmin
-    .from("web_push_config")
-    .select("vapid_public_key, vapid_private_key, vapid_subject")
-    .eq("id", true)
-    .maybeSingle();
-  if (!error && data) {
-    cachedKeys = {
-      publicKey: data.vapid_public_key,
-      privateJwk: JSON.parse(data.vapid_private_key) as JsonWebKey,
-      subject: data.vapid_subject || VAPID_SUBJECT,
-    };
-    return cachedKeys;
+  const publicKey = process.env.VAPID_PUBLIC_KEY;
+  const privateKeyRaw = process.env.VAPID_PRIVATE_KEY;
+  const subject = process.env.VAPID_SUBJECT || DEFAULT_VAPID_SUBJECT;
+  if (!publicKey || !privateKeyRaw) {
+    throw new Error(
+      "Missing VAPID secrets. Set VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY in Lovable Cloud secrets.",
+    );
   }
-  // Generate fresh keys
-  const kp = await crypto.subtle.generateKey(
-    { name: "ECDSA", namedCurve: "P-256" },
-    true,
-    ["sign", "verify"],
-  );
-  const rawPub = new Uint8Array(await crypto.subtle.exportKey("raw", kp.publicKey));
-  const privJwk = await crypto.subtle.exportKey("jwk", kp.privateKey);
-  const publicKey = b64urlEncode(rawPub);
-  const privateJwk = privJwk;
-  await supabaseAdmin.from("web_push_config").upsert({
-    id: true,
-    vapid_public_key: publicKey,
-    vapid_private_key: JSON.stringify(privateJwk),
-    vapid_subject: VAPID_SUBJECT,
-  } as never);
-  cachedKeys = { publicKey, privateJwk, subject: VAPID_SUBJECT };
+  let privateJwk: JsonWebKey;
+  try {
+    privateJwk = JSON.parse(privateKeyRaw) as JsonWebKey;
+  } catch {
+    throw new Error("VAPID_PRIVATE_KEY must be a JSON-stringified JWK.");
+  }
+  cachedKeys = { publicKey, privateJwk, subject };
   return cachedKeys;
 }
 
