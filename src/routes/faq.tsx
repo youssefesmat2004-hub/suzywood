@@ -44,7 +44,7 @@ export const Route = createFileRoute("/faq")({
 });
 
 function FAQPage() {
-  const { groups } = Route.useLoaderData();
+  const { groups } = Route.useLoaderData() as { groups: FAQGroup[] };
 
   return (
     <Layout>
