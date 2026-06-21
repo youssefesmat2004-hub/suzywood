@@ -922,30 +922,6 @@ export type Database = {
         }
         Relationships: []
       }
-      web_push_config: {
-        Row: {
-          created_at: string
-          id: boolean
-          vapid_private_key: string
-          vapid_public_key: string
-          vapid_subject: string
-        }
-        Insert: {
-          created_at?: string
-          id?: boolean
-          vapid_private_key: string
-          vapid_public_key: string
-          vapid_subject?: string
-        }
-        Update: {
-          created_at?: string
-          id?: boolean
-          vapid_private_key?: string
-          vapid_public_key?: string
-          vapid_subject?: string
-        }
-        Relationships: []
-      }
       wishlist_items: {
         Row: {
           created_at: string
