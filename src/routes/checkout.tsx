@@ -138,8 +138,15 @@ function Checkout() {
 
     let proofPath: string | null = null;
     if (proofFile) {
+      if (!user?.id) {
+        setSubmitting(false);
+        toast.error("Please sign in to upload a payment screenshot", {
+          description: "Payment proof uploads require a signed-in account.",
+        });
+        return;
+      }
       const ext = proofFile.name.split(".").pop()?.toLowerCase() ?? "jpg";
-      const path = `${crypto.randomUUID()}.${ext}`;
+      const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
       const up = await supabase.storage.from("payment-proofs").upload(path, proofFile, {
         contentType: proofFile.type || "image/jpeg",
         upsert: false,
