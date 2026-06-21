@@ -43,13 +43,13 @@ export const Route = createFileRoute("/sitemap.xml")({
             path: `/shop/category/${c.slug}`,
             changefreq: "weekly" as const,
             priority: "0.8",
-            lastmod: c.created_at,
+            lastmod: c.created_at ?? undefined,
           })),
           ...products.map((p) => ({
             path: `/shop/${p.slug}`,
             changefreq: "weekly" as const,
             priority: "0.9",
-            lastmod: p.updated_at,
+            lastmod: p.updated_at ?? undefined,
           })),
           ...rooms.map((r) => ({
             path: `/rooms/${r.slug}`,
