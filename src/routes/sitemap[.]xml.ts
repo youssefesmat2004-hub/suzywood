@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { rooms } from "@/lib/rooms";
 
@@ -12,26 +11,22 @@ interface SitemapEntry {
   priority?: string;
 }
 
-const getSitemapData = createServerFn({ method: "GET" }).handler(async () => {
-  const [
-    { data: products },
-    { data: categories },
-  ] = await Promise.all([
-    supabase.from("products").select("slug, updated_at").eq("is_active", true),
-    supabase.from("categories").select("slug, created_at"),
-  ]);
-
-  return {
-    products: products ?? [],
-    categories: categories ?? [],
-  };
-});
-
 export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
       GET: async () => {
-        const { products, categories } = await getSitemapData();
+        let products: { slug: string; updated_at: string | null }[] = [];
+        let categories: { slug: string; created_at: string | null }[] = [];
+        try {
+          const [p, c] = await Promise.all([
+            supabase.from("products").select("slug, updated_at").eq("is_active", true),
+            supabase.from("categories").select("slug, created_at"),
+          ]);
+          products = (p.data ?? []) as typeof products;
+          categories = (c.data ?? []) as typeof categories;
+        } catch {
+          // fall through with empty dynamic entries — static routes still ship
+        }
 
         const entries: SitemapEntry[] = [
           { path: "/", changefreq: "weekly", priority: "1.0" },
