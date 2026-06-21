@@ -37,6 +37,10 @@ export function Hero({ title, subtitle }: HeroProps) {
           src={hero}
           alt=""
           aria-hidden="true"
+          width={1920}
+          height={1280}
+          fetchPriority="high"
+          decoding="async"
           className="h-[120%] w-full object-cover will-change-transform"
           style={{ transform: `translate3d(0, ${offset}px, 0)` }}
         />

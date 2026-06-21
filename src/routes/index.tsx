@@ -16,6 +16,7 @@ import { Heart, Plus, ArrowRight } from "lucide-react";
 import { useCart } from "@/lib/cart";
 import { toast } from "sonner";
 import craft from "@/assets/craft-story.jpg";
+import heroImg from "@/assets/hero-nursery.jpg";
 import { useSiteContent } from "@/lib/site-content";
 import { useState } from "react";
 
@@ -28,7 +29,10 @@ export const Route = createFileRoute("/")({
       { property: "og:description", content: "Heirloom-quality nursery furniture, made to order." },
       { property: "og:url", content: "https://suzywoodofficial.com/" },
     ],
-    links: [{ rel: "canonical", href: "https://suzywoodofficial.com/" }],
+    links: [
+      { rel: "canonical", href: "https://suzywoodofficial.com/" },
+      { rel: "preload", as: "image", href: heroImg, fetchpriority: "high" },
+    ],
     scripts: [
       {
         type: "application/ld+json",
