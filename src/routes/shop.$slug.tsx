@@ -110,12 +110,14 @@ export const Route = createFileRoute("/shop/$slug")({
     if (!p) return { meta: [{ title: "Piece not found — Suzy Wood" }] };
     const img = resolveImage(p.image_url);
     const url = `https://suzywoodofficial.com/shop/${p.slug}`;
+    const fallbackDesc = `${p.name} — handcrafted in Egypt by Suzy Wood. Solid wood, made-to-order in ${p.lead_time_weeks} weeks. Safe, heirloom-quality furniture for kids' rooms.`;
+    const desc = (p.tagline && p.tagline.trim().length >= 50) ? p.tagline : fallbackDesc;
     return {
       meta: [
         { title: `${p.name} — Suzy Wood` },
-        { name: "description", content: p.tagline ?? "" },
+        { name: "description", content: desc },
         { property: "og:title", content: `${p.name} — Suzy Wood` },
-        { property: "og:description", content: p.tagline ?? "" },
+        { property: "og:description", content: desc },
         { property: "og:image", content: img },
         { name: "twitter:image", content: img },
         { property: "og:url", content: url },

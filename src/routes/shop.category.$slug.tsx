@@ -26,12 +26,25 @@ export const Route = createFileRoute("/shop/category/$slug")({
     }));
     return { category: cat as Category, products: annotated as Product[] };
   },
-  head: ({ loaderData }) => ({
-    meta: [
-      { title: `${loaderData?.category.name ?? "Shop"} — Suzy Wood` },
-      { name: "description", content: loaderData?.category.description ?? "Handcrafted wooden furniture for kids." },
-    ],
-  }),
+  head: ({ loaderData, params }) => {
+    const name = loaderData?.category.name ?? "Shop";
+    const title = `${name} — Suzy Wood`;
+    const fallback = `Browse Suzy Wood's ${name.toLowerCase()} collection — handcrafted in Egypt from solid wood, made-to-order for safe, heirloom-quality kids' rooms.`;
+    const raw = loaderData?.category.description?.trim();
+    const desc = raw && raw.length >= 50 ? raw : fallback;
+    const url = `https://suzywoodofficial.com/shop/category/${params.slug}`;
+    return {
+      meta: [
+        { title },
+        { name: "description", content: desc },
+        { property: "og:title", content: title },
+        { property: "og:description", content: desc },
+        { property: "og:url", content: url },
+        { property: "og:type", content: "website" },
+      ],
+      links: [{ rel: "canonical", href: url }],
+    };
+  },
   component: CategoryPage,
   notFoundComponent: () => (
     <Layout>
