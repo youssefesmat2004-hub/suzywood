@@ -1,41 +1,32 @@
 ## Goal
-Add a Delivery Area dropdown and a manual Delivery Cost field to the "Add WhatsApp Order" modal. Recalculate the 75/25 deposit split off the new total (Product Price + Delivery Cost), show both in the summary, and persist them.
+Enforce at the database layer that `custom_build_requests.user_id` can never be a spoofed value — it must equal `auth.uid()` for authenticated callers, or `NULL` for anonymous callers. The server-function/Zod fix already shipped; this plan adds defense-in-depth in SQL so even a direct insert (or a future code path using `supabaseAdmin`) cannot attribute a request to a victim's account.
 
-## Changes
+## Migration (SQL only)
 
-### 1. Database (migration)
-```sql
-ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS delivery_area TEXT;
-ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS delivery_cost NUMERIC DEFAULT 0;
-```
-(`delivery_area` may already exist from the public checkout flow — `IF NOT EXISTS` handles it. `delivery_cost` is new and stores the admin-entered fee for manual orders; we keep the existing `shipping_fee` untouched so the public checkout logic is unaffected.)
+1. Create a `BEFORE INSERT` trigger function `public.enforce_custom_build_user_id()` that:
+   - Sets `NEW.user_id := auth.uid()` when `auth.uid() IS NOT NULL`.
+   - Sets `NEW.user_id := NULL` when `auth.uid() IS NULL` (anonymous insert).
+   - This makes any client-supplied `user_id` irrelevant — it's always overwritten server-side by Postgres.
+   - `SECURITY INVOKER`, `SET search_path = public`.
 
-### 2. `src/lib/manual-orders.functions.ts`
-- Extend the Zod schema with:
-  - `delivery_area`: enum of the 10 options (`maadi`, `zamalek`, `dokki`, `masr-al-gedida`, `nasr-city`, `new-cairo`, `shorouk-madinty`, `obour`, `sheikh-zayed`, `other`).
-  - `delivery_cost`: non-negative number, default 0.
-- On insert, save `delivery_area`, `delivery_cost`, and also set `shipping_fee = delivery_cost` so existing admin views that read `shipping_fee` show the right number. `subtotal` stays as the product price; `total`/`total_amount` = product price + delivery cost (computed server-side from the inputs for safety).
+2. Attach the trigger to `public.custom_build_requests` for `BEFORE INSERT FOR EACH ROW`.
 
-### 3. `src/routes/admin.orders.index.tsx` — `ManualOrderModal`
-- Rename "Total price" input to "Product price (EGP)" (form field `product_price`).
-- Add "Delivery Area" `<select>` with the 10 options above (labels: Maadi, Zamalek, Dokki, Masr Al Gedida, Nasr City, New Cairo, Shorouk-Madinty, Obour, Sheikh Zayed, Other).
-- Add "Delivery Cost (EGP)" numeric input, defaults to 0, admin-editable.
-- Recompute total on any change to product price or delivery cost:
-  - `total = productPrice + deliveryCost`
-  - `upfront = round(total * 0.75)`
-  - `remaining = round(total * 0.25)`
-  - Deposit/remaining inputs remain manually overridable.
-- Expand the summary block to show:
-  - Product price
-  - Delivery area (human label) + Delivery cost
-  - Total
-  - Deposit (75%) and Remaining (25%)
-- Submit payload sends `product_price` (as `total` upstream is now derived), `delivery_area`, `delivery_cost`, plus the (possibly overridden) `upfront_amount` and `remaining_amount`.
+3. Tighten the existing INSERT RLS policy `WITH CHECK` to `user_id IS NOT DISTINCT FROM auth.uid()` so the policy itself rejects any mismatched value (belt-and-braces with the trigger; the trigger normalizes, the policy verifies).
 
-### 4. Validation
-- Require a delivery area selection.
-- Delivery cost ≥ 0 (allow 0 for "Other" / TBD).
+4. Leave SELECT/UPDATE policies untouched.
 
-## Out of scope
-- Public customer checkout (unchanged — still uses the existing shipping fee table).
-- Editing delivery area/cost on existing orders (not requested).
+## Notes
+
+- No table schema changes, no GRANT changes (existing grants stand).
+- `supabaseAdmin` writes bypass RLS but **not** triggers, so the trigger also protects server-side admin paths.
+- No application code changes — the server fn already hardcodes `null` and the Zod schema already excludes `user_id`.
+
+## Findings left untouched (mentioned for your review)
+
+These were in the scan results but explicitly out of scope for this request:
+- `lookup_order_like_phone` — order-tracking RPC uses suffix `LIKE` match on phone.
+- `order_upfront_rate_unvalidated` — `create_order_with_items` accepts any `_upfront_rate`.
+- `orders_anonymous_insert` — informational; relies on the SECURITY DEFINER RPC being the only insert path.
+- `realtime_orders_non_staff_authenticated` — realtime topic policy has an open `ELSE true`.
+- `notify_fns_no_auth` — unauthenticated owner/customer notification server functions.
+- `custom_build_user_id_spoof` / `custom_build_requests_user_id_spoofing` — should auto-clear once this migration lands.
