@@ -68,7 +68,7 @@
   --secondary: var(--wood);
   --secondary-foreground: var(--cream);
   --muted: var(--beige);
-  --muted-foreground: oklch(0.42 0.025 55);
+ --muted-foreground: oklch(0.36 0.025 55);
   --accent: var(--sage);
   --accent-foreground: var(--wood-deep);
   --destructive: oklch(0.55 0.18 28);
