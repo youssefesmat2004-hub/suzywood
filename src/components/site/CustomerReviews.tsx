@@ -63,8 +63,8 @@ const testimonials: Testimonial[] = [
 
 function FacebookBadge() {
   return (
-    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#1877F2]">
-      <BadgeCheck className="h-3.5 w-3.5 fill-[#1877F2] text-white" />
+    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-facebook">
+      <BadgeCheck className="h-3.5 w-3.5 fill-facebook text-white" />
       Verified Facebook Review
     </span>
   );
