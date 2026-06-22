@@ -242,10 +242,10 @@ function ProductPage() {
     + (bedRailsApplied ? BED_RAILS_PRICE : 0);
 
   const stockBadge = soldOut
-    ? { label: "Sold out", className: "bg-destructive/10 text-destructive" }
+    ? { label: "Sold out", className: "bg-destructive text-destructive-foreground" }
     : stock <= 5
-      ? { label: `Only ${stock} left`, className: "bg-amber-500/15 text-amber-700" }
-      : { label: "In stock", className: "bg-secondary/15 text-secondary" };
+      ? { label: `Only ${stock} left`, className: "bg-amber text-amber-foreground" }
+      : { label: "In stock", className: "bg-secondary text-secondary-foreground" };
 
   const relatedAnnotated = related.map((p) => ({ ...p, category_slug: category?.slug }));
 
