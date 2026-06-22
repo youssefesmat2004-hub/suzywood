@@ -41,6 +41,9 @@
   --color-cream-deep: var(--cream-deep);
   --color-beige: var(--beige);
   --color-beige-deep: var(--beige-deep);
+  --color-facebook: #126cdf;
+  --color-amber: #b45309;
+  --color-amber-foreground: #ffffff;
 }
 
 :root {
