@@ -329,7 +329,7 @@ function ProductPage() {
             <>
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary/15 text-secondary text-[11px] uppercase tracking-[0.22em]">
+                <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary text-secondary-foreground text-[11px] uppercase tracking-[0.22em]">
                   <Check className="h-3 w-3" /> Make-to-Order · {product.lead_time_weeks} Weeks
                 </span>
                 <span className={`px-3 py-1 rounded-full text-[11px] uppercase tracking-[0.22em] ${stockBadge.className}`}>
