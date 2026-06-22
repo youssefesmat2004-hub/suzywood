@@ -101,7 +101,7 @@ function TestimonialCard({ t }: { t: Testimonial }) {
 
       {/* Facebook footer */}
       <div className="mt-4 pt-3 border-t border-border/40 flex items-center gap-1.5">
-        <Facebook className="h-3.5 w-3.5 text-[#1877F2]" />
+        <Facebook className="h-3.5 w-3.5 text-facebook" />
         <span className="text-[11px] text-muted-foreground">Recommended on Facebook</span>
       </div>
     </div>
@@ -193,7 +193,7 @@ export function CustomerReviews() {
           ))}
         </div>
         <span className="inline-flex items-center gap-1.5">
-          <Facebook className="h-4 w-4 text-[#1877F2]" />
+          <Facebook className="h-4 w-4 text-facebook" />
           <strong className="text-foreground">100% recommend</strong> · 257 reviews on Facebook
           <span className="underline-offset-4 group-hover:underline">— visit our page</span>
         </span>
