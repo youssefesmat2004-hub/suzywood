@@ -95,7 +95,7 @@ function TestimonialCard({ t }: { t: Testimonial }) {
       </div>
 
       {/* Review text */}
-      <p className="text-sm text-foreground/85 leading-relaxed flex-1">
+      <p className="text-sm text-foreground leading-relaxed flex-1">
         “{t.text}”
       </p>
 
