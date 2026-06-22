@@ -344,7 +344,7 @@ function ProductPage() {
               </p>
             </div>
 
-            {product.description && <p className="text-foreground/80 leading-relaxed">{product.description}</p>}
+            {product.description && <p className="text-foreground leading-relaxed">{product.description}</p>}
 
             <div className="space-y-5 pt-2 border-t border-border">
               {variants.some((v) => v.variant_type !== "fabric_color") && (
