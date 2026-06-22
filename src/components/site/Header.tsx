@@ -83,18 +83,18 @@ export function Header() {
                 key={item.to}
                 to={item.to}
                 onClick={() => setOpen(false)}
-                className="py-3 text-sm text-foreground/80"
+                className="py-3 text-sm text-foreground"
                 activeProps={{ className: "text-primary font-medium" }}
                 activeOptions={{ exact: item.to === "/" }}
               >
                 {item.label}
               </Link>
             ))}
-            <Link to={user ? "/account" : "/auth"} onClick={() => setOpen(false)} className="py-3 text-sm text-foreground/80">
+            <Link to={user ? "/account" : "/auth"} onClick={() => setOpen(false)} className="py-3 text-sm text-foreground">
               {user ? "My Account" : "Sign In"}
             </Link>
             {user && (
-              <Link to="/wishlist" onClick={() => setOpen(false)} className="py-3 text-sm text-foreground/80">
+              <Link to="/wishlist" onClick={() => setOpen(false)} className="py-3 text-sm text-foreground">
                 Wishlist
               </Link>
             )}
