@@ -7,7 +7,7 @@ export function StarRating({ value, size = "sm" }: { value: number; size?: "sm" 
       {[1, 2, 3, 4, 5].map((i) => (
         <Star
           key={i}
-          className={`${px} ${i <= Math.round(value) ? "fill-secondary text-secondary" : "text-muted-foreground/40"}`}
+          className={`${px} ${i <= Math.round(value) ? "fill-secondary text-secondary" : "text-muted-foreground"}`}
         />
       ))}
     </div>

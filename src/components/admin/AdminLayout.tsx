@@ -92,7 +92,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
                 to={item.to}
                 onClick={() => setOpen(false)}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
-                  active ? "bg-primary text-primary-foreground" : "hover:bg-muted text-foreground/80"
+                  active ? "bg-primary text-primary-foreground" : "hover:bg-muted text-muted-foreground"
                 }`}
               >
                 <Icon className="h-4 w-4" />
