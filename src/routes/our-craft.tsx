@@ -10,7 +10,9 @@ export const Route = createFileRoute("/our-craft")({
       { property: "og:title", content: "Our Craft — Suzy Wood" },
       { property: "og:description", content: "Hand-joined solid wood, plant-based finishes, made to last generations." },
       { property: "og:image", content: craft },
+      { property: "og:url", content: "https://suzywoodofficial.com/our-craft" },
     ],
+    links: [{ rel: "canonical", href: "https://suzywoodofficial.com/our-craft" }],
   }),
   component: OurCraft,
 });
@@ -31,7 +33,7 @@ function OurCraft() {
         </div>
 
         <div className="mt-16 aspect-[16/8] rounded-3xl overflow-hidden shadow-elegant">
-          <img src={craft} alt="Woodworker crafting furniture in the Cairo workshop" loading="lazy" width={1280} height={1280} className="h-full w-full object-cover" />
+          <img src={craft} alt="Suzy Wood carpenter hand-planing a solid wood crib panel in the Cairo workshop, surrounded by chisels and timber" loading="lazy" width={1280} height={1280} className="h-full w-full object-cover" />
         </div>
 
         <div className="mt-20 grid md:grid-cols-3 gap-12">

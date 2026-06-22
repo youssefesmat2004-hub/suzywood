@@ -10,17 +10,36 @@ export const Route = createFileRoute("/rooms/$slug")({
     if (!room) throw notFound();
     return { room };
   },
-  head: ({ loaderData }) => ({
-    meta: loaderData
-      ? [
-          { title: `${loaderData.room.name} — Suzy Wood` },
-          { name: "description", content: loaderData.room.description },
-          { property: "og:title", content: `${loaderData.room.name} — Suzy Wood` },
-          { property: "og:description", content: loaderData.room.description },
-          { property: "og:image", content: loaderData.room.images[0] },
-        ]
-      : [],
-  }),
+  head: ({ loaderData, params }) => {
+    if (!loaderData) return { meta: [] };
+    const url = `https://suzywoodofficial.com/rooms/${params.slug}`;
+    const room = loaderData.room;
+    return {
+      meta: [
+        { title: `${room.name} — Suzy Wood` },
+        { name: "description", content: room.description },
+        { property: "og:title", content: `${room.name} — Suzy Wood` },
+        { property: "og:description", content: room.description },
+        { property: "og:image", content: room.images[0] },
+        { property: "og:url", content: url },
+        { property: "og:type", content: "article" },
+      ],
+      links: [{ rel: "canonical", href: url }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "ImageGallery",
+            name: `${room.name} — Suzy Wood`,
+            description: room.description,
+            url,
+            image: room.images,
+          }),
+        },
+      ],
+    };
+  },
   notFoundComponent: () => (
     <Layout>
       <div className="container mx-auto px-6 lg:px-10 py-24 text-center">
@@ -75,7 +94,7 @@ function RoomPage() {
             >
               <img
                 src={src}
-                alt={`${room.name} ${i + 1}`}
+                alt={`${room.name} by Suzy Wood — handcrafted nursery furniture, view ${i + 1} of ${room.images.length}`}
                 loading={i < 2 ? "eager" : "lazy"}
                 className="h-full w-full object-cover"
               />

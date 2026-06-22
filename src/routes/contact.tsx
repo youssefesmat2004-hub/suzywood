@@ -19,6 +19,33 @@ export const Route = createFileRoute("/contact")({
       { property: "og:url", content: "https://suzywoodofficial.com/contact" },
     ],
     links: [{ rel: "canonical", href: "https://suzywoodofficial.com/contact" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "LocalBusiness",
+          name: "Suzy Wood",
+          image: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ee700a9f-4938-4be4-a277-9bb9a733a37d/id-preview-9e14d270--11bfc074-06ec-4994-b934-707592e10ec4.lovable.app-1776683618592.png",
+          url: "https://suzywoodofficial.com/contact",
+          telephone: "+20 109 631 3532",
+          priceRange: "$$",
+          address: {
+            "@type": "PostalAddress",
+            addressLocality: "Cairo",
+            addressCountry: "EG",
+          },
+          openingHoursSpecification: [
+            {
+              "@type": "OpeningHoursSpecification",
+              dayOfWeek: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"],
+              opens: "10:00",
+              closes: "18:00",
+            },
+          ],
+        }),
+      },
+    ],
   }),
   component: Contact,
 });

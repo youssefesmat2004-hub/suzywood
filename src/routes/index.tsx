@@ -170,7 +170,7 @@ function Index() {
                   <button
                     type="button"
                     onClick={(e) => toggleWish(e, p)}
-                    aria-label={isWished ? "Remove from wishlist" : "Add to wishlist"}
+                    aria-label={isWished ? `Remove ${p.name} from wishlist` : `Add ${p.name} to wishlist`}
                     className="absolute top-3 right-3 inline-flex items-center justify-center rounded-full bg-cream/90 backdrop-blur h-9 w-9 text-wood-deep shadow-soft hover:scale-110 transition-transform"
                   >
                     <Heart className={`h-4 w-4 ${isWished ? "fill-current text-primary" : ""}`} />
@@ -206,7 +206,7 @@ function Index() {
       <section className="container mx-auto px-6 lg:px-10 py-20 md:py-24">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div data-reveal className="aspect-[4/5] rounded-3xl overflow-hidden shadow-card order-2 lg:order-1 img-zoom">
-            <img src={craft} alt="Artisan hands shaping solid oak" loading="lazy" className="h-full w-full object-cover" />
+            <img src={craft} alt="Suzy Wood carpenter hand-shaping a solid wood nursery panel in the Cairo workshop" loading="lazy" className="h-full w-full object-cover" />
           </div>
           <div data-reveal className="space-y-6 order-1 lg:order-2 lg:pl-8">
             <p className="text-[11px] uppercase tracking-[0.32em] text-secondary">Our Craft</p>

@@ -1,4 +1,10 @@
 User-agent: *
 Allow: /
+Disallow: /account
+Disallow: /auth
+Disallow: /admin
+Disallow: /carpenter-dashboard-1
+Disallow: /carpenter-dashboard-2
+Disallow: /carpenter-dashboard-3
 
 Sitemap: https://suzywoodofficial.com/sitemap.xml
