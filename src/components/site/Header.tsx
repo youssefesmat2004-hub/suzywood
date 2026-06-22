@@ -29,7 +29,7 @@ export function Header() {
             <Link
               key={item.to}
               to={item.to}
-              className="text-sm tracking-wide text-foreground/75 hover:text-primary transition-colors"
+              className="text-sm tracking-wide text-foreground hover:text-primary transition-colors"
               activeProps={{ className: "text-primary font-medium" }}
               activeOptions={{ exact: item.to === "/" }}
             >
