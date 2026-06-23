@@ -40,7 +40,7 @@ export function Hero({ title, subtitle }: HeroProps) {
           width={1920}
           height={1280}
           fetchPriority="high"
-          decoding="async"
+          decoding="sync"
           className="h-[120%] w-full object-cover will-change-transform"
           style={{ transform: `translate3d(0, ${offset}px, 0)` }}
         />
