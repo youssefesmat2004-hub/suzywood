@@ -637,7 +637,7 @@ function ProductPage() {
                 <p className="text-[11px] uppercase tracking-[0.28em] text-secondary mb-2">You may also like</p>
                 <h2 className="font-serif text-3xl md:text-4xl">More from this collection</h2>
               </div>
-              <Link to="/shop" className="text-sm border-b border-primary pb-0.5 hover:opacity-70">View all →</Link>
+              <Link to="/shop" className="text-sm border-b border-primary pb-0.5 hover:text-primary">View all →</Link>
             </div>
             <div className="grid gap-6 grid-cols-2 lg:grid-cols-4">
               {relatedAnnotated.map((p) => <ProductCard key={p.id} product={p} />)}
