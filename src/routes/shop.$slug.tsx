@@ -663,7 +663,7 @@ function SafetyGateRightColumn({ product }: { product: Product }) {
     <>
       <div>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary/15 text-secondary text-[11px] uppercase tracking-[0.22em]">
+          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary text-secondary-foreground text-[11px] uppercase tracking-[0.22em]">
             <Ruler className="h-3 w-3" /> Custom Measurement Required
           </span>
         </div>
