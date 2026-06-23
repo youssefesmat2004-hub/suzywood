@@ -672,7 +672,7 @@ function SafetyGateRightColumn({ product }: { product: Product }) {
         <p className="mt-6 font-serif text-2xl text-primary">Price upon measurement</p>
       </div>
 
-      {product.description && <p className="text-foreground/80 leading-relaxed">{product.description}</p>}
+      {product.description && <p className="text-foreground leading-relaxed">{product.description}</p>}
 
       <div className="rounded-2xl border border-border bg-muted/30 p-5 space-y-2">
         <p className="text-sm leading-relaxed">
