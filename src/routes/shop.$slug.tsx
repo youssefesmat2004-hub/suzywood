@@ -617,11 +617,11 @@ function ProductPage() {
               <TabsTrigger value="care">Care</TabsTrigger>
               <TabsTrigger value="reviews">Reviews</TabsTrigger>
             </TabsList>
-            <TabsContent value="safety" className="pt-6 max-w-3xl space-y-4 text-foreground/80 leading-relaxed">
+            <TabsContent value="safety" className="pt-6 max-w-3xl space-y-4 text-foreground leading-relaxed">
               {product.materials && (<><h3 className="font-serif text-xl">Materials</h3><p>{product.materials}</p></>)}
               {product.safety_info && (<><h3 className="font-serif text-xl mt-6">Safety</h3><p>{product.safety_info}</p></>)}
             </TabsContent>
-            <TabsContent value="care" className="pt-6 max-w-3xl text-foreground/80 leading-relaxed">
+            <TabsContent value="care" className="pt-6 max-w-3xl text-foreground leading-relaxed">
               <p>{product.care_info ?? "Wipe with a damp cloth. Keep out of direct sunlight."}</p>
             </TabsContent>
             <TabsContent value="reviews" className="pt-6 max-w-3xl">
