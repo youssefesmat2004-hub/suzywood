@@ -69,7 +69,7 @@ export function Reviews({ productId }: { productId: string }) {
           <div className="flex items-center gap-2">
             {[1, 2, 3, 4, 5].map((i) => (
               <button type="button" key={i} onClick={() => setRating(i)} aria-label={`${i} stars`}>
-                <span className={`text-2xl ${i <= rating ? "text-secondary" : "text-muted-foreground/40"}`}>★</span>
+                <span className={`text-2xl ${i <= rating ? "text-secondary" : "text-muted-foreground"}`}>★</span>
               </button>
             ))}
           </div>
@@ -102,7 +102,7 @@ export function Reviews({ productId }: { productId: string }) {
                 <span className="text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString()}</span>
               </div>
               {r.title && <p className="font-serif text-lg mt-2">{r.title}</p>}
-              {r.body && <p className="text-sm text-foreground/80 mt-1 leading-relaxed">{r.body}</p>}
+              {r.body && <p className="text-sm text-foreground mt-1 leading-relaxed">{r.body}</p>}
             </div>
           ))
         )}

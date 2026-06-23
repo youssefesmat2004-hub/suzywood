@@ -63,8 +63,8 @@ const testimonials: Testimonial[] = [
 
 function FacebookBadge() {
   return (
-    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#1877F2]">
-      <BadgeCheck className="h-3.5 w-3.5 fill-[#1877F2] text-white" />
+    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-facebook">
+      <BadgeCheck className="h-3.5 w-3.5 fill-facebook text-white" />
       Verified Facebook Review
     </span>
   );
@@ -95,13 +95,13 @@ function TestimonialCard({ t }: { t: Testimonial }) {
       </div>
 
       {/* Review text */}
-      <p className="text-sm text-foreground/85 leading-relaxed flex-1">
+      <p className="text-sm text-foreground leading-relaxed flex-1">
         “{t.text}”
       </p>
 
       {/* Facebook footer */}
       <div className="mt-4 pt-3 border-t border-border/40 flex items-center gap-1.5">
-        <Facebook className="h-3.5 w-3.5 text-[#1877F2]" />
+        <Facebook className="h-3.5 w-3.5 text-facebook" />
         <span className="text-[11px] text-muted-foreground">Recommended on Facebook</span>
       </div>
     </div>
@@ -193,7 +193,7 @@ export function CustomerReviews() {
           ))}
         </div>
         <span className="inline-flex items-center gap-1.5">
-          <Facebook className="h-4 w-4 text-[#1877F2]" />
+          <Facebook className="h-4 w-4 text-facebook" />
           <strong className="text-foreground">100% recommend</strong> · 257 reviews on Facebook
           <span className="underline-offset-4 group-hover:underline">— visit our page</span>
         </span>

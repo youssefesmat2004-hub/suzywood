@@ -13,7 +13,7 @@ export function ValueBar() {
         {items.map((it) => (
           <div key={it.label} className="flex items-center justify-center gap-3">
             <it.icon className="h-5 w-5 text-secondary" />
-            <span className="text-sm tracking-wide uppercase text-foreground/80">{it.label}</span>
+            <span className="text-sm tracking-wide uppercase text-foreground">{it.label}</span>
           </div>
         ))}
       </div>

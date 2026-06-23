@@ -242,10 +242,10 @@ function ProductPage() {
     + (bedRailsApplied ? BED_RAILS_PRICE : 0);
 
   const stockBadge = soldOut
-    ? { label: "Sold out", className: "bg-destructive/10 text-destructive" }
+    ? { label: "Sold out", className: "bg-destructive text-destructive-foreground" }
     : stock <= 5
-      ? { label: `Only ${stock} left`, className: "bg-amber-500/15 text-amber-700" }
-      : { label: "In stock", className: "bg-secondary/15 text-secondary" };
+      ? { label: `Only ${stock} left`, className: "bg-amber text-amber-foreground" }
+      : { label: "In stock", className: "bg-secondary text-secondary-foreground" };
 
   const relatedAnnotated = related.map((p) => ({ ...p, category_slug: category?.slug }));
 
@@ -329,7 +329,7 @@ function ProductPage() {
             <>
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary/15 text-secondary text-[11px] uppercase tracking-[0.22em]">
+                <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary text-secondary-foreground text-[11px] uppercase tracking-[0.22em]">
                   <Check className="h-3 w-3" /> Make-to-Order · {product.lead_time_weeks} Weeks
                 </span>
                 <span className={`px-3 py-1 rounded-full text-[11px] uppercase tracking-[0.22em] ${stockBadge.className}`}>
@@ -344,7 +344,7 @@ function ProductPage() {
               </p>
             </div>
 
-            {product.description && <p className="text-foreground/80 leading-relaxed">{product.description}</p>}
+            {product.description && <p className="text-foreground leading-relaxed">{product.description}</p>}
 
             <div className="space-y-5 pt-2 border-t border-border">
               {variants.some((v) => v.variant_type !== "fabric_color") && (
@@ -617,11 +617,11 @@ function ProductPage() {
               <TabsTrigger value="care">Care</TabsTrigger>
               <TabsTrigger value="reviews">Reviews</TabsTrigger>
             </TabsList>
-            <TabsContent value="safety" className="pt-6 max-w-3xl space-y-4 text-foreground/80 leading-relaxed">
+            <TabsContent value="safety" className="pt-6 max-w-3xl space-y-4 text-foreground leading-relaxed">
               {product.materials && (<><h3 className="font-serif text-xl">Materials</h3><p>{product.materials}</p></>)}
               {product.safety_info && (<><h3 className="font-serif text-xl mt-6">Safety</h3><p>{product.safety_info}</p></>)}
             </TabsContent>
-            <TabsContent value="care" className="pt-6 max-w-3xl text-foreground/80 leading-relaxed">
+            <TabsContent value="care" className="pt-6 max-w-3xl text-foreground leading-relaxed">
               <p>{product.care_info ?? "Wipe with a damp cloth. Keep out of direct sunlight."}</p>
             </TabsContent>
             <TabsContent value="reviews" className="pt-6 max-w-3xl">
@@ -637,7 +637,7 @@ function ProductPage() {
                 <p className="text-[11px] uppercase tracking-[0.28em] text-secondary mb-2">You may also like</p>
                 <h2 className="font-serif text-3xl md:text-4xl">More from this collection</h2>
               </div>
-              <Link to="/shop" className="text-sm border-b border-primary pb-0.5 hover:opacity-70">View all →</Link>
+              <Link to="/shop" className="text-sm border-b border-primary pb-0.5 hover:text-primary">View all →</Link>
             </div>
             <div className="grid gap-6 grid-cols-2 lg:grid-cols-4">
               {relatedAnnotated.map((p) => <ProductCard key={p.id} product={p} />)}
@@ -663,7 +663,7 @@ function SafetyGateRightColumn({ product }: { product: Product }) {
     <>
       <div>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary/15 text-secondary text-[11px] uppercase tracking-[0.22em]">
+          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary text-secondary-foreground text-[11px] uppercase tracking-[0.22em]">
             <Ruler className="h-3 w-3" /> Custom Measurement Required
           </span>
         </div>
@@ -672,7 +672,7 @@ function SafetyGateRightColumn({ product }: { product: Product }) {
         <p className="mt-6 font-serif text-2xl text-primary">Price upon measurement</p>
       </div>
 
-      {product.description && <p className="text-foreground/80 leading-relaxed">{product.description}</p>}
+      {product.description && <p className="text-foreground leading-relaxed">{product.description}</p>}
 
       <div className="rounded-2xl border border-border bg-muted/30 p-5 space-y-2">
         <p className="text-sm leading-relaxed">
@@ -769,7 +769,7 @@ function MeasurementBookingDialog({
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         {done ? (
           <div className="text-center py-6 space-y-4">
-            <div className="mx-auto h-12 w-12 rounded-full bg-secondary/15 text-secondary inline-flex items-center justify-center">
+            <div className="mx-auto h-12 w-12 rounded-full bg-secondary text-secondary-foreground inline-flex items-center justify-center">
               <Sparkles className="h-6 w-6" />
             </div>
             <DialogHeader>
