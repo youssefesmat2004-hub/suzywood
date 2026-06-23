@@ -769,7 +769,7 @@ function MeasurementBookingDialog({
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         {done ? (
           <div className="text-center py-6 space-y-4">
-            <div className="mx-auto h-12 w-12 rounded-full bg-secondary/15 text-secondary inline-flex items-center justify-center">
+            <div className="mx-auto h-12 w-12 rounded-full bg-secondary text-secondary-foreground inline-flex items-center justify-center">
               <Sparkles className="h-6 w-6" />
             </div>
             <DialogHeader>
