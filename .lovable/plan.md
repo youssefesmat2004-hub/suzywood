@@ -1,32 +1,21 @@
-## Goal
-Enforce at the database layer that `custom_build_requests.user_id` can never be a spoofed value — it must equal `auth.uid()` for authenticated callers, or `NULL` for anonymous callers. The server-function/Zod fix already shipped; this plan adds defense-in-depth in SQL so even a direct insert (or a future code path using `supabaseAdmin`) cannot attribute a request to a victim's account.
+# Fix VAPID key error
 
-## Migration (SQL only)
+The current `VAPID_PRIVATE_KEY` is in raw base64url format, but `src/lib/web-push.server.ts` expects a JSON-stringified JWK. I'll generate a fresh, correctly-formatted pair.
 
-1. Create a `BEFORE INSERT` trigger function `public.enforce_custom_build_user_id()` that:
-   - Sets `NEW.user_id := auth.uid()` when `auth.uid() IS NOT NULL`.
-   - Sets `NEW.user_id := NULL` when `auth.uid() IS NULL` (anonymous insert).
-   - This makes any client-supplied `user_id` irrelevant — it's always overwritten server-side by Postgres.
-   - `SECURITY INVOKER`, `SET search_path = public`.
+## Steps
 
-2. Attach the trigger to `public.custom_build_requests` for `BEFORE INSERT FOR EACH ROW`.
+1. Generate a new P-256 ECDSA keypair using Web Crypto in a one-off script.
+2. Export:
+   - Public key: raw base64url (65 bytes, `0x04||x||y`)
+   - Private key: JWK exported as JSON string
+3. Use `update_secret` to replace both `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY` in Lovable Cloud secrets (secure form, you paste the generated values).
+4. No code changes needed — `web-push.server.ts` already reads from env.
 
-3. Tighten the existing INSERT RLS policy `WITH CHECK` to `user_id IS NOT DISTINCT FROM auth.uid()` so the policy itself rejects any mismatched value (belt-and-braces with the trigger; the trigger normalizes, the policy verifies).
+## After the fix
 
-4. Leave SELECT/UPDATE policies untouched.
+- Any device that previously subscribed (none should have, since setup was failing) would need to re-subscribe — the public key is changing.
+- You re-open the admin panel on your phone and tap **Enable notifications**; it should succeed.
 
-## Notes
+## Note
 
-- No table schema changes, no GRANT changes (existing grants stand).
-- `supabaseAdmin` writes bypass RLS but **not** triggers, so the trigger also protects server-side admin paths.
-- No application code changes — the server fn already hardcodes `null` and the Zod schema already excludes `user_id`.
-
-## Findings left untouched (mentioned for your review)
-
-These were in the scan results but explicitly out of scope for this request:
-- `lookup_order_like_phone` — order-tracking RPC uses suffix `LIKE` match on phone.
-- `order_upfront_rate_unvalidated` — `create_order_with_items` accepts any `_upfront_rate`.
-- `orders_anonymous_insert` — informational; relies on the SECURITY DEFINER RPC being the only insert path.
-- `realtime_orders_non_staff_authenticated` — realtime topic policy has an open `ELSE true`.
-- `notify_fns_no_auth` — unauthenticated owner/customer notification server functions.
-- `custom_build_user_id_spoof` / `custom_build_requests_user_id_spoofing` — should auto-clear once this migration lands.
+I can't directly run a script in plan mode. Once you approve, I'll run the keygen in build mode and walk you through pasting the two values into the secret form.
