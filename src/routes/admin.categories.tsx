@@ -683,6 +683,52 @@ function CategoryDialog({
               />
             </div>
           </TabsContent>
+
+          <TabsContent value="mattress" className="space-y-4 mt-4">
+            <div className="flex items-center justify-between border rounded-lg p-3">
+              <div>
+                <p className="font-medium text-sm">Offer mattress add-on</p>
+                <p className="text-xs text-muted-foreground">Customers can add a mattress when buying a product in this category. Set the small / big price below, then tag each size in the "Sizes & Pricing" tab as small or big.</p>
+              </div>
+              <Switch
+                checked={value.mattress_addon_enabled}
+                onCheckedChange={(c) => onChange({ ...value, mattress_addon_enabled: c })}
+              />
+            </div>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label>Small mattress price (EGP)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={value.mattress_small_price}
+                  onChange={(e) => onChange({ ...value, mattress_small_price: Number(e.target.value) })}
+                  placeholder="e.g. 1500"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Big mattress price (EGP)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={value.mattress_big_price}
+                  onChange={(e) => onChange({ ...value, mattress_big_price: Number(e.target.value) })}
+                  placeholder="e.g. 2500"
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Note shown to customers (optional)</Label>
+              <Textarea
+                rows={3}
+                value={value.mattress_addon_note ?? ""}
+                onChange={(e) => onChange({ ...value, mattress_addon_note: e.target.value })}
+                placeholder="e.g. High-density foam mattress, custom-fit to your crib."
+              />
+            </div>
+          </TabsContent>
         </Tabs>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
