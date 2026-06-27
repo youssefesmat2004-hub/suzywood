@@ -40,6 +40,10 @@ type CategoryRow = {
   portable_changing_table_enabled: boolean;
   portable_changing_table_price: number;
   portable_changing_table_note: string | null;
+  mattress_addon_enabled: boolean;
+  mattress_small_price: number;
+  mattress_big_price: number;
+  mattress_addon_note: string | null;
   product_count?: number;
 };
 
@@ -49,6 +53,7 @@ type SizeRow = {
   price: number;
   sort_order: number;
   is_active: boolean;
+  mattress_tier?: "small" | "big" | null;
   _delete?: boolean;
 };
 
