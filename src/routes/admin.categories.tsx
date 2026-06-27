@@ -133,6 +133,10 @@ function CategoriesPage() {
       portable_changing_table_enabled: false,
       portable_changing_table_price: 0,
       portable_changing_table_note: null,
+      mattress_addon_enabled: false,
+      mattress_small_price: 0,
+      mattress_big_price: 0,
+      mattress_addon_note: null,
     });
     setOpen(true);
   };
