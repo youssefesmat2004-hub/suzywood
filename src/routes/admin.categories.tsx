@@ -523,6 +523,18 @@ function CategoryDialog({
                         checked={s.is_active}
                         onCheckedChange={(c) => setSizes((p) => p.map((x, i) => i === idx ? { ...x, is_active: c } : x))}
                       />
+                      {value.mattress_addon_enabled && (
+                        <select
+                          className="h-9 rounded-md border border-input bg-transparent px-2 text-xs"
+                          value={s.mattress_tier ?? ""}
+                          onChange={(e) => setSizes((p) => p.map((x, i) => i === idx ? { ...x, mattress_tier: (e.target.value || null) as "small" | "big" | null } : x))}
+                          title="Mattress tier for this size"
+                        >
+                          <option value="">No mattress</option>
+                          <option value="small">Small mattress</option>
+                          <option value="big">Big mattress</option>
+                        </select>
+                      )}
                       <Button type="button" variant="ghost" size="icon" onClick={() => setSizes((p) => p.map((x, i) => i === idx ? { ...x, _delete: true } : x))}>
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
