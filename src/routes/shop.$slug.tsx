@@ -310,10 +310,11 @@ function ProductPage() {
     const ottomanSuffix = ottomanApplied ? " + Ottoman Leg Rest" : "";
     const portableSuffix = portableApplied ? " + Portable Changing Table" : "";
     const bedRailsSuffix = bedRailsApplied ? " + Bed Rails" : "";
+    const mattressSuffix = mattressApplied ? ` + ${mattressTier === "small" ? "Small" : "Big"} Mattress` : "";
     cart.add({
       productId: product.id,
       slug: product.slug,
-      name: product.name + variantSuffix + ottomanSuffix + portableSuffix + bedRailsSuffix,
+      name: product.name + variantSuffix + ottomanSuffix + portableSuffix + bedRailsSuffix + mattressSuffix,
       image: selectedVariant?.image_url ? resolveImage(selectedVariant.image_url) : resolveImage(product.image_url),
       size: [size || "std", ottomanApplied ? "ottoman" : null, portableApplied ? "portable" : null].filter(Boolean).join("+"),
       sizeLabel: [sizeLabel, ottomanApplied ? "Ottoman Leg Rest" : null, portableApplied ? "Portable Changing Table" : null].filter(Boolean).join(" · "),
@@ -323,9 +324,11 @@ function ProductPage() {
       quantity: qty,
       bedRails: bedRailsApplied,
       bedRailsPrice: bedRailsApplied ? BED_RAILS_PRICE : 0,
+      mattress: mattressApplied,
+      mattressPrice: mattressApplied ? mattressPrice : 0,
       categorySlug: category?.slug,
     });
-    toast.success("Added to cart", { description: `${product.name}${variantSuffix}${ottomanSuffix}${portableSuffix}${bedRailsSuffix} × ${qty}`, action: { label: "View cart", onClick: () => navigate({ to: "/cart" }) } });
+    toast.success("Added to cart", { description: `${product.name}${variantSuffix}${ottomanSuffix}${portableSuffix}${bedRailsSuffix}${mattressSuffix} × ${qty}`, action: { label: "View cart", onClick: () => navigate({ to: "/cart" }) } });
   };
 
   return (
