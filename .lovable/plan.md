@@ -1,21 +1,41 @@
-# Fix VAPID key error
+## Goal
 
-The current `VAPID_PRIVATE_KEY` is in raw base64url format, but `src/lib/web-push.server.ts` expects a JSON-stringified JWK. I'll generate a fresh, correctly-formatted pair.
+Let customers optionally add a mattress when buying a crib. You set two prices in **Admin → Categories → Cribs** (small mattress, big mattress) and tag each crib size as "small" or "big" so the right mattress price is auto-applied.
 
-## Steps
+## What the customer sees (on a Cribs product page)
 
-1. Generate a new P-256 ECDSA keypair using Web Crypto in a one-off script.
-2. Export:
-   - Public key: raw base64url (65 bytes, `0x04||x||y`)
-   - Private key: JWK exported as JSON string
-3. Use `update_secret` to replace both `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY` in Lovable Cloud secrets (secure form, you paste the generated values).
-4. No code changes needed — `web-push.server.ts` already reads from env.
+- A new checkbox: **"Add mattress (+EGP X)"** — appears only for cribs.
+- The price X updates live based on the size selected (small vs big).
+- The cart line shows "+ Mattress", and total includes the mattress price.
 
-## After the fix
+## What you see in admin
 
-- Any device that previously subscribed (none should have, since setup was failing) would need to re-subscribe — the public key is changing.
-- You re-open the admin panel on your phone and tap **Enable notifications**; it should succeed.
+**Categories → Cribs → edit:**
+- Toggle: *Mattress add-on enabled*
+- Number: *Small mattress price (EGP)*
+- Number: *Big mattress price (EGP)*
+- Note field (optional)
 
-## Note
+**Each size row** in the Cribs sizes list gets a new selector: `Mattress tier: [None / Small / Big]`.
 
-I can't directly run a script in plan mode. Once you approve, I'll run the keygen in build mode and walk you through pasting the two values into the secret form.
+## Technical changes
+
+### 1. Database migration
+- `categories`: add `mattress_addon_enabled bool default false`, `mattress_small_price numeric default 0`, `mattress_big_price numeric default 0`, `mattress_addon_note text`.
+- `category_sizes`: add `mattress_tier text` (nullable, values: `small` | `big`).
+- `order_items`: add `mattress bool default false`, `mattress_price numeric default 0`.
+- Update `create_order_with_items` RPC to accept `mattress` per item, look up the matching mattress price from `category_sizes.mattress_tier` + category prices, validate, and store on the order_item + add to subtotal.
+
+### 2. Frontend
+- `src/routes/admin.categories.tsx`: add the 3 mattress fields to the form; add a `Mattress tier` select to each size row.
+- `src/lib/cart.tsx`: add `mattress?: boolean` and `mattressPrice?: number` to `CartItem`; include in dedupe key.
+- `src/routes/shop.$slug.tsx`: when category slug = `cribs` and `mattress_addon_enabled`, render the checkbox; compute price from the selected size's `mattress_tier`; include in `add()` payload and label.
+- `src/routes/cart.tsx` + checkout summary: show "+ Mattress (EGP X)" line under the affected item.
+- `src/lib/manual-orders.functions.ts`: accept mattress flag for parity with WhatsApp manual orders.
+
+### 3. Types
+After the migration runs, `src/integrations/supabase/types.ts` regenerates automatically; update local TS types in the affected files.
+
+## Out of scope
+- Per-product mattress pricing (you chose category-level).
+- Multiple mattress models per crib.
