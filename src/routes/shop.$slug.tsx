@@ -79,10 +79,14 @@ export const Route = createFileRoute("/shop/$slug")({
         .limit(4),
       supabase
         .from("categories")
-        .select("slug,custom_size_enabled,custom_size_surcharge,custom_size_note,name_engraving_enabled,name_engraving_surcharge,name_engraving_note,finish_label,ottoman_addon_enabled,ottoman_addon_price,ottoman_addon_note,portable_changing_table_enabled,portable_changing_table_price,portable_changing_table_note")
+        .select("slug,custom_size_enabled,custom_size_surcharge,custom_size_note,name_engraving_enabled,name_engraving_surcharge,name_engraving_note,finish_label,ottoman_addon_enabled,ottoman_addon_price,ottoman_addon_note,portable_changing_table_enabled,portable_changing_table_price,portable_changing_table_note,mattress_addon_enabled,mattress_small_price,mattress_big_price,mattress_addon_note")
         .eq("id", product.category_id)
         .maybeSingle(),
     ]);
+    const { data: catSizes } = await supabase
+      .from("category_sizes")
+      .select("label,mattress_tier")
+      .eq("category_id", product.category_id);
     return {
       product,
       variants: (variants ?? []) as Variant[],
@@ -102,7 +106,12 @@ export const Route = createFileRoute("/shop/$slug")({
         portable_changing_table_enabled: boolean;
         portable_changing_table_price: number;
         portable_changing_table_note: string | null;
+        mattress_addon_enabled: boolean;
+        mattress_small_price: number;
+        mattress_big_price: number;
+        mattress_addon_note: string | null;
       } | null,
+      categorySizes: (catSizes ?? []) as { label: string; mattress_tier: "small" | "big" | null }[],
     };
   },
   head: ({ loaderData }) => {
