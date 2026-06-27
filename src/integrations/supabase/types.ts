@@ -72,6 +72,10 @@ export type Database = {
           finish_label: string | null
           id: string
           image_url: string | null
+          mattress_addon_enabled: boolean
+          mattress_addon_note: string | null
+          mattress_big_price: number
+          mattress_small_price: number
           name: string
           name_engraving_enabled: boolean
           name_engraving_note: string | null
@@ -94,6 +98,10 @@ export type Database = {
           finish_label?: string | null
           id?: string
           image_url?: string | null
+          mattress_addon_enabled?: boolean
+          mattress_addon_note?: string | null
+          mattress_big_price?: number
+          mattress_small_price?: number
           name: string
           name_engraving_enabled?: boolean
           name_engraving_note?: string | null
@@ -116,6 +124,10 @@ export type Database = {
           finish_label?: string | null
           id?: string
           image_url?: string | null
+          mattress_addon_enabled?: boolean
+          mattress_addon_note?: string | null
+          mattress_big_price?: number
+          mattress_small_price?: number
           name?: string
           name_engraving_enabled?: boolean
           name_engraving_note?: string | null
@@ -138,6 +150,7 @@ export type Database = {
           id: string
           is_active: boolean
           label: string
+          mattress_tier: string | null
           price: number
           sort_order: number
           updated_at: string
@@ -148,6 +161,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           label: string
+          mattress_tier?: string | null
           price?: number
           sort_order?: number
           updated_at?: string
@@ -158,6 +172,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           label?: string
+          mattress_tier?: string | null
           price?: number
           sort_order?: number
           updated_at?: string
@@ -408,6 +423,8 @@ export type Database = {
           finish: string | null
           id: string
           line_total: number
+          mattress: boolean
+          mattress_price: number
           order_id: string
           product_id: string | null
           product_name: string
@@ -425,6 +442,8 @@ export type Database = {
           finish?: string | null
           id?: string
           line_total: number
+          mattress?: boolean
+          mattress_price?: number
           order_id: string
           product_id?: string | null
           product_name: string
@@ -442,6 +461,8 @@ export type Database = {
           finish?: string | null
           id?: string
           line_total?: number
+          mattress?: boolean
+          mattress_price?: number
           order_id?: string
           product_id?: string | null
           product_name?: string
