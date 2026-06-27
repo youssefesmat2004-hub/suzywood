@@ -169,7 +169,7 @@ export const Route = createFileRoute("/shop/$slug")({
 });
 
 function ProductPage() {
-  const { product, variants, related, category } = Route.useLoaderData() as {
+  const { product, variants, related, category, categorySizes } = Route.useLoaderData() as {
     product: Product;
     variants: Variant[];
     related: Product[];
@@ -188,7 +188,12 @@ function ProductPage() {
       portable_changing_table_enabled: boolean;
       portable_changing_table_price: number;
       portable_changing_table_note: string | null;
+      mattress_addon_enabled: boolean;
+      mattress_small_price: number;
+      mattress_big_price: number;
+      mattress_addon_note: string | null;
     } | null;
+    categorySizes: { label: string; mattress_tier: "small" | "big" | null }[];
   };
   const navigate = useNavigate();
   const cart = useCart();
@@ -210,6 +215,7 @@ function ProductPage() {
   const [withOttoman, setWithOttoman] = useState(false);
   const [withPortable, setWithPortable] = useState(false);
   const [withBedRails, setWithBedRails] = useState(false);
+  const [withMattress, setWithMattress] = useState(false);
 
   const selectedVariant = useMemo(
     () => (customMode ? null : variants.find((v) => v.id === variantId) ?? null),
@@ -238,6 +244,17 @@ function ProductPage() {
   const portablePrice = Number(category?.portable_changing_table_price ?? 0);
   const portableApplied = portableEnabled && withPortable;
   const bedRailsApplied = isToddlerBed && withBedRails;
+  const mattressEnabled = !!category?.mattress_addon_enabled;
+  const selectedSizeLabel = customMode ? "" : (selectedVariant?.name ?? sizes.find((s) => s.value === size)?.label ?? "");
+  const mattressTier: "small" | "big" | null = mattressEnabled && selectedSizeLabel
+    ? (categorySizes.find((cs) => cs.label.toLowerCase() === selectedSizeLabel.toLowerCase())?.mattress_tier ?? null)
+    : null;
+  const mattressPrice = mattressTier === "small"
+    ? Number(category?.mattress_small_price ?? 0)
+    : mattressTier === "big"
+      ? Number(category?.mattress_big_price ?? 0)
+      : 0;
+  const mattressApplied = mattressEnabled && !!mattressTier && withMattress && mattressPrice > 0;
   const finishLabel = category?.finish_label?.trim() || "Wood Finish";
   const stock = customMode ? 99 : (selectedVariant ? selectedVariant.stock_quantity : (product.stock_quantity ?? 99));
   const soldOut = !customMode && stock <= 0;
@@ -248,7 +265,8 @@ function ProductPage() {
     + (engravingApplied ? engravingSurcharge : 0)
     + (ottomanApplied ? ottomanPrice : 0)
     + (portableApplied ? portablePrice : 0)
-    + (bedRailsApplied ? BED_RAILS_PRICE : 0);
+    + (bedRailsApplied ? BED_RAILS_PRICE : 0)
+    + (mattressApplied ? mattressPrice : 0);
 
   const stockBadge = soldOut
     ? { label: "Sold out", className: "bg-destructive text-destructive-foreground" }
