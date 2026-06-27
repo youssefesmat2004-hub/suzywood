@@ -19,6 +19,8 @@ export type CartItem = {
   };
   bedRails?: boolean;
   bedRailsPrice?: number;
+  mattress?: boolean;
+  mattressPrice?: number;
   categorySlug?: string;
 };
 
@@ -59,6 +61,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         ? `${item.customSize.widthCm}x${item.customSize.lengthCm}`
         : "";
       const bedRailsKey = item.bedRails ? "br" : "";
+      const mattressKey = item.mattress ? "mat" : "";
       const idx = curr.findIndex(
         (i) =>
           i.productId === item.productId &&
@@ -66,7 +69,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
           i.finish === item.finish &&
           i.engraving === item.engraving &&
           (i.customSize ? `${i.customSize.widthCm}x${i.customSize.lengthCm}` : "") === customKey &&
-          ((i.bedRails ? "br" : "") === bedRailsKey),
+          ((i.bedRails ? "br" : "") === bedRailsKey) &&
+          ((i.mattress ? "mat" : "") === mattressKey),
       );
       if (idx >= 0) {
         const next = [...curr];

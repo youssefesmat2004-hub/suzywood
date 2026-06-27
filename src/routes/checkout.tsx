@@ -178,6 +178,8 @@ function Checkout() {
         custom_surcharge: it.customSize?.surcharge ?? "",
         bed_rails: !!it.bedRails,
         bed_rails_price: it.bedRailsPrice ?? 0,
+        mattress: !!it.mattress,
+        mattress_price: it.mattressPrice ?? 0,
       })),
       _upfront_rate: UPFRONT_RATE,
       _promo_code: promo?.code ?? "",

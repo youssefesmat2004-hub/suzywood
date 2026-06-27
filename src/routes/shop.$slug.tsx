@@ -79,10 +79,14 @@ export const Route = createFileRoute("/shop/$slug")({
         .limit(4),
       supabase
         .from("categories")
-        .select("slug,custom_size_enabled,custom_size_surcharge,custom_size_note,name_engraving_enabled,name_engraving_surcharge,name_engraving_note,finish_label,ottoman_addon_enabled,ottoman_addon_price,ottoman_addon_note,portable_changing_table_enabled,portable_changing_table_price,portable_changing_table_note")
+        .select("slug,custom_size_enabled,custom_size_surcharge,custom_size_note,name_engraving_enabled,name_engraving_surcharge,name_engraving_note,finish_label,ottoman_addon_enabled,ottoman_addon_price,ottoman_addon_note,portable_changing_table_enabled,portable_changing_table_price,portable_changing_table_note,mattress_addon_enabled,mattress_small_price,mattress_big_price,mattress_addon_note")
         .eq("id", product.category_id)
         .maybeSingle(),
     ]);
+    const { data: catSizes } = await supabase
+      .from("category_sizes")
+      .select("label,mattress_tier")
+      .eq("category_id", product.category_id);
     return {
       product,
       variants: (variants ?? []) as Variant[],
@@ -102,7 +106,12 @@ export const Route = createFileRoute("/shop/$slug")({
         portable_changing_table_enabled: boolean;
         portable_changing_table_price: number;
         portable_changing_table_note: string | null;
+        mattress_addon_enabled: boolean;
+        mattress_small_price: number;
+        mattress_big_price: number;
+        mattress_addon_note: string | null;
       } | null,
+      categorySizes: (catSizes ?? []) as { label: string; mattress_tier: "small" | "big" | null }[],
     };
   },
   head: ({ loaderData }) => {
@@ -160,7 +169,7 @@ export const Route = createFileRoute("/shop/$slug")({
 });
 
 function ProductPage() {
-  const { product, variants, related, category } = Route.useLoaderData() as {
+  const { product, variants, related, category, categorySizes } = Route.useLoaderData() as {
     product: Product;
     variants: Variant[];
     related: Product[];
@@ -179,7 +188,12 @@ function ProductPage() {
       portable_changing_table_enabled: boolean;
       portable_changing_table_price: number;
       portable_changing_table_note: string | null;
+      mattress_addon_enabled: boolean;
+      mattress_small_price: number;
+      mattress_big_price: number;
+      mattress_addon_note: string | null;
     } | null;
+    categorySizes: { label: string; mattress_tier: "small" | "big" | null }[];
   };
   const navigate = useNavigate();
   const cart = useCart();
@@ -201,6 +215,7 @@ function ProductPage() {
   const [withOttoman, setWithOttoman] = useState(false);
   const [withPortable, setWithPortable] = useState(false);
   const [withBedRails, setWithBedRails] = useState(false);
+  const [withMattress, setWithMattress] = useState(false);
 
   const selectedVariant = useMemo(
     () => (customMode ? null : variants.find((v) => v.id === variantId) ?? null),
@@ -229,6 +244,17 @@ function ProductPage() {
   const portablePrice = Number(category?.portable_changing_table_price ?? 0);
   const portableApplied = portableEnabled && withPortable;
   const bedRailsApplied = isToddlerBed && withBedRails;
+  const mattressEnabled = !!category?.mattress_addon_enabled;
+  const selectedSizeLabel = customMode ? "" : (selectedVariant?.name ?? sizes.find((s) => s.value === size)?.label ?? "");
+  const mattressTier: "small" | "big" | null = mattressEnabled && selectedSizeLabel
+    ? (categorySizes.find((cs) => cs.label.toLowerCase() === selectedSizeLabel.toLowerCase())?.mattress_tier ?? null)
+    : null;
+  const mattressPrice = mattressTier === "small"
+    ? Number(category?.mattress_small_price ?? 0)
+    : mattressTier === "big"
+      ? Number(category?.mattress_big_price ?? 0)
+      : 0;
+  const mattressApplied = mattressEnabled && !!mattressTier && withMattress && mattressPrice > 0;
   const finishLabel = category?.finish_label?.trim() || "Wood Finish";
   const stock = customMode ? 99 : (selectedVariant ? selectedVariant.stock_quantity : (product.stock_quantity ?? 99));
   const soldOut = !customMode && stock <= 0;
@@ -239,7 +265,8 @@ function ProductPage() {
     + (engravingApplied ? engravingSurcharge : 0)
     + (ottomanApplied ? ottomanPrice : 0)
     + (portableApplied ? portablePrice : 0)
-    + (bedRailsApplied ? BED_RAILS_PRICE : 0);
+    + (bedRailsApplied ? BED_RAILS_PRICE : 0)
+    + (mattressApplied ? mattressPrice : 0);
 
   const stockBadge = soldOut
     ? { label: "Sold out", className: "bg-destructive text-destructive-foreground" }
@@ -283,10 +310,11 @@ function ProductPage() {
     const ottomanSuffix = ottomanApplied ? " + Ottoman Leg Rest" : "";
     const portableSuffix = portableApplied ? " + Portable Changing Table" : "";
     const bedRailsSuffix = bedRailsApplied ? " + Bed Rails" : "";
+    const mattressSuffix = mattressApplied ? ` + ${mattressTier === "small" ? "Small" : "Big"} Mattress` : "";
     cart.add({
       productId: product.id,
       slug: product.slug,
-      name: product.name + variantSuffix + ottomanSuffix + portableSuffix + bedRailsSuffix,
+      name: product.name + variantSuffix + ottomanSuffix + portableSuffix + bedRailsSuffix + mattressSuffix,
       image: selectedVariant?.image_url ? resolveImage(selectedVariant.image_url) : resolveImage(product.image_url),
       size: [size || "std", ottomanApplied ? "ottoman" : null, portableApplied ? "portable" : null].filter(Boolean).join("+"),
       sizeLabel: [sizeLabel, ottomanApplied ? "Ottoman Leg Rest" : null, portableApplied ? "Portable Changing Table" : null].filter(Boolean).join(" · "),
@@ -296,9 +324,11 @@ function ProductPage() {
       quantity: qty,
       bedRails: bedRailsApplied,
       bedRailsPrice: bedRailsApplied ? BED_RAILS_PRICE : 0,
+      mattress: mattressApplied,
+      mattressPrice: mattressApplied ? mattressPrice : 0,
       categorySlug: category?.slug,
     });
-    toast.success("Added to cart", { description: `${product.name}${variantSuffix}${ottomanSuffix}${portableSuffix}${bedRailsSuffix} × ${qty}`, action: { label: "View cart", onClick: () => navigate({ to: "/cart" }) } });
+    toast.success("Added to cart", { description: `${product.name}${variantSuffix}${ottomanSuffix}${portableSuffix}${bedRailsSuffix}${mattressSuffix} × ${qty}`, action: { label: "View cart", onClick: () => navigate({ to: "/cart" }) } });
   };
 
   return (
@@ -553,6 +583,28 @@ function ProductPage() {
                         <span className="text-sm text-primary font-medium">+{BED_RAILS_PRICE.toLocaleString()} EGP</span>
                       </div>
                       <p className="text-xs text-muted-foreground italic mt-1">Protective side rails to keep little ones safe at night.</p>
+                    </div>
+                  </label>
+                </div>
+              )}
+
+              {mattressEnabled && mattressTier && mattressPrice > 0 && (
+                <div className="space-y-2">
+                  <label className={`flex items-start gap-3 rounded-xl border p-4 cursor-pointer transition-colors ${withMattress ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"}`}>
+                    <input
+                      type="checkbox"
+                      className="mt-1 h-4 w-4 accent-primary"
+                      checked={withMattress}
+                      onChange={(e) => setWithMattress(e.target.checked)}
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-medium text-sm">Add Mattress ({mattressTier === "small" ? "Small" : "Big"})</span>
+                        <span className="text-sm text-primary font-medium">+{mattressPrice.toLocaleString()} EGP</span>
+                      </div>
+                      {category?.mattress_addon_note && (
+                        <p className="text-xs text-muted-foreground italic mt-1">{category.mattress_addon_note}</p>
+                      )}
                     </div>
                   </label>
                 </div>

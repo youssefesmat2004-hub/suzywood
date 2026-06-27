@@ -40,6 +40,10 @@ type CategoryRow = {
   portable_changing_table_enabled: boolean;
   portable_changing_table_price: number;
   portable_changing_table_note: string | null;
+  mattress_addon_enabled: boolean;
+  mattress_small_price: number;
+  mattress_big_price: number;
+  mattress_addon_note: string | null;
   product_count?: number;
 };
 
@@ -49,6 +53,7 @@ type SizeRow = {
   price: number;
   sort_order: number;
   is_active: boolean;
+  mattress_tier?: "small" | "big" | null;
   _delete?: boolean;
 };
 
@@ -128,6 +133,10 @@ function CategoriesPage() {
       portable_changing_table_enabled: false,
       portable_changing_table_price: 0,
       portable_changing_table_note: null,
+      mattress_addon_enabled: false,
+      mattress_small_price: 0,
+      mattress_big_price: 0,
+      mattress_addon_note: null,
     });
     setOpen(true);
   };
@@ -295,6 +304,10 @@ function CategoryDialog({
       portable_changing_table_enabled: value.portable_changing_table_enabled,
       portable_changing_table_price: Number(value.portable_changing_table_price) || 0,
       portable_changing_table_note: value.portable_changing_table_note || null,
+      mattress_addon_enabled: value.mattress_addon_enabled,
+      mattress_small_price: Number(value.mattress_small_price) || 0,
+      mattress_big_price: Number(value.mattress_big_price) || 0,
+      mattress_addon_note: value.mattress_addon_note || null,
     };
     let catId = value.id;
     if (isNew) {
@@ -328,6 +341,7 @@ function CategoryDialog({
           price: Number(s.price) || 0,
           sort_order: s.sort_order,
           is_active: s.is_active,
+          mattress_tier: s.mattress_tier ?? null,
         }).eq("id", s.id);
       } else if (s.label.trim()) {
         await supabase.from("category_sizes").insert({
@@ -336,6 +350,7 @@ function CategoryDialog({
           price: Number(s.price) || 0,
           sort_order: s.sort_order,
           is_active: s.is_active,
+          mattress_tier: s.mattress_tier ?? null,
         });
       }
     }
@@ -370,13 +385,14 @@ function CategoryDialog({
           <DialogTitle>{isNew ? "New Category" : "Edit Category"}</DialogTitle>
         </DialogHeader>
         <Tabs defaultValue="details">
-          <TabsList className="grid grid-cols-6 w-full">
+          <TabsList className="grid grid-cols-7 w-full">
             <TabsTrigger value="details">Details</TabsTrigger>
             <TabsTrigger value="sizes" disabled={isNew}>Sizes & Pricing</TabsTrigger>
             <TabsTrigger value="custom" disabled={isNew}>Custom Size</TabsTrigger>
             <TabsTrigger value="engraving" disabled={isNew}>Engraving</TabsTrigger>
             <TabsTrigger value="ottoman" disabled={isNew}>Ottoman</TabsTrigger>
             <TabsTrigger value="portable" disabled={isNew}>Portable Table</TabsTrigger>
+            <TabsTrigger value="mattress" disabled={isNew}>Mattress</TabsTrigger>
           </TabsList>
 
           <TabsContent value="details" className="space-y-4 mt-4">
@@ -507,6 +523,18 @@ function CategoryDialog({
                         checked={s.is_active}
                         onCheckedChange={(c) => setSizes((p) => p.map((x, i) => i === idx ? { ...x, is_active: c } : x))}
                       />
+                      {value.mattress_addon_enabled && (
+                        <select
+                          className="h-9 rounded-md border border-input bg-transparent px-2 text-xs"
+                          value={s.mattress_tier ?? ""}
+                          onChange={(e) => setSizes((p) => p.map((x, i) => i === idx ? { ...x, mattress_tier: (e.target.value || null) as "small" | "big" | null } : x))}
+                          title="Mattress tier for this size"
+                        >
+                          <option value="">No mattress</option>
+                          <option value="small">Small mattress</option>
+                          <option value="big">Big mattress</option>
+                        </select>
+                      )}
                       <Button type="button" variant="ghost" size="icon" onClick={() => setSizes((p) => p.map((x, i) => i === idx ? { ...x, _delete: true } : x))}>
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
@@ -652,6 +680,52 @@ function CategoryDialog({
                 value={value.portable_changing_table_note ?? ""}
                 onChange={(e) => onChange({ ...value, portable_changing_table_note: e.target.value })}
                 placeholder="e.g. Lightweight padded top, easy to move between rooms."
+              />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="mattress" className="space-y-4 mt-4">
+            <div className="flex items-center justify-between border rounded-lg p-3">
+              <div>
+                <p className="font-medium text-sm">Offer mattress add-on</p>
+                <p className="text-xs text-muted-foreground">Customers can add a mattress when buying a product in this category. Set the small / big price below, then tag each size in the "Sizes & Pricing" tab as small or big.</p>
+              </div>
+              <Switch
+                checked={value.mattress_addon_enabled}
+                onCheckedChange={(c) => onChange({ ...value, mattress_addon_enabled: c })}
+              />
+            </div>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label>Small mattress price (EGP)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={value.mattress_small_price}
+                  onChange={(e) => onChange({ ...value, mattress_small_price: Number(e.target.value) })}
+                  placeholder="e.g. 1500"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Big mattress price (EGP)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={value.mattress_big_price}
+                  onChange={(e) => onChange({ ...value, mattress_big_price: Number(e.target.value) })}
+                  placeholder="e.g. 2500"
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Note shown to customers (optional)</Label>
+              <Textarea
+                rows={3}
+                value={value.mattress_addon_note ?? ""}
+                onChange={(e) => onChange({ ...value, mattress_addon_note: e.target.value })}
+                placeholder="e.g. High-density foam mattress, custom-fit to your crib."
               />
             </div>
           </TabsContent>
