@@ -304,6 +304,10 @@ function CategoryDialog({
       portable_changing_table_enabled: value.portable_changing_table_enabled,
       portable_changing_table_price: Number(value.portable_changing_table_price) || 0,
       portable_changing_table_note: value.portable_changing_table_note || null,
+      mattress_addon_enabled: value.mattress_addon_enabled,
+      mattress_small_price: Number(value.mattress_small_price) || 0,
+      mattress_big_price: Number(value.mattress_big_price) || 0,
+      mattress_addon_note: value.mattress_addon_note || null,
     };
     let catId = value.id;
     if (isNew) {
@@ -337,6 +341,7 @@ function CategoryDialog({
           price: Number(s.price) || 0,
           sort_order: s.sort_order,
           is_active: s.is_active,
+          mattress_tier: s.mattress_tier ?? null,
         }).eq("id", s.id);
       } else if (s.label.trim()) {
         await supabase.from("category_sizes").insert({
@@ -345,6 +350,7 @@ function CategoryDialog({
           price: Number(s.price) || 0,
           sort_order: s.sort_order,
           is_active: s.is_active,
+          mattress_tier: s.mattress_tier ?? null,
         });
       }
     }
