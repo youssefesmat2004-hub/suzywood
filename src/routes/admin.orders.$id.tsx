@@ -358,6 +358,41 @@ function OrderDetailPage() {
               <option key={s.value} value={s.value}>{s.label}</option>
             ))}
           </select>
+          {!isCarpenter && order.status !== "pending_payment" && order.status !== "cancelled" && (
+            <div className="inline-flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={notifyCustomer}
+                disabled={notifying}
+                className="text-sm rounded-md border border-primary px-3 py-1.5 text-primary hover:bg-primary/10 disabled:opacity-60 font-medium"
+              >
+                {notifying ? "Sending…" : "Notify Customer"}
+              </button>
+              {(order.notified_statuses ?? []).includes(order.status) && (
+                <span className="inline-flex items-center gap-1 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md px-2 py-0.5">
+                  ✓ Notified
+                </span>
+              )}
+            </div>
+          )}
+          {!isCarpenter && order.is_manual_order && order.last_updated_at && (
+            <div className="inline-flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={notifyUpdate}
+                disabled={notifyingUpdate}
+                className="text-sm rounded-md border border-amber-500 px-3 py-1.5 text-amber-700 hover:bg-amber-50 disabled:opacity-60 font-medium"
+              >
+                {notifyingUpdate ? "Sending…" : "Notify Customer of Changes"}
+              </button>
+              {order.update_notified_at &&
+                new Date(order.update_notified_at).getTime() >= new Date(order.last_updated_at).getTime() && (
+                  <span className="inline-flex items-center gap-1 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md px-2 py-0.5">
+                    ✓ Notified
+                  </span>
+                )}
+            </div>
+          )}
         </div>
       </div>
 
