@@ -22,6 +22,7 @@ type Variant = {
   is_active: boolean;
   variant_type?: "size" | "fabric_color";
   color_hex?: string | null;
+  carpenter_cost?: number;
   _delete?: boolean;
 };
 
@@ -78,6 +79,7 @@ export type ProductFormValue = {
   is_active: boolean;
   is_featured: boolean;
   portable_changing_table_enabled?: boolean | null;
+  carpenter_cost?: number;
 };
 
 const slugify = (s: string) =>
@@ -127,6 +129,7 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
       is_active: true,
       is_featured: false,
       portable_changing_table_enabled: null,
+      carpenter_cost: 0,
     },
   );
   const [variants, setVariants] = useState<Variant[]>([]);
@@ -324,6 +327,7 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
       is_active: v.is_active,
       is_featured: v.is_featured,
       portable_changing_table_enabled: v.portable_changing_table_enabled ?? null,
+      carpenter_cost: Number(v.carpenter_cost ?? 0),
     };
 
     let pid = productId;
@@ -358,6 +362,7 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
           is_active: variant.is_active,
           variant_type: variant.variant_type ?? "size",
           color_hex: variant.variant_type === "fabric_color" ? (variant.color_hex ?? null) : null,
+          carpenter_cost: Number(variant.carpenter_cost ?? 0),
         }).eq("id", variant.id);
       } else if (!variant._delete && variant.name.trim()) {
         await supabase.from("product_variants").insert({
@@ -370,6 +375,7 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
           is_active: variant.is_active,
           variant_type: variant.variant_type ?? "size",
           color_hex: variant.variant_type === "fabric_color" ? (variant.color_hex ?? null) : null,
+          carpenter_cost: Number(variant.carpenter_cost ?? 0),
         });
       }
     }
