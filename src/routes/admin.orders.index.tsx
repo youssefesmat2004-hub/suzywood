@@ -6,8 +6,7 @@ import { Search, Plus, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsAdmin } from "@/lib/admin";
-import { useServerFn } from "@tanstack/react-start";
-import { createManualOrder } from "@/lib/manual-orders.functions";
+import { ManualOrderModal } from "@/components/admin/ManualOrderModal";
 
 type Order = {
   id: string;
