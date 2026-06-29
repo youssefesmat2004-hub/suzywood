@@ -373,5 +373,8 @@ export const sendOrderUpdatedEmail = createServerFn({ method: "POST" })
       console.error("Resend send failed", res.status, body);
       return { ok: false, error: `Resend error ${res.status}` };
     }
+    try {
+      await supabase.from("orders").update({ update_notified_at: new Date().toISOString() } as never).eq("id", order.id);
+    } catch (e) { console.error("update_notified_at update failed", e); }
     return { ok: true };
   });
