@@ -40,6 +40,10 @@ type Order = {
   order_items: OrderItem[];
   product_description?: string | null;
   attachments?: Array<{ path: string; name: string; mime?: string }> | null;
+  actual_carpenter_cost?: number | null;
+  carpenter_cost_override?: number | null;
+  carpenter_payment_status?: string | null;
+  carpenter_paid_at?: string | null;
 };
 
 const TABS: { value: WorkStatus; label: string }[] = [
@@ -53,7 +57,7 @@ const TABS: { value: WorkStatus; label: string }[] = [
 // instapay_reference, payment_proof_url, internal_notes, customer_email,
 // shipping_address.
 const ORDER_SELECT =
-  "id, order_number, customer_name, customer_phone, status, created_at, shipping_notes, delivery_area, assigned_carpenter, product_description, attachments, order_items(id, product_name, quantity, size, finish, engraving, custom_width_cm, custom_length_cm, bed_rails, products(image_url))";
+  "id, order_number, customer_name, customer_phone, status, created_at, shipping_notes, delivery_area, assigned_carpenter, product_description, attachments, actual_carpenter_cost, carpenter_cost_override, carpenter_payment_status, carpenter_paid_at, order_items(id, product_name, quantity, size, finish, engraving, custom_width_cm, custom_length_cm, bed_rails, products(image_url))";
 
 export function CarpenterDashboard({
   carpenterId,
