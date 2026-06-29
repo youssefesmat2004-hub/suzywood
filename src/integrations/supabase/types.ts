@@ -489,8 +489,12 @@ export type Database = {
       }
       orders: {
         Row: {
+          actual_carpenter_cost: number | null
           assigned_carpenter: number | null
           attachments: Json
+          carpenter_cost_override: number | null
+          carpenter_paid_at: string | null
+          carpenter_payment_status: string | null
           confirmation_email_sent_at: string | null
           created_at: string
           customer_email: string
@@ -536,8 +540,12 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          actual_carpenter_cost?: number | null
           assigned_carpenter?: number | null
           attachments?: Json
+          carpenter_cost_override?: number | null
+          carpenter_paid_at?: string | null
+          carpenter_payment_status?: string | null
           confirmation_email_sent_at?: string | null
           created_at?: string
           customer_email: string
@@ -583,8 +591,12 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          actual_carpenter_cost?: number | null
           assigned_carpenter?: number | null
           attachments?: Json
+          carpenter_cost_override?: number | null
+          carpenter_paid_at?: string | null
+          carpenter_payment_status?: string | null
           confirmation_email_sent_at?: string | null
           created_at?: string
           customer_email?: string
@@ -633,6 +645,7 @@ export type Database = {
       }
       product_variants: {
         Row: {
+          carpenter_cost: number | null
           color_hex: string | null
           created_at: string
           id: string
@@ -647,6 +660,7 @@ export type Database = {
           variant_type: string
         }
         Insert: {
+          carpenter_cost?: number | null
           color_hex?: string | null
           created_at?: string
           id?: string
@@ -661,6 +675,7 @@ export type Database = {
           variant_type?: string
         }
         Update: {
+          carpenter_cost?: number | null
           color_hex?: string | null
           created_at?: string
           id?: string
@@ -687,6 +702,7 @@ export type Database = {
       products: {
         Row: {
           care_info: string | null
+          carpenter_cost: number | null
           category_id: string
           created_at: string
           description: string | null
@@ -710,6 +726,7 @@ export type Database = {
         }
         Insert: {
           care_info?: string | null
+          carpenter_cost?: number | null
           category_id: string
           created_at?: string
           description?: string | null
@@ -733,6 +750,7 @@ export type Database = {
         }
         Update: {
           care_info?: string | null
+          carpenter_cost?: number | null
           category_id?: string
           created_at?: string
           description?: string | null
@@ -1020,6 +1038,19 @@ export type Database = {
               order_number: string
             }[]
           }
+      get_carpenter_owed_orders: {
+        Args: { _carpenter_id: number }
+        Returns: {
+          carpenter_cost: number
+          created_at: string
+          order_id: string
+          order_number: string
+          paid_at: string
+          payment_status: string
+          product_summary: string
+          status: Database["public"]["Enums"]["order_status"]
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
