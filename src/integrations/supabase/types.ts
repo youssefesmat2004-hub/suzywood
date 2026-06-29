@@ -508,6 +508,7 @@ export type Database = {
           is_manual_order: boolean
           last_updated_at: string | null
           notes: string | null
+          notified_statuses: Json
           order_number: string
           order_size_type: string | null
           owner_notification_sent_at: string | null
@@ -529,6 +530,7 @@ export type Database = {
           total: number
           total_amount: number | null
           transaction_id: string | null
+          update_notified_at: string | null
           updated_at: string
           upfront_amount: number | null
           user_id: string | null
@@ -553,6 +555,7 @@ export type Database = {
           is_manual_order?: boolean
           last_updated_at?: string | null
           notes?: string | null
+          notified_statuses?: Json
           order_number?: string
           order_size_type?: string | null
           owner_notification_sent_at?: string | null
@@ -574,6 +577,7 @@ export type Database = {
           total?: number
           total_amount?: number | null
           transaction_id?: string | null
+          update_notified_at?: string | null
           updated_at?: string
           upfront_amount?: number | null
           user_id?: string | null
@@ -598,6 +602,7 @@ export type Database = {
           is_manual_order?: boolean
           last_updated_at?: string | null
           notes?: string | null
+          notified_statuses?: Json
           order_number?: string
           order_size_type?: string | null
           owner_notification_sent_at?: string | null
@@ -619,6 +624,7 @@ export type Database = {
           total?: number
           total_amount?: number | null
           transaction_id?: string | null
+          update_notified_at?: string | null
           updated_at?: string
           upfront_amount?: number | null
           user_id?: string | null
