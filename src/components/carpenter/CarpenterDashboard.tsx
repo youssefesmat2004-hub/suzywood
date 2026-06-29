@@ -559,6 +559,19 @@ function OrderCard({
         </div>
       )}
 
+      {order.product_description && order.product_description.trim() !== "" && (
+        <div className="mt-3 rounded-lg border border-sky-200 bg-sky-50 p-3">
+          <div className="text-[11px] font-semibold text-sky-900 mb-1">تفاصيل الطلب</div>
+          <div className="text-sm text-sky-900 whitespace-pre-wrap leading-relaxed">
+            {order.product_description}
+          </div>
+        </div>
+      )}
+
+      {Array.isArray(order.attachments) && order.attachments.length > 0 && (
+        <CarpenterAttachments items={order.attachments} />
+      )}
+
       {order.delivery_area && (
         <div className="mt-3 inline-flex items-center gap-2 rounded-md border border-sky-200 bg-sky-50 text-sky-900 px-2.5 py-1 text-xs">
           📍 منطقة التوصيل: <strong>{getAreaLabel(order.delivery_area as never)}</strong>
