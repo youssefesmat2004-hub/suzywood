@@ -208,7 +208,7 @@ export const sendOrderStatusEmail = createServerFn({ method: "POST" })
 
     const { data: order, error } = await supabase
       .from("orders")
-      .select("id, order_number, customer_name, customer_email, status, total, upfront_amount, remaining_amount, is_manual_order, product_description, order_items(product_name, quantity, unit_price, size, finish)")
+      .select("id, order_number, customer_name, customer_email, status, total, upfront_amount, remaining_amount, is_manual_order, product_description, notified_statuses, order_items(product_name, quantity, unit_price, size, finish)")
       .eq("id", data.orderId)
       .single();
 
