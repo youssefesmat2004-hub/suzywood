@@ -1,5 +1,5 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Package, ShoppingBag, FileEdit, LogOut, Menu, X, Tags, Settings, CalendarCheck, Ticket, Mail, MessageSquare, Hammer, Users, BarChart3, Ruler } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingBag, FileEdit, LogOut, Menu, X, Tags, Settings, CalendarCheck, Ticket, Mail, MessageSquare, Hammer, Users, BarChart3, Ruler, Wallet } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { useAuth } from "@/lib/auth";
 import { useIsAdmin } from "@/lib/admin";
@@ -16,6 +16,7 @@ const nav = [
   { to: "/admin/custom-builds", label: "Custom Builds", icon: Hammer },
   { to: "/admin/customers", label: "Customers", icon: Users },
   { to: "/admin/analytics", label: "Analytics", icon: BarChart3 },
+  { to: "/admin/carpenter-payments", label: "Carpenter Payments", icon: Wallet },
   { to: "/admin/products", label: "Products", icon: Package },
   { to: "/admin/categories", label: "Categories", icon: Tags },
   { to: "/admin/promos", label: "Promo Codes", icon: Ticket },
