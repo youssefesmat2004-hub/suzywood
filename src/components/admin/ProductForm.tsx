@@ -460,6 +460,24 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
 
       <section className="bg-background border rounded-xl p-6 space-y-4">
         <h2 className="font-serif text-xl">Images</h2>
+      </section>
+
+      <section className="bg-background border rounded-xl p-6 space-y-3 border-amber-300/60 bg-amber-50/30">
+        <div>
+          <h2 className="font-serif text-xl">Internal — Carpenter Cost</h2>
+          <p className="text-xs text-muted-foreground">Admin only. Never shown to customers or carpenters. Per-variant cost below overrides the base value.</p>
+        </div>
+        <div className="max-w-xs space-y-1.5">
+          <Label>Base carpenter cost (EGP)</Label>
+          <Input type="number" min={0} step="0.01"
+            value={v.carpenter_cost ?? 0}
+            onChange={(e) => setV({ ...v, carpenter_cost: Number(e.target.value) })}
+          />
+        </div>
+      </section>
+
+      <section className="bg-background border rounded-xl p-6 space-y-4 hidden">
+        <h2 className="font-serif text-xl">Images</h2>
         <div>
           <Label>Main image</Label>
           <div className="mt-2 flex items-start gap-4">
