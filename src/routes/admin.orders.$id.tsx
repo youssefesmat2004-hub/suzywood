@@ -1,12 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Pencil, Paperclip } from "lucide-react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { sendOrderStatusEmail } from "@/lib/order-emails.functions";
+import { signManualAttachmentUrls } from "@/lib/manual-orders.functions";
 import { useIsAdmin } from "@/lib/admin";
 import { getAreaLabel } from "@/lib/delivery";
+import { ManualOrderModal, type ManualAttachment } from "@/components/admin/ManualOrderModal";
 
 type OrderItem = {
   id: string;
@@ -43,6 +45,11 @@ type Order = {
   instapay_reference: string | null;
   payment_proof_url: string | null;
   assigned_carpenter: number | null;
+  is_manual_order?: boolean | null;
+  product_description?: string | null;
+  notes?: string | null;
+  attachments?: ManualAttachment[] | null;
+  last_updated_at?: string | null;
   order_items: OrderItem[];
 };
 
@@ -130,13 +137,16 @@ function OrderDetailPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [itemsError, setItemsError] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [attachUrls, setAttachUrls] = useState<Record<string, string>>({});
   const sendEmail = useServerFn(sendOrderStatusEmail);
+  const signFn = useServerFn(signManualAttachmentUrls);
 
   useEffect(() => {
     (async () => {
       const { data: orderRow, error: orderErr } = await supabase
         .from("orders")
-        .select("id, order_number, customer_name, customer_email, customer_phone, shipping_address, shipping_city, shipping_governorate, shipping_notes, delivery_area, order_size_type, status, subtotal, shipping_fee, total, upfront_amount, remaining_amount, created_at, instapay_reference, payment_proof_url, assigned_carpenter")
+        .select("id, order_number, customer_name, customer_email, customer_phone, shipping_address, shipping_city, shipping_governorate, shipping_notes, delivery_area, order_size_type, status, subtotal, shipping_fee, total, upfront_amount, remaining_amount, created_at, instapay_reference, payment_proof_url, assigned_carpenter, is_manual_order, product_description, notes, attachments, last_updated_at")
         .eq("id", id)
         .single();
       if (orderErr || !orderRow) {
@@ -163,6 +173,21 @@ function OrderDetailPage() {
       setLoading(false);
     })();
   }, [id]);
+
+  // Sign attachment URLs whenever the attachment list changes
+  useEffect(() => {
+    const list = (order?.attachments ?? []) as ManualAttachment[];
+    if (!list.length) { setAttachUrls({}); return; }
+    let cancelled = false;
+    (async () => {
+      try {
+        const { urls } = await signFn({ data: { paths: list.map((a) => a.path) } });
+        if (!cancelled) setAttachUrls(urls);
+      } catch (e) { /* ignore */ }
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [order?.attachments]);
 
   // Resolve payment proof: legacy rows store a full public URL, new rows store a storage path.
   useEffect(() => {
@@ -262,9 +287,21 @@ function OrderDetailPage() {
           <h1 className="font-serif text-3xl">Order {order.order_number}</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Placed on {new Date(order.created_at).toLocaleString("en-GB")}
+            {order.last_updated_at && (
+              <> · Updated {new Date(order.last_updated_at).toLocaleString("en-GB")}</>
+            )}
           </p>
         </div>
         <div className="flex items-center gap-3">
+          {!isCarpenter && order.is_manual_order && (
+            <button
+              type="button"
+              onClick={() => setEditing(true)}
+              className="inline-flex items-center gap-1.5 text-sm rounded-md border px-3 py-1.5 hover:bg-muted"
+            >
+              <Pencil className="h-3.5 w-3.5" /> Edit order
+            </button>
+          )}
           <span className={`text-xs rounded-md border px-2 py-1 ${statusColor[order.status] ?? ""}`}>
             {STATUS_LABELS[order.status] ?? order.status}
           </span>
@@ -290,6 +327,66 @@ function OrderDetailPage() {
           </select>
         </div>
       </div>
+
+      {((order.attachments ?? []) as ManualAttachment[]).length > 0 && (
+        <section className="bg-background border rounded-xl p-4 mb-6">
+          <h2 className="font-serif text-base mb-3 flex items-center gap-2">
+            <Paperclip className="h-4 w-4" /> Order attachments
+          </h2>
+          <ul className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+            {((order.attachments ?? []) as ManualAttachment[]).map((a) => {
+              const url = attachUrls[a.path];
+              const isImg = (a.mime ?? "").startsWith("image/");
+              return (
+                <li key={a.path} className="rounded-md border bg-muted/30 overflow-hidden">
+                  {isImg && url ? (
+                    <a href={url} target="_blank" rel="noreferrer">
+                      <img src={url} alt={a.name} className="w-full h-24 object-cover hover:opacity-90" />
+                    </a>
+                  ) : (
+                    <a href={url ?? "#"} target="_blank" rel="noreferrer" className="block p-2 h-24 flex flex-col items-center justify-center text-[11px] text-center text-muted-foreground hover:bg-muted">
+                      <Paperclip className="h-4 w-4 mb-1" />
+                      <span className="truncate w-full">{a.name}</span>
+                    </a>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
+
+      {editing && order.is_manual_order && (
+        <ManualOrderModal
+          existing={{
+            id: order.id,
+            customer_name: order.customer_name,
+            customer_email: order.customer_email,
+            customer_phone: order.customer_phone,
+            shipping_address: order.shipping_address,
+            product_description: order.product_description ?? null,
+            subtotal: Number(order.subtotal),
+            shipping_fee: Number(order.shipping_fee),
+            delivery_area: order.delivery_area,
+            upfront_amount: order.upfront_amount,
+            remaining_amount: order.remaining_amount,
+            notes: order.notes ?? "",
+            attachments: (order.attachments ?? []) as ManualAttachment[],
+            status: order.status,
+          }}
+          onClose={() => setEditing(false)}
+          onUpdated={async () => {
+            setEditing(false);
+            // refetch
+            const { data: refreshed } = await supabase
+              .from("orders")
+              .select("id, order_number, customer_name, customer_email, customer_phone, shipping_address, shipping_city, shipping_governorate, shipping_notes, delivery_area, order_size_type, status, subtotal, shipping_fee, total, upfront_amount, remaining_amount, created_at, instapay_reference, payment_proof_url, assigned_carpenter, is_manual_order, product_description, notes, attachments, last_updated_at")
+              .eq("id", order.id)
+              .single();
+            if (refreshed) setOrder((prev) => prev ? { ...prev, ...(refreshed as any) } : prev);
+          }}
+        />
+      )}
 
       {!isCarpenter && (
         <section className="bg-background border rounded-xl p-4 mb-6 flex items-center justify-between gap-4 flex-wrap">

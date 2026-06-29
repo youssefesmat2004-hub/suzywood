@@ -256,3 +256,115 @@ export const sendOrderStatusEmail = createServerFn({ method: "POST" })
 
     return { ok: true };
   });
+
+function renderUpdatedEmail(o: {
+  customerName: string;
+  orderNumber: string;
+  productDescription: string | null;
+  total: number;
+  upfront: number | null;
+  remaining: number | null;
+  deliveryArea: string | null;
+  deliveryCost: number;
+}) {
+  const desc = o.productDescription
+    ? `<tr><td style="padding:8px 32px 0;">
+        <h3 style="margin:16px 0 4px;font-size:14px;color:#777;text-transform:uppercase;letter-spacing:1px;font-family:Arial,sans-serif;font-weight:600;">Updated order</h3>
+        <p style="margin:0 0 12px;color:#222;font-size:14px;line-height:1.6;font-family:Arial,sans-serif;white-space:pre-wrap;">${escapeHtml(o.productDescription)}</p>
+      </td></tr>` : "";
+  const area = o.deliveryArea ? escapeHtml(o.deliveryArea.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())) : "—";
+  return `<!doctype html>
+<html><body style="margin:0;padding:0;background:#f6f4ef;font-family:Georgia,'Times New Roman',serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f6f4ef;padding:32px 12px;">
+    <tr><td align="center">
+      <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;max-width:560px;width:100%;">
+        <tr><td style="padding:28px 32px 8px;">
+          <h1 style="margin:0;font-size:22px;color:#1a1a1a;font-weight:normal;">Suzy Wood</h1>
+        </td></tr>
+        <tr><td style="padding:8px 32px 0;">
+          <h2 style="margin:0 0 8px;font-size:20px;color:#1a1a1a;font-weight:normal;">Your Suzy Wood order has been updated 🪵</h2>
+          <p style="margin:0 0 4px;color:#555;font-size:14px;font-family:Arial,sans-serif;">Hi ${escapeHtml(o.customerName)},</p>
+          <p style="margin:8px 0 16px;color:#555;font-size:14px;line-height:1.6;font-family:Arial,sans-serif;">
+            We've just updated the details of your order <strong>${escapeHtml(o.orderNumber)}</strong>. The latest summary is below — please review it and let us know if anything looks off.
+          </p>
+        </td></tr>
+        ${desc}
+        <tr><td style="padding:8px 32px 0;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-family:Arial,sans-serif;">
+            <tr><td style="padding:8px 0;color:#555;font-size:14px;">Delivery area</td>
+                <td style="padding:8px 0;color:#1a1a1a;font-size:14px;text-align:right;">${area}</td></tr>
+            <tr><td style="padding:8px 0;color:#555;font-size:14px;border-bottom:1px solid #eee;">Delivery fee</td>
+                <td style="padding:8px 0;color:#1a1a1a;font-size:14px;text-align:right;border-bottom:1px solid #eee;">EGP ${Number(o.deliveryCost).toLocaleString()}</td></tr>
+            ${o.upfront != null ? `<tr><td style="padding:8px 0;color:#222;font-size:14px;">Deposit (75%)</td>
+                <td style="padding:8px 0;color:#1a1a1a;font-size:14px;text-align:right;font-weight:600;">EGP ${Number(o.upfront).toLocaleString()}</td></tr>` : ""}
+            ${o.remaining != null ? `<tr><td style="padding:8px 0;color:#222;font-size:14px;border-bottom:1px solid #eee;">Remaining (25% + delivery)</td>
+                <td style="padding:8px 0;color:#1a1a1a;font-size:14px;text-align:right;border-bottom:1px solid #eee;">EGP ${Number(o.remaining).toLocaleString()}</td></tr>` : ""}
+            <tr><td style="padding:14px 0 0;color:#1a1a1a;font-size:14px;font-weight:600;">New total</td>
+                <td style="padding:14px 0 0;color:#1a1a1a;font-size:14px;font-weight:600;text-align:right;">EGP ${Number(o.total).toLocaleString()}</td></tr>
+          </table>
+        </td></tr>
+        <tr><td style="padding:16px 32px 0;" align="center">
+          <a href="${WHATSAPP_URL}" style="display:inline-block;margin:8px 0 4px;background:#25D366;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:999px;font-family:Arial,sans-serif;font-size:14px;font-weight:600;">💬 Questions? Chat with us on WhatsApp</a>
+        </td></tr>
+        <tr><td style="padding:24px 32px 32px;">
+          <p style="margin:16px 0 0;color:#888;font-size:12px;font-family:Arial,sans-serif;">With love,<br/>The Suzy Wood team</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>`;
+}
+
+export const sendOrderUpdatedEmail = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => z.object({ orderId: z.string().uuid() }).parse(data))
+  .handler(async ({ data, context }) => {
+    const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
+    const RESEND_API_KEY = process.env.RESEND_API_KEY;
+    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    if (!RESEND_API_KEY) throw new Error("RESEND_API_KEY is not configured");
+
+    const { supabase, userId } = context;
+    const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
+    if (!isAdmin) throw new Response("Forbidden", { status: 403 });
+
+    const { data: order, error } = await supabase
+      .from("orders")
+      .select("id, order_number, customer_name, customer_email, product_description, total, upfront_amount, remaining_amount, delivery_area, shipping_fee")
+      .eq("id", data.orderId)
+      .single();
+    if (error || !order) return { ok: false, error: "Order not found" };
+    if (!order.customer_email) return { ok: false, error: "No customer email" };
+
+    const html = renderUpdatedEmail({
+      customerName: order.customer_name,
+      orderNumber: order.order_number,
+      productDescription: (order as any).product_description ?? null,
+      total: Number(order.total),
+      upfront: order.upfront_amount != null ? Number(order.upfront_amount) : null,
+      remaining: order.remaining_amount != null ? Number(order.remaining_amount) : null,
+      deliveryArea: (order as any).delivery_area ?? null,
+      deliveryCost: Number((order as any).shipping_fee ?? 0),
+    });
+
+    const res = await fetch("https://connector-gateway.lovable.dev/resend/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "X-Connection-Api-Key": RESEND_API_KEY,
+      },
+      body: JSON.stringify({
+        from: "Suzy Wood <orders@suzywoodofficial.com>",
+        to: [order.customer_email],
+        subject: "Your Suzy Wood Order Has Been Updated 🪵",
+        html,
+      }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      console.error("Resend send failed", res.status, body);
+      return { ok: false, error: `Resend error ${res.status}` };
+    }
+    return { ok: true };
+  });

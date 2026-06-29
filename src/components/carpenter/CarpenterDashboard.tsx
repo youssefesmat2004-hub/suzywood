@@ -7,6 +7,8 @@ import { verifyCarpenterPin } from "@/lib/carpenter.functions";
 import { playCarpenterAlert, unlockCarpenterAudio } from "@/lib/carpenter-sound";
 import { resolveImage } from "@/lib/images";
 import { getAreaLabel } from "@/lib/delivery";
+import { signManualAttachmentUrls } from "@/lib/manual-orders.functions";
+import { Paperclip } from "lucide-react";
 
 export type CarpenterId = 1 | 2 | 3;
 
@@ -36,6 +38,8 @@ type Order = {
   delivery_area: string | null;
   assigned_carpenter: number | null;
   order_items: OrderItem[];
+  product_description?: string | null;
+  attachments?: Array<{ path: string; name: string; mime?: string }> | null;
 };
 
 const TABS: { value: WorkStatus; label: string }[] = [
@@ -49,7 +53,7 @@ const TABS: { value: WorkStatus; label: string }[] = [
 // instapay_reference, payment_proof_url, internal_notes, customer_email,
 // shipping_address.
 const ORDER_SELECT =
-  "id, order_number, customer_name, customer_phone, status, created_at, shipping_notes, delivery_area, assigned_carpenter, order_items(id, product_name, quantity, size, finish, engraving, custom_width_cm, custom_length_cm, bed_rails, products(image_url))";
+  "id, order_number, customer_name, customer_phone, status, created_at, shipping_notes, delivery_area, assigned_carpenter, product_description, attachments, order_items(id, product_name, quantity, size, finish, engraving, custom_width_cm, custom_length_cm, bed_rails, products(image_url))";
 
 export function CarpenterDashboard({
   carpenterId,
@@ -555,6 +559,19 @@ function OrderCard({
         </div>
       )}
 
+      {order.product_description && order.product_description.trim() !== "" && (
+        <div className="mt-3 rounded-lg border border-sky-200 bg-sky-50 p-3">
+          <div className="text-[11px] font-semibold text-sky-900 mb-1">تفاصيل الطلب</div>
+          <div className="text-sm text-sky-900 whitespace-pre-wrap leading-relaxed">
+            {order.product_description}
+          </div>
+        </div>
+      )}
+
+      {Array.isArray(order.attachments) && order.attachments.length > 0 && (
+        <CarpenterAttachments items={order.attachments} />
+      )}
+
       {order.delivery_area && (
         <div className="mt-3 inline-flex items-center gap-2 rounded-md border border-sky-200 bg-sky-50 text-sky-900 px-2.5 py-1 text-xs">
           📍 منطقة التوصيل: <strong>{getAreaLabel(order.delivery_area as never)}</strong>
@@ -612,6 +629,48 @@ export const CARPENTER_NAMES: Record<CarpenterId, string> = {
   2: "النجار الثاني",
   3: "النجار الثالث",
 };
+
+function CarpenterAttachments({ items }: { items: Array<{ path: string; name: string; mime?: string }> }) {
+  const signFn = useServerFn(signManualAttachmentUrls);
+  const [urls, setUrls] = useState<Record<string, string>>({});
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { urls } = await signFn({ data: { paths: items.map((a) => a.path) } });
+        if (!cancelled) setUrls(urls);
+      } catch { /* ignore */ }
+    })();
+    return () => { cancelled = true; };
+  }, [items, signFn]);
+  return (
+    <div className="mt-3">
+      <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+        <Paperclip className="w-3.5 h-3.5" /> مرفقات
+      </div>
+      <ul className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+        {items.map((a) => {
+          const url = urls[a.path];
+          const isImg = (a.mime ?? "").startsWith("image/");
+          return (
+            <li key={a.path} className="rounded-md border bg-muted/30 overflow-hidden">
+              {isImg && url ? (
+                <a href={url} target="_blank" rel="noreferrer">
+                  <img src={url} alt={a.name} className="w-full h-20 object-cover" />
+                </a>
+              ) : (
+                <a href={url ?? "#"} target="_blank" rel="noreferrer" className="block p-2 h-20 flex flex-col items-center justify-center text-[11px] text-center text-muted-foreground">
+                  <Paperclip className="w-4 h-4 mb-1" />
+                  <span className="truncate w-full">{a.name}</span>
+                </a>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
 
 function ProductThumb({ url, alt }: { url: string | null; alt: string }) {
   const [failed, setFailed] = useState(false);

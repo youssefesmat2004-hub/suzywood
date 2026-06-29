@@ -490,6 +490,7 @@ export type Database = {
       orders: {
         Row: {
           assigned_carpenter: number | null
+          attachments: Json
           confirmation_email_sent_at: string | null
           created_at: string
           customer_email: string
@@ -505,6 +506,7 @@ export type Database = {
           instapay_reference: string | null
           internal_notes: string | null
           is_manual_order: boolean
+          last_updated_at: string | null
           notes: string | null
           order_number: string
           order_size_type: string | null
@@ -533,6 +535,7 @@ export type Database = {
         }
         Insert: {
           assigned_carpenter?: number | null
+          attachments?: Json
           confirmation_email_sent_at?: string | null
           created_at?: string
           customer_email: string
@@ -548,6 +551,7 @@ export type Database = {
           instapay_reference?: string | null
           internal_notes?: string | null
           is_manual_order?: boolean
+          last_updated_at?: string | null
           notes?: string | null
           order_number?: string
           order_size_type?: string | null
@@ -576,6 +580,7 @@ export type Database = {
         }
         Update: {
           assigned_carpenter?: number | null
+          attachments?: Json
           confirmation_email_sent_at?: string | null
           created_at?: string
           customer_email?: string
@@ -591,6 +596,7 @@ export type Database = {
           instapay_reference?: string | null
           internal_notes?: string | null
           is_manual_order?: boolean
+          last_updated_at?: string | null
           notes?: string | null
           order_number?: string
           order_size_type?: string | null
