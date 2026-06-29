@@ -8,6 +8,13 @@ const DELIVERY_AREAS = [
   "new-cairo","shorouk-madinty","obour","sheikh-zayed","other",
 ] as const;
 
+const attachmentSchema = z.object({
+  path: z.string().min(1).max(500),
+  name: z.string().min(1).max(255),
+  mime: z.string().max(120).optional().default(""),
+  size: z.number().nonnegative().max(50_000_000).optional().default(0),
+});
+
 const schema = z.object({
   customer_name: z.string().trim().min(1).max(120),
   customer_email: z.string().trim().email().max(255),
@@ -20,6 +27,7 @@ const schema = z.object({
   delivery_area: z.enum(DELIVERY_AREAS),
   delivery_cost: z.number().nonnegative().max(10_000_000),
   status: z.enum(STATUSES),
+  attachments: z.array(attachmentSchema).max(30).optional().default([]),
 });
 
 export const createManualOrder = createServerFn({ method: "POST" })
@@ -61,6 +69,7 @@ export const createManualOrder = createServerFn({ method: "POST" })
         is_manual_order: true,
         product_description: data.product_description,
         notes: "Manual WhatsApp order",
+        attachments: data.attachments ?? [],
       } as never)
       .select("id, order_number")
       .single();
@@ -81,4 +90,99 @@ export const createManualOrder = createServerFn({ method: "POST" })
     }
 
     return { ok: true, id: order.id, order_number: order.order_number };
+  });
+
+const updateSchema = z.object({
+  id: z.string().uuid(),
+  product_description: z.string().trim().min(1).max(2000),
+  total: z.number().nonnegative().max(10_000_000),
+  upfront_amount: z.number().nonnegative().max(10_000_000),
+  remaining_amount: z.number().nonnegative().max(10_000_000),
+  delivery_area: z.enum(DELIVERY_AREAS),
+  delivery_cost: z.number().nonnegative().max(10_000_000),
+  notes: z.string().max(2000).optional().default(""),
+  attachments: z.array(attachmentSchema).max(30).optional().default([]),
+  removed_paths: z.array(z.string().min(1).max(500)).max(50).optional().default([]),
+});
+
+export const updateManualOrder = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => updateSchema.parse(data))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+
+    const { data: isAdmin, error: roleErr } = await supabase.rpc("has_role", {
+      _user_id: userId,
+      _role: "admin",
+    });
+    if (roleErr) throw new Error(roleErr.message);
+    if (!isAdmin) throw new Response("Forbidden", { status: 403 });
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // Ensure this is a manual order
+    const { data: existing, error: exErr } = await supabaseAdmin
+      .from("orders")
+      .select("id, is_manual_order")
+      .eq("id", data.id)
+      .single();
+    if (exErr || !existing) throw new Error(exErr?.message ?? "Order not found");
+    if (!(existing as any).is_manual_order) throw new Response("Not a manual order", { status: 400 });
+
+    const total = data.total + data.delivery_cost;
+
+    const { error } = await supabaseAdmin
+      .from("orders")
+      .update({
+        product_description: data.product_description,
+        subtotal: data.total,
+        shipping_fee: data.delivery_cost,
+        delivery_area: data.delivery_area,
+        delivery_cost: data.delivery_cost,
+        total,
+        total_amount: total,
+        upfront_amount: data.upfront_amount,
+        deposit_amount: data.upfront_amount,
+        remaining_amount: data.remaining_amount,
+        notes: data.notes,
+        attachments: data.attachments ?? [],
+        last_updated_at: new Date().toISOString(),
+      } as never)
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+
+    // Best-effort cleanup of removed storage objects
+    if (data.removed_paths.length) {
+      await supabaseAdmin.storage
+        .from("manual-order-attachments")
+        .remove(data.removed_paths)
+        .catch((e) => console.error("Failed to remove attachment files", e));
+    }
+
+    return { ok: true, id: data.id };
+  });
+
+export const signManualAttachmentUrls = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z.object({ paths: z.array(z.string().min(1).max(500)).max(50) }).parse(data)
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: roles } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .in("role", ["admin", "carpenter"]);
+    if (!roles?.length) throw new Response("Forbidden", { status: 403 });
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const out: Record<string, string> = {};
+    for (const p of data.paths) {
+      const { data: s } = await supabaseAdmin.storage
+        .from("manual-order-attachments")
+        .createSignedUrl(p, 60 * 30);
+      if (s?.signedUrl) out[p] = s.signedUrl;
+    }
+    return { urls: out };
   });
