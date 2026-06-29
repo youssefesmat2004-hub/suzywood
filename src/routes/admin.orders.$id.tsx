@@ -22,6 +22,7 @@ type OrderItem = {
   image_url?: string | null;
   bed_rails?: boolean | null;
   bed_rails_price?: number | null;
+  carpenter_cost?: number | null;
 };
 
 type Order = {
@@ -53,6 +54,10 @@ type Order = {
   last_updated_at?: string | null;
   notified_statuses?: string[] | null;
   update_notified_at?: string | null;
+  actual_carpenter_cost?: number | null;
+  carpenter_cost_override?: number | null;
+  carpenter_payment_status?: string | null;
+  carpenter_paid_at?: string | null;
   order_items: OrderItem[];
 };
 
@@ -152,7 +157,7 @@ function OrderDetailPage() {
     (async () => {
       const { data: orderRow, error: orderErr } = await supabase
         .from("orders")
-        .select("id, order_number, customer_name, customer_email, customer_phone, shipping_address, shipping_city, shipping_governorate, shipping_notes, delivery_area, order_size_type, status, subtotal, shipping_fee, total, upfront_amount, remaining_amount, created_at, instapay_reference, payment_proof_url, assigned_carpenter, is_manual_order, product_description, notes, attachments, last_updated_at, notified_statuses, update_notified_at")
+        .select("id, order_number, customer_name, customer_email, customer_phone, shipping_address, shipping_city, shipping_governorate, shipping_notes, delivery_area, order_size_type, status, subtotal, shipping_fee, total, upfront_amount, remaining_amount, created_at, instapay_reference, payment_proof_url, assigned_carpenter, is_manual_order, product_description, notes, attachments, last_updated_at, notified_statuses, update_notified_at, actual_carpenter_cost, carpenter_cost_override, carpenter_payment_status, carpenter_paid_at")
         .eq("id", id)
         .single();
       if (orderErr || !orderRow) {
@@ -171,9 +176,29 @@ function OrderDetailPage() {
       const items = ((itemRows ?? []) as OrderItem[]).map((i) => ({ ...i }));
       const productIds = items.map((i) => i.product_id).filter(Boolean) as string[];
       if (productIds.length) {
-        const { data: prods } = await supabase.from("products").select("id, image_url").in("id", productIds);
-        const map = new Map((prods ?? []).map((p: any) => [p.id, p.image_url]));
-        items.forEach((i) => { if (i.product_id) i.image_url = map.get(i.product_id) ?? null; });
+        const { data: prods } = await supabase
+          .from("products")
+          .select("id, image_url, carpenter_cost")
+          .in("id", productIds);
+        const map = new Map((prods ?? []).map((p: any) => [p.id, p]));
+        const { data: variants } = await supabase
+          .from("product_variants")
+          .select("product_id, name, carpenter_cost")
+          .in("product_id", productIds);
+        const vmap = new Map<string, number>();
+        (variants ?? []).forEach((v: any) => {
+          vmap.set(`${v.product_id}|${(v.name ?? "").toLowerCase()}`, Number(v.carpenter_cost ?? 0));
+        });
+        items.forEach((i) => {
+          if (i.product_id) {
+            const p: any = map.get(i.product_id);
+            i.image_url = p?.image_url ?? null;
+            const key = `${i.product_id}|${(i.size ?? "").toLowerCase()}`;
+            const vc = vmap.get(key);
+            const baseC = Number(p?.carpenter_cost ?? 0);
+            i.carpenter_cost = (vc && vc > 0) ? vc : baseC;
+          }
+        });
       }
       setOrder({ ...(orderRow as any), order_items: items });
       setLoading(false);
@@ -441,6 +466,8 @@ function OrderDetailPage() {
             notes: order.notes ?? "",
             attachments: (order.attachments ?? []) as ManualAttachment[],
             status: order.status,
+            actual_carpenter_cost: order.actual_carpenter_cost ?? null,
+            carpenter_cost_override: order.carpenter_cost_override ?? null,
           }}
           onClose={() => setEditing(false)}
           onUpdated={async () => {
@@ -576,6 +603,12 @@ function OrderDetailPage() {
         </div>
 
         <aside className="space-y-6">
+          {!isCarpenter && (
+            <CarpenterCostCard
+              order={order}
+              onChange={(patch) => setOrder((o) => o ? { ...o, ...patch } : o)}
+            />
+          )}
           <section className="bg-background border rounded-xl p-6">
             <h2 className="font-serif text-lg mb-3">Customer</h2>
             <div className="text-sm space-y-1">
@@ -602,5 +635,122 @@ function OrderDetailPage() {
         </aside>
       </div>
     </div>
+  );
+}
+
+function CarpenterCostCard({
+  order,
+  onChange,
+}: {
+  order: Order;
+  onChange: (patch: Partial<Order>) => void;
+}) {
+  const autoCalc = order.order_items.reduce(
+    (sum, it) => sum + Number(it.carpenter_cost ?? 0) * Number(it.quantity ?? 1),
+    0,
+  );
+  const effectiveCost = Number(
+    order.carpenter_cost_override ?? order.actual_carpenter_cost ?? autoCalc ?? 0,
+  );
+  const sellingPrice = Number(order.total ?? 0);
+  const realProfit = sellingPrice - effectiveCost;
+  const margin = sellingPrice > 0 ? (realProfit / sellingPrice) * 100 : 0;
+  const isPaid = order.carpenter_payment_status === "paid";
+
+  const [overrideStr, setOverrideStr] = useState<string>(
+    order.carpenter_cost_override != null ? String(order.carpenter_cost_override) : "",
+  );
+  const [saving, setSaving] = useState(false);
+  const [marking, setMarking] = useState(false);
+
+  const saveOverride = async () => {
+    const v = overrideStr.trim() === "" ? null : Number(overrideStr);
+    if (v !== null && (!Number.isFinite(v) || v < 0)) {
+      toast.error("Enter a valid number");
+      return;
+    }
+    setSaving(true);
+    const actual = v != null ? v : autoCalc;
+    const { error } = await supabase
+      .from("orders")
+      .update({ carpenter_cost_override: v, actual_carpenter_cost: actual } as never)
+      .eq("id", order.id);
+    setSaving(false);
+    if (error) { toast.error(error.message); return; }
+    onChange({ carpenter_cost_override: v, actual_carpenter_cost: actual });
+    toast.success("Carpenter cost saved");
+  };
+
+  const togglePaid = async () => {
+    setMarking(true);
+    const next = isPaid ? "unpaid" : "paid";
+    const paidAt = next === "paid" ? new Date().toISOString() : null;
+    const { error } = await supabase
+      .from("orders")
+      .update({ carpenter_payment_status: next, carpenter_paid_at: paidAt } as never)
+      .eq("id", order.id);
+    setMarking(false);
+    if (error) { toast.error(error.message); return; }
+    onChange({ carpenter_payment_status: next, carpenter_paid_at: paidAt });
+    toast.success(next === "paid" ? "Marked as paid to carpenter" : "Marked unpaid");
+  };
+
+  return (
+    <section className="bg-background border-2 border-amber-300/60 rounded-xl p-6 bg-amber-50/30">
+      <h2 className="font-serif text-lg mb-1">Cost & Real Profit</h2>
+      <p className="text-[11px] text-muted-foreground mb-3">Admin only — never shown to customer or carpenter.</p>
+      <div className="text-sm space-y-1.5">
+        <div className="flex justify-between"><span className="text-muted-foreground">Selling price</span><span className="font-medium">EGP {sellingPrice.toLocaleString()}</span></div>
+        <div className="flex justify-between"><span className="text-muted-foreground">Auto carpenter cost</span><span>EGP {autoCalc.toLocaleString()}</span></div>
+        <div className="flex justify-between text-amber-800"><span>Effective carpenter cost</span><span className="font-semibold">EGP {effectiveCost.toLocaleString()}</span></div>
+        <div className="border-t pt-2 mt-2 flex justify-between text-emerald-700">
+          <span className="font-medium">Real profit</span>
+          <span className="font-semibold">EGP {realProfit.toLocaleString()} <span className="text-xs text-muted-foreground">({margin.toFixed(0)}%)</span></span>
+        </div>
+      </div>
+
+      <div className="mt-4 space-y-1.5">
+        <label className="block text-xs font-medium text-muted-foreground">Override carpenter cost (EGP)</label>
+        <div className="flex gap-2">
+          <input
+            type="number"
+            min={0}
+            value={overrideStr}
+            onChange={(e) => setOverrideStr(e.target.value)}
+            placeholder={`auto: ${autoCalc}`}
+            className="flex-1 h-9 rounded-md border bg-background px-3 text-sm"
+          />
+          <button
+            type="button"
+            disabled={saving}
+            onClick={saveOverride}
+            className="text-sm rounded-md bg-primary text-primary-foreground px-3 py-1.5 disabled:opacity-60"
+          >
+            {saving ? "Saving…" : "Save"}
+          </button>
+        </div>
+      </div>
+
+      <div className="mt-4 flex items-center justify-between gap-3">
+        <div className="text-xs">
+          <span className="text-muted-foreground">Payment to carpenter: </span>
+          {isPaid ? (
+            <span className="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md px-2 py-0.5">
+              ✓ Paid{order.carpenter_paid_at && <> · {new Date(order.carpenter_paid_at).toLocaleDateString("en-GB")}</>}
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 text-rose-700 bg-rose-50 border border-rose-200 rounded-md px-2 py-0.5">Unpaid</span>
+          )}
+        </div>
+        <button
+          type="button"
+          disabled={marking}
+          onClick={togglePaid}
+          className={`text-sm rounded-md px-3 py-1.5 font-medium disabled:opacity-60 ${isPaid ? "border border-rose-300 text-rose-700 hover:bg-rose-50" : "bg-emerald-600 text-white hover:bg-emerald-700"}`}
+        >
+          {marking ? "…" : isPaid ? "Mark unpaid" : "Mark as Paid"}
+        </button>
+      </div>
+    </section>
   );
 }

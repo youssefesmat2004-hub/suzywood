@@ -13,7 +13,14 @@ export const Route = createFileRoute("/admin/analytics")({
   component: AdminAnalytics,
 });
 
-type Order = { id: string; total: number; status: string; created_at: string };
+type Order = {
+  id: string;
+  total: number;
+  status: string;
+  created_at: string;
+  actual_carpenter_cost: number | null;
+  carpenter_cost_override: number | null;
+};
 type Item = { product_name: string; line_total: number; order_id: string };
 type Booking = { status: string; created_at: string };
 
@@ -24,7 +31,6 @@ const RANGES = [
 ] as const;
 
 const COLORS = ["hsl(var(--primary))", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4", "#ec4899"];
-const PROFIT_MARGIN = 0.25;
 
 function AdminAnalytics() {
   const [days, setDays] = useState<number>(30);
@@ -38,7 +44,7 @@ function AdminAnalytics() {
     (async () => {
       const since = new Date(Date.now() - days * 86400000).toISOString();
       const [ordersRes, bookingsRes] = await Promise.all([
-        supabase.from("orders").select("id,total,status,created_at").gte("created_at", since),
+        supabase.from("orders").select("id,total,status,created_at,actual_carpenter_cost,carpenter_cost_override").gte("created_at", since),
         supabase.from("bookings").select("status,created_at").gte("created_at", since),
       ]);
       const ords = (ordersRes.data ?? []) as Order[];
@@ -106,17 +112,43 @@ function AdminAnalytics() {
   }, [bookings]);
 
   const totalRevenue = orders.filter((o) => o.status !== "cancelled").reduce((s, o) => s + Number(o.total), 0);
+  const totalCarpenterCost = orders
+    .filter((o) => o.status !== "cancelled")
+    .reduce((s, o) => s + Number(o.carpenter_cost_override ?? o.actual_carpenter_cost ?? 0), 0);
+  const realProfit = totalRevenue - totalCarpenterCost;
+  const profitMargin = totalRevenue > 0 ? (realProfit / totalRevenue) * 100 : 0;
   const aov = orders.length ? totalRevenue / orders.length : 0;
   const conversion = bookings.length ? (orders.length / bookings.length) * 100 : 0;
 
   const kpis = [
     { label: "Revenue (EGP)", value: totalRevenue.toLocaleString() },
-    { label: "Profit 25% (EGP)", value: Math.round(totalRevenue * PROFIT_MARGIN).toLocaleString() },
-    { label: "Cost 75% (EGP)", value: Math.round(totalRevenue * (1 - PROFIT_MARGIN)).toLocaleString() },
+    { label: "Carpenter Costs (EGP)", value: Math.round(totalCarpenterCost).toLocaleString() },
+    { label: "Real Profit (EGP)", value: Math.round(realProfit).toLocaleString() },
+    { label: "Profit Margin", value: `${profitMargin.toFixed(0)}%` },
     { label: "Orders", value: orders.length },
     { label: "Avg Order Value", value: `EGP ${Math.round(aov).toLocaleString()}` },
     { label: "Bookings → Orders", value: `${conversion.toFixed(0)}%` },
   ];
+
+  const monthly = useMemo(() => {
+    const map = new Map<string, { revenue: number; cost: number }>();
+    for (const o of orders) {
+      if (o.status === "cancelled") continue;
+      const key = o.created_at.slice(0, 7);
+      const cur = map.get(key) ?? { revenue: 0, cost: 0 };
+      cur.revenue += Number(o.total);
+      cur.cost += Number(o.carpenter_cost_override ?? o.actual_carpenter_cost ?? 0);
+      map.set(key, cur);
+    }
+    return Array.from(map.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([month, v]) => ({
+        month,
+        revenue: Math.round(v.revenue),
+        cost: Math.round(v.cost),
+        profit: Math.round(v.revenue - v.cost),
+      }));
+  }, [orders]);
 
   return (
     <div className="space-y-6">
@@ -204,6 +236,67 @@ function AdminAnalytics() {
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
+      </div>
+
+      <div className="bg-background border rounded-xl p-5">
+        <h3 className="font-serif text-lg mb-3">Monthly Real Profit Breakdown</h3>
+        {monthly.length === 0 ? <EmptyChart /> : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-xs uppercase tracking-wider text-muted-foreground">
+                  <th className="py-2 pr-4">Month</th>
+                  <th className="py-2 pr-4 text-right">Revenue</th>
+                  <th className="py-2 pr-4 text-right">Carpenter Cost</th>
+                  <th className="py-2 pr-4 text-right">Real Profit</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {monthly.map((m) => (
+                  <tr key={m.month}>
+                    <td className="py-2 pr-4 font-medium">{m.month}</td>
+                    <td className="py-2 pr-4 text-right">EGP {m.revenue.toLocaleString()}</td>
+                    <td className="py-2 pr-4 text-right text-amber-700">EGP {m.cost.toLocaleString()}</td>
+                    <td className="py-2 pr-4 text-right text-emerald-700 font-semibold">EGP {m.profit.toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      <ProfitCalculator revenue={totalRevenue} suggestedCost={totalCarpenterCost} />
+    </div>
+  );
+}
+
+function ProfitCalculator({ revenue, suggestedCost }: { revenue: number; suggestedCost: number }) {
+  const [costStr, setCostStr] = useState<string>("");
+  useEffect(() => { setCostStr(String(Math.round(suggestedCost))); }, [suggestedCost]);
+  const cost = Number(costStr) || 0;
+  const net = Math.max(0, revenue - cost);
+  const suzan = Math.round(net * 0.5);
+  const youssef = Math.round(net * 0.5);
+  return (
+    <div className="bg-background border rounded-xl p-5">
+      <h3 className="font-serif text-lg mb-3">Profit Split Calculator</h3>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <label className="block text-sm">
+          <span className="text-xs uppercase tracking-wider text-muted-foreground">Total carpenter costs (EGP)</span>
+          <input
+            type="number" min={0} value={costStr} onChange={(e) => setCostStr(e.target.value)}
+            className="mt-1 w-full h-10 rounded-md border bg-background px-3 text-sm"
+          />
+          <span className="text-[11px] text-muted-foreground">Pre-filled with actual carpenter costs from orders in this range.</span>
+        </label>
+        <div className="text-sm space-y-1">
+          <div className="flex justify-between"><span className="text-muted-foreground">Revenue</span><span>EGP {revenue.toLocaleString()}</span></div>
+          <div className="flex justify-between text-amber-700"><span>Carpenter costs</span><span>EGP {cost.toLocaleString()}</span></div>
+          <div className="flex justify-between font-semibold border-t pt-1"><span>Net profit</span><span>EGP {net.toLocaleString()}</span></div>
+          <div className="flex justify-between text-emerald-700"><span>Suzan (50%)</span><span>EGP {suzan.toLocaleString()}</span></div>
+          <div className="flex justify-between text-emerald-700"><span>Youssef (50%)</span><span>EGP {youssef.toLocaleString()}</span></div>
+        </div>
       </div>
     </div>
   );

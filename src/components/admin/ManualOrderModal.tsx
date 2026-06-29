@@ -44,6 +44,8 @@ export type ManualOrderExisting = {
   notes: string | null;
   attachments: ManualAttachment[];
   status: "pending_payment" | "confirmed" | "shipped" | "delivered" | string;
+  actual_carpenter_cost?: number | null;
+  carpenter_cost_override?: number | null;
 };
 
 export function ManualOrderModal({
@@ -79,6 +81,9 @@ export function ManualOrderModal({
     delivery_cost: existing ? String(Number(existing.shipping_fee ?? 0)) : "0",
     upfront: existing?.upfront_amount != null ? String(Number(existing.upfront_amount)) : "",
     remaining: existing?.remaining_amount != null ? String(Number(existing.remaining_amount)) : "",
+    carpenter_cost: existing
+      ? String(Number(existing.carpenter_cost_override ?? existing.actual_carpenter_cost ?? 0))
+      : "0",
     notes: existing?.notes ?? "",
     status: (existing?.status ?? "pending_payment") as
       | "pending_payment"
@@ -106,6 +111,8 @@ export function ManualOrderModal({
   const deliveryCost = Number(form.delivery_cost);
   const total = (Number.isFinite(productPrice) ? productPrice : 0)
     + (Number.isFinite(deliveryCost) ? deliveryCost : 0);
+  const carpenterCostNum = Number(form.carpenter_cost) || 0;
+  const realProfit = total - carpenterCostNum;
 
   const recalc = (productPriceStr: string, deliveryCostStr: string) => {
     const p = Number(productPriceStr);
@@ -180,6 +187,7 @@ export function ManualOrderModal({
             notes: form.notes,
             attachments,
             removed_paths: removedPaths,
+            carpenter_cost: carpenterCostNum,
           },
         });
         toast.success("Order updated");
@@ -199,6 +207,7 @@ export function ManualOrderModal({
             remaining_amount: remaining,
             status: form.status,
             attachments,
+            carpenter_cost: carpenterCostNum,
           },
         });
         toast.success(`Manual order ${res.order_number} created`);
@@ -282,8 +291,17 @@ export function ManualOrderModal({
               <div className="flex justify-between"><span className="text-muted-foreground">Product</span><span>EGP {(Number(form.product_price) || 0).toLocaleString()}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Delivery</span><span>EGP {(Number(form.delivery_cost) || 0).toLocaleString()}</span></div>
               <div className="border-t pt-1 mt-1 flex justify-between font-semibold"><span>Total</span><span>EGP {total.toLocaleString()}</span></div>
+              <div className="flex justify-between text-amber-700"><span>Carpenter cost</span><span>EGP {carpenterCostNum.toLocaleString()}</span></div>
+              <div className="flex justify-between font-semibold text-emerald-700"><span>Real profit</span><span>EGP {realProfit.toLocaleString()}</span></div>
             </div>
           )}
+          <div className="rounded-lg border border-amber-300 bg-amber-50/50 px-4 py-3">
+            <Field label="Carpenter Cost (EGP) — admin only">
+              <Input type="number" min={0} value={form.carpenter_cost}
+                onChange={(e) => setForm({ ...form, carpenter_cost: e.target.value })} />
+            </Field>
+            <p className="text-[11px] text-amber-800/80 mt-1">What you pay the carpenter for this order. Never shown to customers.</p>
+          </div>
           {isEdit && (
             <Field label="Internal notes">
               <textarea

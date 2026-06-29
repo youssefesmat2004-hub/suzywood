@@ -40,6 +40,10 @@ type Order = {
   order_items: OrderItem[];
   product_description?: string | null;
   attachments?: Array<{ path: string; name: string; mime?: string }> | null;
+  actual_carpenter_cost?: number | null;
+  carpenter_cost_override?: number | null;
+  carpenter_payment_status?: string | null;
+  carpenter_paid_at?: string | null;
 };
 
 const TABS: { value: WorkStatus; label: string }[] = [
@@ -53,7 +57,7 @@ const TABS: { value: WorkStatus; label: string }[] = [
 // instapay_reference, payment_proof_url, internal_notes, customer_email,
 // shipping_address.
 const ORDER_SELECT =
-  "id, order_number, customer_name, customer_phone, status, created_at, shipping_notes, delivery_area, assigned_carpenter, product_description, attachments, order_items(id, product_name, quantity, size, finish, engraving, custom_width_cm, custom_length_cm, bed_rails, products(image_url))";
+  "id, order_number, customer_name, customer_phone, status, created_at, shipping_notes, delivery_area, assigned_carpenter, product_description, attachments, actual_carpenter_cost, carpenter_cost_override, carpenter_payment_status, carpenter_paid_at, order_items(id, product_name, quantity, size, finish, engraving, custom_width_cm, custom_length_cm, bed_rails, products(image_url))";
 
 export function CarpenterDashboard({
   carpenterId,
@@ -315,6 +319,13 @@ function Dashboard({ carpenterId, carpenterName }: { carpenterId: CarpenterId; c
 
   const filtered = useMemo(() => orders.filter((o) => o.status === tab), [orders, tab]);
 
+  const totalUnpaid = useMemo(
+    () => orders
+      .filter((o) => o.carpenter_payment_status !== "paid")
+      .reduce((s, o) => s + Number(o.carpenter_cost_override ?? o.actual_carpenter_cost ?? 0), 0),
+    [orders],
+  );
+
   const updateStatus = async (id: string, next: WorkStatus) => {
     setUpdatingId(id);
     const { error } = await supabase.from("orders").update({ status: next }).eq("id", id);
@@ -393,6 +404,15 @@ function Dashboard({ carpenterId, carpenterName }: { carpenterId: CarpenterId; c
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-4 space-y-3">
+        {!loading && totalUnpaid > 0 && (
+          <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 flex items-center justify-between">
+            <div>
+              <div className="text-[11px] font-semibold text-amber-900">المستحق لك (غير مدفوع)</div>
+              <div className="text-lg font-bold text-amber-900">EGP {Math.round(totalUnpaid).toLocaleString()}</div>
+            </div>
+            <div className="text-[11px] text-amber-800">عبر جميع طلباتك</div>
+          </div>
+        )}
         {loading && (
           <div className="flex items-center justify-center py-16 text-muted-foreground">
             <Loader2 className="w-5 h-5 animate-spin ml-2" />
@@ -591,6 +611,29 @@ function OrderCard({
           {daysSince >= 7 && <span className="font-bold">· عاجل</span>}
         </span>
       </div>
+
+      {(() => {
+        const pay = Number(order.carpenter_cost_override ?? order.actual_carpenter_cost ?? 0);
+        if (pay <= 0 && !order.carpenter_payment_status) return null;
+        const paid = order.carpenter_payment_status === "paid";
+        return (
+          <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2 flex items-center justify-between gap-3">
+            <div>
+              <div className="text-[11px] font-semibold text-emerald-900">المستحق لك على هذا الطلب</div>
+              <div className="text-base font-bold text-emerald-900">EGP {pay.toLocaleString()}</div>
+            </div>
+            {paid ? (
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-800 bg-white border border-emerald-300 rounded-md px-2 py-0.5">
+                ✓ مدفوع
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-700 bg-white border border-rose-300 rounded-md px-2 py-0.5">
+                غير مدفوع
+              </span>
+            )}
+          </div>
+        );
+      })()}
 
       <div className="mt-4">
         {order.status === "confirmed" && (
