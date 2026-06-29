@@ -4,7 +4,6 @@ import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { createManualOrder, updateManualOrder, signManualAttachmentUrls } from "@/lib/manual-orders.functions";
-import { sendOrderUpdatedEmail } from "@/lib/order-emails.functions";
 import { X, Paperclip, Loader2 } from "lucide-react";
 
 const WHATSAPP_ORDER_DEPOSIT_RATE = 0.75;
@@ -61,7 +60,6 @@ export function ManualOrderModal({
   const isEdit = !!existing;
   const createFn = useServerFn(createManualOrder);
   const updateFn = useServerFn(updateManualOrder);
-  const sendUpdated = useServerFn(sendOrderUpdatedEmail);
   const signFn = useServerFn(signManualAttachmentUrls);
 
   const [saving, setSaving] = useState(false);
@@ -185,15 +183,6 @@ export function ManualOrderModal({
           },
         });
         toast.success("Order updated");
-        if (existing.customer_email) {
-          try {
-            const r = await sendUpdated({ data: { orderId: existing.id } });
-            if (r?.ok) toast.success("Customer notified by email");
-            else if (r?.error) toast.error(`Email not sent: ${r.error}`);
-          } catch (e: any) {
-            toast.error(`Email not sent: ${e?.message ?? "unknown"}`);
-          }
-        }
         onUpdated?.(existing.id);
       } else {
         const res = await createFn({

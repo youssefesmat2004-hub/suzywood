@@ -1,0 +1,1 @@
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS notified_statuses jsonb NOT NULL DEFAULT '[]'::jsonb; ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS update_notified_at timestamptz;

@@ -208,7 +208,7 @@ export const sendOrderStatusEmail = createServerFn({ method: "POST" })
 
     const { data: order, error } = await supabase
       .from("orders")
-      .select("id, order_number, customer_name, customer_email, status, total, upfront_amount, remaining_amount, is_manual_order, product_description, order_items(product_name, quantity, unit_price, size, finish)")
+      .select("id, order_number, customer_name, customer_email, status, total, upfront_amount, remaining_amount, is_manual_order, product_description, notified_statuses, order_items(product_name, quantity, unit_price, size, finish)")
       .eq("id", data.orderId)
       .single();
 
@@ -253,6 +253,13 @@ export const sendOrderStatusEmail = createServerFn({ method: "POST" })
       console.error("Resend send failed", res.status, body);
       return { ok: false, error: `Resend error ${res.status}` };
     }
+
+    // Stamp this status as "notified" so admins can see it was sent.
+    try {
+      const current = Array.isArray((order as any).notified_statuses) ? (order as any).notified_statuses : [];
+      const next = Array.from(new Set([...current.map(String), String(order.status)]));
+      await supabase.from("orders").update({ notified_statuses: next } as never).eq("id", order.id);
+    } catch (e) { console.error("notified_statuses update failed", e); }
 
     return { ok: true };
   });
@@ -366,5 +373,8 @@ export const sendOrderUpdatedEmail = createServerFn({ method: "POST" })
       console.error("Resend send failed", res.status, body);
       return { ok: false, error: `Resend error ${res.status}` };
     }
+    try {
+      await supabase.from("orders").update({ update_notified_at: new Date().toISOString() } as never).eq("id", order.id);
+    } catch (e) { console.error("update_notified_at update failed", e); }
     return { ok: true };
   });
