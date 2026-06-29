@@ -38,6 +38,7 @@ function EditProduct() {
         is_active: row.is_active,
         is_featured: row.is_featured,
         portable_changing_table_enabled: row.portable_changing_table_enabled ?? null,
+        carpenter_cost: Number((row as any).carpenter_cost ?? 0),
       });
     })();
   }, [id]);
