@@ -5,6 +5,7 @@ import { ArrowLeft, Pencil, Paperclip } from "lucide-react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { sendOrderStatusEmail } from "@/lib/order-emails.functions";
+import { sendOrderUpdatedEmail } from "@/lib/order-emails.functions";
 import { signManualAttachmentUrls } from "@/lib/manual-orders.functions";
 import { useIsAdmin } from "@/lib/admin";
 import { getAreaLabel } from "@/lib/delivery";
@@ -50,6 +51,8 @@ type Order = {
   notes?: string | null;
   attachments?: ManualAttachment[] | null;
   last_updated_at?: string | null;
+  notified_statuses?: string[] | null;
+  update_notified_at?: string | null;
   order_items: OrderItem[];
 };
 
@@ -140,13 +143,16 @@ function OrderDetailPage() {
   const [editing, setEditing] = useState(false);
   const [attachUrls, setAttachUrls] = useState<Record<string, string>>({});
   const sendEmail = useServerFn(sendOrderStatusEmail);
+  const sendUpdated = useServerFn(sendOrderUpdatedEmail);
+  const [notifying, setNotifying] = useState(false);
+  const [notifyingUpdate, setNotifyingUpdate] = useState(false);
   const signFn = useServerFn(signManualAttachmentUrls);
 
   useEffect(() => {
     (async () => {
       const { data: orderRow, error: orderErr } = await supabase
         .from("orders")
-        .select("id, order_number, customer_name, customer_email, customer_phone, shipping_address, shipping_city, shipping_governorate, shipping_notes, delivery_area, order_size_type, status, subtotal, shipping_fee, total, upfront_amount, remaining_amount, created_at, instapay_reference, payment_proof_url, assigned_carpenter, is_manual_order, product_description, notes, attachments, last_updated_at")
+        .select("id, order_number, customer_name, customer_email, customer_phone, shipping_address, shipping_city, shipping_governorate, shipping_notes, delivery_area, order_size_type, status, subtotal, shipping_fee, total, upfront_amount, remaining_amount, created_at, instapay_reference, payment_proof_url, assigned_carpenter, is_manual_order, product_description, notes, attachments, last_updated_at, notified_statuses, update_notified_at")
         .eq("id", id)
         .single();
       if (orderErr || !orderRow) {
@@ -239,15 +245,42 @@ function OrderDetailPage() {
       setSaving(false);
       return;
     }
-    toast.success("Status updated");
+    toast.success("Status updated — customer not notified yet");
+    setSaving(false);
+  };
+
+  const notifyCustomer = async () => {
+    if (!order) return;
+    const already = (order.notified_statuses ?? []).includes(order.status);
+    if (already && !confirm("Customer was already notified for this status. Send again?")) return;
+    setNotifying(true);
     try {
-      const result = await sendEmail({ data: { orderId: order.id } });
-      if (result?.ok) toast.success("Customer notified by email");
-      else if (result?.error) toast.error(`Email not sent: ${result.error}`);
+      const r = await sendEmail({ data: { orderId: order.id } });
+      if (r?.ok) {
+        toast.success("Customer notified by email");
+        setOrder((o) => o ? { ...o, notified_statuses: Array.from(new Set([...(o.notified_statuses ?? []), o.status])) } : o);
+      } else if (r?.error) toast.error(`Email not sent: ${r.error}`);
     } catch (e: any) {
       toast.error(`Email not sent: ${e?.message ?? "unknown error"}`);
-    }
-    setSaving(false);
+    } finally { setNotifying(false); }
+  };
+
+  const notifyUpdate = async () => {
+    if (!order) return;
+    const lastUpd = order.last_updated_at ? new Date(order.last_updated_at).getTime() : 0;
+    const lastNotif = order.update_notified_at ? new Date(order.update_notified_at).getTime() : 0;
+    const alreadySent = lastNotif >= lastUpd && lastNotif > 0;
+    if (alreadySent && !confirm("Customer was already notified of the latest changes. Send again?")) return;
+    setNotifyingUpdate(true);
+    try {
+      const r = await sendUpdated({ data: { orderId: order.id } });
+      if (r?.ok) {
+        toast.success("Customer notified of changes");
+        setOrder((o) => o ? { ...o, update_notified_at: new Date().toISOString() } : o);
+      } else if (r?.error) toast.error(`Email not sent: ${r.error}`);
+    } catch (e: any) {
+      toast.error(`Email not sent: ${e?.message ?? "unknown error"}`);
+    } finally { setNotifyingUpdate(false); }
   };
 
   const updateAssignment = async (value: number | null) => {
