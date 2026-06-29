@@ -630,6 +630,48 @@ export const CARPENTER_NAMES: Record<CarpenterId, string> = {
   3: "النجار الثالث",
 };
 
+function CarpenterAttachments({ items }: { items: Array<{ path: string; name: string; mime?: string }> }) {
+  const signFn = useServerFn(signManualAttachmentUrls);
+  const [urls, setUrls] = useState<Record<string, string>>({});
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { urls } = await signFn({ data: { paths: items.map((a) => a.path) } });
+        if (!cancelled) setUrls(urls);
+      } catch { /* ignore */ }
+    })();
+    return () => { cancelled = true; };
+  }, [items, signFn]);
+  return (
+    <div className="mt-3">
+      <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+        <Paperclip className="w-3.5 h-3.5" /> مرفقات
+      </div>
+      <ul className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+        {items.map((a) => {
+          const url = urls[a.path];
+          const isImg = (a.mime ?? "").startsWith("image/");
+          return (
+            <li key={a.path} className="rounded-md border bg-muted/30 overflow-hidden">
+              {isImg && url ? (
+                <a href={url} target="_blank" rel="noreferrer">
+                  <img src={url} alt={a.name} className="w-full h-20 object-cover" />
+                </a>
+              ) : (
+                <a href={url ?? "#"} target="_blank" rel="noreferrer" className="block p-2 h-20 flex flex-col items-center justify-center text-[11px] text-center text-muted-foreground">
+                  <Paperclip className="w-4 h-4 mb-1" />
+                  <span className="truncate w-full">{a.name}</span>
+                </a>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
 function ProductThumb({ url, alt }: { url: string | null; alt: string }) {
   const [failed, setFailed] = useState(false);
   const src = url ? resolveImage(url) : null;
