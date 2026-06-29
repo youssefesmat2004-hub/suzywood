@@ -637,3 +637,120 @@ function OrderDetailPage() {
     </div>
   );
 }
+
+function CarpenterCostCard({
+  order,
+  onChange,
+}: {
+  order: Order;
+  onChange: (patch: Partial<Order>) => void;
+}) {
+  const autoCalc = order.order_items.reduce(
+    (sum, it) => sum + Number(it.carpenter_cost ?? 0) * Number(it.quantity ?? 1),
+    0,
+  );
+  const effectiveCost = Number(
+    order.carpenter_cost_override ?? order.actual_carpenter_cost ?? autoCalc ?? 0,
+  );
+  const sellingPrice = Number(order.total ?? 0);
+  const realProfit = sellingPrice - effectiveCost;
+  const margin = sellingPrice > 0 ? (realProfit / sellingPrice) * 100 : 0;
+  const isPaid = order.carpenter_payment_status === "paid";
+
+  const [overrideStr, setOverrideStr] = useState<string>(
+    order.carpenter_cost_override != null ? String(order.carpenter_cost_override) : "",
+  );
+  const [saving, setSaving] = useState(false);
+  const [marking, setMarking] = useState(false);
+
+  const saveOverride = async () => {
+    const v = overrideStr.trim() === "" ? null : Number(overrideStr);
+    if (v !== null && (!Number.isFinite(v) || v < 0)) {
+      toast.error("Enter a valid number");
+      return;
+    }
+    setSaving(true);
+    const actual = v != null ? v : autoCalc;
+    const { error } = await supabase
+      .from("orders")
+      .update({ carpenter_cost_override: v, actual_carpenter_cost: actual } as never)
+      .eq("id", order.id);
+    setSaving(false);
+    if (error) { toast.error(error.message); return; }
+    onChange({ carpenter_cost_override: v, actual_carpenter_cost: actual });
+    toast.success("Carpenter cost saved");
+  };
+
+  const togglePaid = async () => {
+    setMarking(true);
+    const next = isPaid ? "unpaid" : "paid";
+    const paidAt = next === "paid" ? new Date().toISOString() : null;
+    const { error } = await supabase
+      .from("orders")
+      .update({ carpenter_payment_status: next, carpenter_paid_at: paidAt } as never)
+      .eq("id", order.id);
+    setMarking(false);
+    if (error) { toast.error(error.message); return; }
+    onChange({ carpenter_payment_status: next, carpenter_paid_at: paidAt });
+    toast.success(next === "paid" ? "Marked as paid to carpenter" : "Marked unpaid");
+  };
+
+  return (
+    <section className="bg-background border-2 border-amber-300/60 rounded-xl p-6 bg-amber-50/30">
+      <h2 className="font-serif text-lg mb-1">Cost & Real Profit</h2>
+      <p className="text-[11px] text-muted-foreground mb-3">Admin only — never shown to customer or carpenter.</p>
+      <div className="text-sm space-y-1.5">
+        <div className="flex justify-between"><span className="text-muted-foreground">Selling price</span><span className="font-medium">EGP {sellingPrice.toLocaleString()}</span></div>
+        <div className="flex justify-between"><span className="text-muted-foreground">Auto carpenter cost</span><span>EGP {autoCalc.toLocaleString()}</span></div>
+        <div className="flex justify-between text-amber-800"><span>Effective carpenter cost</span><span className="font-semibold">EGP {effectiveCost.toLocaleString()}</span></div>
+        <div className="border-t pt-2 mt-2 flex justify-between text-emerald-700">
+          <span className="font-medium">Real profit</span>
+          <span className="font-semibold">EGP {realProfit.toLocaleString()} <span className="text-xs text-muted-foreground">({margin.toFixed(0)}%)</span></span>
+        </div>
+      </div>
+
+      <div className="mt-4 space-y-1.5">
+        <label className="block text-xs font-medium text-muted-foreground">Override carpenter cost (EGP)</label>
+        <div className="flex gap-2">
+          <input
+            type="number"
+            min={0}
+            value={overrideStr}
+            onChange={(e) => setOverrideStr(e.target.value)}
+            placeholder={`auto: ${autoCalc}`}
+            className="flex-1 h-9 rounded-md border bg-background px-3 text-sm"
+          />
+          <button
+            type="button"
+            disabled={saving}
+            onClick={saveOverride}
+            className="text-sm rounded-md bg-primary text-primary-foreground px-3 py-1.5 disabled:opacity-60"
+          >
+            {saving ? "Saving…" : "Save"}
+          </button>
+        </div>
+      </div>
+
+      <div className="mt-4 flex items-center justify-between gap-3">
+        <div className="text-xs">
+          <span className="text-muted-foreground">Payment to carpenter: </span>
+          {isPaid ? (
+            <span className="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md px-2 py-0.5">
+              ✓ Paid{order.carpenter_paid_at && <> · {new Date(order.carpenter_paid_at).toLocaleDateString("en-GB")}</>}
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 text-rose-700 bg-rose-50 border border-rose-200 rounded-md px-2 py-0.5">Unpaid</span>
+          )}
+        </div>
+        <button
+          type="button"
+          disabled={marking}
+          onClick={togglePaid}
+          className={`text-sm rounded-md px-3 py-1.5 font-medium disabled:opacity-60 ${isPaid ? "border border-rose-300 text-rose-700 hover:bg-rose-50" : "bg-emerald-600 text-white hover:bg-emerald-700"}`}
+        >
+          {marking ? "…" : isPaid ? "Mark unpaid" : "Mark as Paid"}
+        </button>
+      </div>
+    </section>
+  );
+}
