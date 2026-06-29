@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MessageCircle, Mail, Trash2, Copy, Check, X } from "lucide-react";
+import { MessageCircle, Mail, Trash2, Copy, Check, X, Send } from "lucide-react";
 import { toast } from "sonner";
 import { sendCustomBuildStatusEmail } from "@/lib/custom-build-emails.functions";
 
@@ -77,32 +77,23 @@ function AdminCustomBuilds() {
       setRows((r) => r.map((x) => (x.id === row.id ? { ...x, status: prev } : x)));
       return;
     }
-    toast.success(`Marked as ${STATUS_LABELS[status] ?? status}`);
+    toast.success(`Marked as ${STATUS_LABELS[status] ?? status} — customer not notified yet`);
+  };
 
-    if (status === "accepted" && !row.accepted_email_sent_at) {
-      try {
-        const res = await sendStatusEmail({ data: { requestId: row.id, kind: "accepted" } });
-        if (res?.ok) {
-          toast.success("Acceptance email sent to customer");
-          setRows((r) => r.map((x) => (x.id === row.id ? { ...x, accepted_email_sent_at: new Date().toISOString() } : x)));
-        } else if (res?.error) {
-          toast.error(`Email failed: ${res.error}`);
-        }
-      } catch (e: any) {
-        toast.error(`Email failed: ${e?.message ?? "unknown error"}`);
-      }
-    } else if (status === "declined" && !row.rejected_email_sent_at) {
-      try {
-        const res = await sendStatusEmail({ data: { requestId: row.id, kind: "rejected" } });
-        if (res?.ok) {
-          toast.success("Rejection email sent to customer");
-          setRows((r) => r.map((x) => (x.id === row.id ? { ...x, rejected_email_sent_at: new Date().toISOString() } : x)));
-        } else if (res?.error) {
-          toast.error(`Email failed: ${res.error}`);
-        }
-      } catch (e: any) {
-        toast.error(`Email failed: ${e?.message ?? "unknown error"}`);
-      }
+  const notifyDecision = async (row: CB, kind: "accepted" | "rejected") => {
+    const sentAt = kind === "accepted" ? row.accepted_email_sent_at : row.rejected_email_sent_at;
+    if (sentAt && !confirm("Customer was already notified for this status. Send again?")) return;
+    try {
+      const res = await sendStatusEmail({ data: { requestId: row.id, kind } });
+      if (res?.ok) {
+        toast.success("Decision email sent");
+        const stamp = new Date().toISOString();
+        setRows((r) => r.map((x) => x.id === row.id
+          ? { ...x, ...(kind === "accepted" ? { accepted_email_sent_at: stamp } : { rejected_email_sent_at: stamp }) }
+          : x));
+      } else if (res?.error) toast.error(`Email failed: ${res.error}`);
+    } catch (e: any) {
+      toast.error(`Email failed: ${e?.message ?? "unknown error"}`);
     }
   };
 
