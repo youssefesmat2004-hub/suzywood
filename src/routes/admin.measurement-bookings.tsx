@@ -104,10 +104,8 @@ function AdminMeasurementBookings() {
       .update({ confirmed_date: iso, booking_status: "date_confirmed" } as never)
       .eq("id", b.id);
     if (error) { setBusyFor(b.id, false); toast.error("Couldn't confirm date", { description: error.message }); return; }
-    const res = await sendEmail({ data: { bookingId: b.id, kind: "confirmed" } });
     setBusyFor(b.id, false);
-    if (!res?.ok) toast.error("Date saved, but email failed", { description: (res as { error?: string })?.error });
-    else toast.success("Date confirmed — customer emailed");
+    toast.success("Date confirmed — customer not notified yet");
     load();
   };
 
@@ -123,10 +121,8 @@ function AdminMeasurementBookings() {
       .update({ quotation_price: num, payment_link: link, booking_status: "quotation_sent" } as never)
       .eq("id", b.id);
     if (error) { setBusyFor(b.id, false); toast.error("Couldn't save quotation", { description: error.message }); return; }
-    const res = await sendEmail({ data: { bookingId: b.id, kind: "quotation" } });
     setBusyFor(b.id, false);
-    if (!res?.ok) toast.error("Quotation saved, but email failed", { description: (res as { error?: string })?.error });
-    else toast.success("Quotation sent");
+    toast.success("Quotation saved — customer not notified yet");
     load();
   };
 
@@ -137,11 +133,22 @@ function AdminMeasurementBookings() {
       .update({ booking_status: "payment_confirmed" } as never)
       .eq("id", b.id);
     if (error) { setBusyFor(b.id, false); toast.error("Couldn't update status"); return; }
-    const res = await sendEmail({ data: { bookingId: b.id, kind: "paid" } });
     setBusyFor(b.id, false);
-    if (!res?.ok) toast.error("Marked as paid, but email failed", { description: (res as { error?: string })?.error });
-    else toast.success("Marked as paid — customer emailed");
+    toast.success("Marked as paid — customer not notified yet");
     load();
+  };
+
+  const notify = async (b: Booking, kind: "confirmed" | "quotation" | "paid") => {
+    const sentAt =
+      kind === "confirmed" ? b.confirmed_email_sent_at :
+      kind === "quotation" ? b.quotation_email_sent_at :
+      b.payment_email_sent_at;
+    if (sentAt && !confirm("Customer was already notified for this. Send again?")) return;
+    setBusyFor(b.id, true);
+    const res = await sendEmail({ data: { bookingId: b.id, kind } });
+    setBusyFor(b.id, false);
+    if (!res?.ok) toast.error("Email failed", { description: (res as { error?: string })?.error });
+    else { toast.success("Customer notified by email"); load(); }
   };
 
   const markInstalled = async (b: Booking) => {
