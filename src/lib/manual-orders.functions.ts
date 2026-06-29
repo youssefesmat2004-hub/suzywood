@@ -28,6 +28,7 @@ const schema = z.object({
   delivery_cost: z.number().nonnegative().max(10_000_000),
   status: z.enum(STATUSES),
   attachments: z.array(attachmentSchema).max(30).optional().default([]),
+  carpenter_cost: z.number().nonnegative().max(10_000_000).optional().default(0),
 });
 
 export const createManualOrder = createServerFn({ method: "POST" })
@@ -70,6 +71,8 @@ export const createManualOrder = createServerFn({ method: "POST" })
         product_description: data.product_description,
         notes: "Manual WhatsApp order",
         attachments: data.attachments ?? [],
+        actual_carpenter_cost: data.carpenter_cost ?? 0,
+        carpenter_cost_override: data.carpenter_cost ?? null,
       } as never)
       .select("id, order_number")
       .single();
@@ -103,6 +106,7 @@ const updateSchema = z.object({
   notes: z.string().max(2000).optional().default(""),
   attachments: z.array(attachmentSchema).max(30).optional().default([]),
   removed_paths: z.array(z.string().min(1).max(500)).max(50).optional().default([]),
+  carpenter_cost: z.number().nonnegative().max(10_000_000).optional().default(0),
 });
 
 export const updateManualOrder = createServerFn({ method: "POST" })
@@ -147,6 +151,8 @@ export const updateManualOrder = createServerFn({ method: "POST" })
         notes: data.notes,
         attachments: data.attachments ?? [],
         last_updated_at: new Date().toISOString(),
+        actual_carpenter_cost: data.carpenter_cost ?? 0,
+        carpenter_cost_override: data.carpenter_cost ?? null,
       } as never)
       .eq("id", data.id);
     if (error) throw new Error(error.message);
