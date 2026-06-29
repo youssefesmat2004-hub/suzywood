@@ -319,6 +319,13 @@ function Dashboard({ carpenterId, carpenterName }: { carpenterId: CarpenterId; c
 
   const filtered = useMemo(() => orders.filter((o) => o.status === tab), [orders, tab]);
 
+  const totalUnpaid = useMemo(
+    () => orders
+      .filter((o) => o.carpenter_payment_status !== "paid")
+      .reduce((s, o) => s + Number(o.carpenter_cost_override ?? o.actual_carpenter_cost ?? 0), 0),
+    [orders],
+  );
+
   const updateStatus = async (id: string, next: WorkStatus) => {
     setUpdatingId(id);
     const { error } = await supabase.from("orders").update({ status: next }).eq("id", id);
@@ -397,6 +404,15 @@ function Dashboard({ carpenterId, carpenterName }: { carpenterId: CarpenterId; c
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-4 space-y-3">
+        {!loading && totalUnpaid > 0 && (
+          <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 flex items-center justify-between">
+            <div>
+              <div className="text-[11px] font-semibold text-amber-900">المستحق لك (غير مدفوع)</div>
+              <div className="text-lg font-bold text-amber-900">EGP {Math.round(totalUnpaid).toLocaleString()}</div>
+            </div>
+            <div className="text-[11px] text-amber-800">عبر جميع طلباتك</div>
+          </div>
+        )}
         {loading && (
           <div className="flex items-center justify-center py-16 text-muted-foreground">
             <Loader2 className="w-5 h-5 animate-spin ml-2" />
