@@ -7,7 +7,6 @@ import { verifyCarpenterPin } from "@/lib/carpenter.functions";
 import { playCarpenterAlert, unlockCarpenterAudio } from "@/lib/carpenter-sound";
 import { resolveImage } from "@/lib/images";
 import { getAreaLabel } from "@/lib/delivery";
-import { useServerFn } from "@tanstack/react-start";
 import { signManualAttachmentUrls } from "@/lib/manual-orders.functions";
 import { Paperclip } from "lucide-react";
 
