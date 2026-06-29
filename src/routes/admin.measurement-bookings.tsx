@@ -224,9 +224,12 @@ function AdminMeasurementBookings() {
                     <Button size="sm" disabled={isBusy} onClick={() => confirmDate(b)}>
                       <CheckCircle2 className="h-4 w-4 mr-1" /> Confirm Date
                     </Button>
+                    <Button size="sm" variant="outline" disabled={isBusy || !b.confirmed_date} onClick={() => notify(b, "confirmed")}>
+                      <Send className="h-4 w-4 mr-1" /> Send Confirmation to Customer
+                    </Button>
                   </div>
                   {b.confirmed_email_sent_at && (
-                    <p className="text-xs text-emerald-700 mt-2 flex items-center gap-1"><Check className="h-3 w-3" /> Confirmation email sent</p>
+                    <p className="text-xs text-emerald-700 mt-2 flex items-center gap-1"><Check className="h-3 w-3" /> Notified · {new Date(b.confirmed_email_sent_at).toLocaleString()}</p>
                   )}
                 </div>
 
@@ -254,11 +257,14 @@ function AdminMeasurementBookings() {
                   </div>
                   <div className="flex justify-end">
                     <Button size="sm" disabled={isBusy} onClick={() => sendQuotation(b)}>
-                      <Send className="h-4 w-4 mr-1" /> Send Quotation
+                      <Send className="h-4 w-4 mr-1" /> Save Quotation
+                    </Button>
+                    <Button size="sm" variant="outline" className="ml-2" disabled={isBusy || !b.quotation_price} onClick={() => notify(b, "quotation")}>
+                      <Send className="h-4 w-4 mr-1" /> Send Quotation Email
                     </Button>
                   </div>
                   {b.quotation_email_sent_at && (
-                    <p className="text-xs text-emerald-700 flex items-center gap-1"><Check className="h-3 w-3" /> Quotation email sent</p>
+                    <p className="text-xs text-emerald-700 flex items-center gap-1"><Check className="h-3 w-3" /> Notified · {new Date(b.quotation_email_sent_at).toLocaleString()}</p>
                   )}
                 </div>
 
@@ -267,11 +273,14 @@ function AdminMeasurementBookings() {
                   <Button size="sm" variant="outline" disabled={isBusy || b.booking_status === "payment_confirmed" || b.booking_status === "installed"} onClick={() => markPaid(b)}>
                     <BadgeCheck className="h-4 w-4 mr-1" /> Mark as Paid
                   </Button>
+                  <Button size="sm" variant="outline" disabled={isBusy || b.booking_status !== "payment_confirmed"} onClick={() => notify(b, "paid")}>
+                    <Send className="h-4 w-4 mr-1" /> Notify Customer Payment Received
+                  </Button>
                   <Button size="sm" variant="outline" disabled={isBusy || b.booking_status === "installed"} onClick={() => markInstalled(b)}>
                     Mark as Installed
                   </Button>
                   {b.payment_email_sent_at && (
-                    <span className="text-xs text-emerald-700 flex items-center gap-1"><Check className="h-3 w-3" /> Payment email sent</span>
+                    <span className="text-xs text-emerald-700 flex items-center gap-1"><Check className="h-3 w-3" /> Notified · {new Date(b.payment_email_sent_at).toLocaleString()}</span>
                   )}
                 </div>
               </div>
