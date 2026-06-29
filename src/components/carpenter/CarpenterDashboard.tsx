@@ -612,6 +612,29 @@ function OrderCard({
         </span>
       </div>
 
+      {(() => {
+        const pay = Number(order.carpenter_cost_override ?? order.actual_carpenter_cost ?? 0);
+        if (pay <= 0 && !order.carpenter_payment_status) return null;
+        const paid = order.carpenter_payment_status === "paid";
+        return (
+          <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2 flex items-center justify-between gap-3">
+            <div>
+              <div className="text-[11px] font-semibold text-emerald-900">المستحق لك على هذا الطلب</div>
+              <div className="text-base font-bold text-emerald-900">EGP {pay.toLocaleString()}</div>
+            </div>
+            {paid ? (
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-800 bg-white border border-emerald-300 rounded-md px-2 py-0.5">
+                ✓ مدفوع
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-700 bg-white border border-rose-300 rounded-md px-2 py-0.5">
+                غير مدفوع
+              </span>
+            )}
+          </div>
+        );
+      })()}
+
       <div className="mt-4">
         {order.status === "confirmed" && (
           <button
