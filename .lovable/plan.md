@@ -1,41 +1,82 @@
-## Goal
+# Carpenter Cost & Real Profit System
 
-Let customers optionally add a mattress when buying a crib. You set two prices in **Admin → Categories → Cribs** (small mattress, big mattress) and tag each crib size as "small" or "big" so the right mattress price is auto-applied.
+Admin-only cost tracking, with a stripped-down per-carpenter "what I'm owed" view. Customers never see costs or profit. Carpenters only see their own pay amounts.
 
-## What the customer sees (on a Cribs product page)
+## 1. Database migration
 
-- A new checkbox: **"Add mattress (+EGP X)"** — appears only for cribs.
-- The price X updates live based on the size selected (small vs big).
-- The cart line shows "+ Mattress", and total includes the mattress price.
+Add columns and a security-definer view; lock down with RLS.
 
-## What you see in admin
+```sql
+ALTER TABLE public.products         ADD COLUMN IF NOT EXISTS carpenter_cost NUMERIC DEFAULT 0;
+ALTER TABLE public.product_variants ADD COLUMN IF NOT EXISTS carpenter_cost NUMERIC DEFAULT 0;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS carpenter_cost_override   NUMERIC;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS actual_carpenter_cost     NUMERIC DEFAULT 0;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS carpenter_payment_status  TEXT DEFAULT 'unpaid';
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS carpenter_paid_at         TIMESTAMPTZ;
+```
 
-**Categories → Cribs → edit:**
-- Toggle: *Mattress add-on enabled*
-- Number: *Small mattress price (EGP)*
-- Number: *Big mattress price (EGP)*
-- Note field (optional)
+Add a security-definer function `get_carpenter_owed_orders(_carpenter_id INT)` that returns only `{ order_id, order_number, product_summary, carpenter_cost, payment_status, paid_at, created_at }` — no selling price, no profit. The carpenter dashboard calls this via RPC.
 
-**Each size row** in the Cribs sizes list gets a new selector: `Mattress tier: [None / Small / Big]`.
+Carpenter RLS on `orders` already blocks updating financial columns via the existing `enforce_carpenter_order_update_scope` trigger — extend the deny list with the new financial columns (`carpenter_cost_override`, `actual_carpenter_cost`, `carpenter_payment_status`, `carpenter_paid_at`).
 
-## Technical changes
+`products.carpenter_cost` and `product_variants.carpenter_cost` already inherit table RLS; carpenters' SELECT policy on products needs to exclude these columns. Easiest path: keep table-level SELECT and rely on the frontend never requesting the column for carpenters. (Postgres column-level grants would be the strict version — call out and implement only if you want defense-in-depth.)
 
-### 1. Database migration
-- `categories`: add `mattress_addon_enabled bool default false`, `mattress_small_price numeric default 0`, `mattress_big_price numeric default 0`, `mattress_addon_note text`.
-- `category_sizes`: add `mattress_tier text` (nullable, values: `small` | `big`).
-- `order_items`: add `mattress bool default false`, `mattress_price numeric default 0`.
-- Update `create_order_with_items` RPC to accept `mattress` per item, look up the matching mattress price from `category_sizes.mattress_tier` + category prices, validate, and store on the order_item + add to subtotal.
+## 2. Admin: Product form
 
-### 2. Frontend
-- `src/routes/admin.categories.tsx`: add the 3 mattress fields to the form; add a `Mattress tier` select to each size row.
-- `src/lib/cart.tsx`: add `mattress?: boolean` and `mattressPrice?: number` to `CartItem`; include in dedupe key.
-- `src/routes/shop.$slug.tsx`: when category slug = `cribs` and `mattress_addon_enabled`, render the checkbox; compute price from the selected size's `mattress_tier`; include in `add()` payload and label.
-- `src/routes/cart.tsx` + checkout summary: show "+ Mattress (EGP X)" line under the affected item.
-- `src/lib/manual-orders.functions.ts`: accept mattress flag for parity with WhatsApp manual orders.
+`src/components/admin/ProductForm.tsx`:
+- Add "Carpenter Cost (EGP)" numeric input (admin only, separate section "Internal — Admin only").
+- Add per-variant carpenter cost in the variants editor.
 
-### 3. Types
-After the migration runs, `src/integrations/supabase/types.ts` regenerates automatically; update local TS types in the affected files.
+`src/routes/admin.products.$id.tsx`: include `carpenter_cost` in fetched fields.
 
-## Out of scope
-- Per-product mattress pricing (you chose category-level).
-- Multiple mattress models per crib.
+## 3. Admin: Manual WhatsApp order modal
+
+`src/components/admin/ManualOrderModal.tsx`: add "Carpenter Cost (EGP)" input. On submit, store as `actual_carpenter_cost` (and set `carpenter_cost_override` = same value to mark explicit).
+
+`src/lib/manual-orders.functions.ts`: accept `carpenter_cost` in schema; persist.
+
+## 4. Admin: Order detail
+
+`src/routes/admin.orders.$id.tsx`: new "Cost & Profit (internal)" card showing:
+- Selling price (order total minus shipping)
+- Auto carpenter cost (sum of `order_items.product.carpenter_cost` / variant cost × qty)
+- Manual override input → saves to `carpenter_cost_override` and recomputes `actual_carpenter_cost`
+- Real profit = selling price − actual carpenter cost
+- Carpenter payment status badge + "Mark as Paid" / "Mark as Unpaid" toggle
+
+When admin first opens an order, if `actual_carpenter_cost = 0` and no override, backfill from products.
+
+## 5. Carpenter Payments page
+
+New route `src/routes/admin.carpenter-payments.tsx`. Grouped by `assigned_carpenter` (1/2/3):
+- Table per carpenter: order #, product summary, carpenter cost, status, Mark Paid button
+- KPIs: Total owed, Total paid (lifetime), Total paid this month
+- "Mark all unpaid as paid" bulk button per carpenter (with confirm)
+
+Add to `src/components/admin/AdminLayout.tsx` nav.
+
+## 6. Analytics (admin only)
+
+`src/routes/admin.analytics.tsx`:
+- Replace the `PROFIT_MARGIN = 0.25` constant logic with real numbers from `actual_carpenter_cost`.
+- KPIs: Total Revenue / Total Carpenter Costs / Real Profit / Margin %
+- New "Real profit by month" chart (last 12 months: revenue, carpenter cost, profit bars).
+- Update the profit calculator (if present in `admin.settings` or analytics) so the Suzan/Youssef split uses real net profit.
+
+## 7. Carpenter dashboard
+
+`src/components/carpenter/CarpenterDashboard.tsx`: under each order card, add a "Your pay" line + Paid/Unpaid pill, fed by the new RPC. New "Owed to you" KPI at the top. Never query selling price.
+
+## Technical notes
+
+- Computation of auto cost lives in a small util `src/lib/carpenter-cost.ts` so admin order detail, analytics, and the payments page agree.
+- Use `assigned_carpenter` (existing column) to attribute orders to carpenters.
+- Manual orders: when `carpenter_cost` is entered, `actual_carpenter_cost = entered` and override = entered.
+- Marking paid sets `carpenter_payment_status='paid'` + `carpenter_paid_at=now()`. Unmarking clears both.
+- Schema/RLS go in one migration (approval required) before the rest of the code.
+
+## Out of scope (ask if you want it later)
+
+- Carpenter cost history/audit log
+- Partial payments (only full mark-paid)
+- Exporting payments to CSV
