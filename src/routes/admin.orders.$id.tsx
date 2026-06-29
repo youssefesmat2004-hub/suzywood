@@ -22,6 +22,7 @@ type OrderItem = {
   image_url?: string | null;
   bed_rails?: boolean | null;
   bed_rails_price?: number | null;
+  carpenter_cost?: number | null;
 };
 
 type Order = {
@@ -53,6 +54,10 @@ type Order = {
   last_updated_at?: string | null;
   notified_statuses?: string[] | null;
   update_notified_at?: string | null;
+  actual_carpenter_cost?: number | null;
+  carpenter_cost_override?: number | null;
+  carpenter_payment_status?: string | null;
+  carpenter_paid_at?: string | null;
   order_items: OrderItem[];
 };
 
@@ -152,7 +157,7 @@ function OrderDetailPage() {
     (async () => {
       const { data: orderRow, error: orderErr } = await supabase
         .from("orders")
-        .select("id, order_number, customer_name, customer_email, customer_phone, shipping_address, shipping_city, shipping_governorate, shipping_notes, delivery_area, order_size_type, status, subtotal, shipping_fee, total, upfront_amount, remaining_amount, created_at, instapay_reference, payment_proof_url, assigned_carpenter, is_manual_order, product_description, notes, attachments, last_updated_at, notified_statuses, update_notified_at")
+        .select("id, order_number, customer_name, customer_email, customer_phone, shipping_address, shipping_city, shipping_governorate, shipping_notes, delivery_area, order_size_type, status, subtotal, shipping_fee, total, upfront_amount, remaining_amount, created_at, instapay_reference, payment_proof_url, assigned_carpenter, is_manual_order, product_description, notes, attachments, last_updated_at, notified_statuses, update_notified_at, actual_carpenter_cost, carpenter_cost_override, carpenter_payment_status, carpenter_paid_at")
         .eq("id", id)
         .single();
       if (orderErr || !orderRow) {
@@ -171,9 +176,29 @@ function OrderDetailPage() {
       const items = ((itemRows ?? []) as OrderItem[]).map((i) => ({ ...i }));
       const productIds = items.map((i) => i.product_id).filter(Boolean) as string[];
       if (productIds.length) {
-        const { data: prods } = await supabase.from("products").select("id, image_url").in("id", productIds);
-        const map = new Map((prods ?? []).map((p: any) => [p.id, p.image_url]));
-        items.forEach((i) => { if (i.product_id) i.image_url = map.get(i.product_id) ?? null; });
+        const { data: prods } = await supabase
+          .from("products")
+          .select("id, image_url, carpenter_cost")
+          .in("id", productIds);
+        const map = new Map((prods ?? []).map((p: any) => [p.id, p]));
+        const { data: variants } = await supabase
+          .from("product_variants")
+          .select("product_id, name, carpenter_cost")
+          .in("product_id", productIds);
+        const vmap = new Map<string, number>();
+        (variants ?? []).forEach((v: any) => {
+          vmap.set(`${v.product_id}|${(v.name ?? "").toLowerCase()}`, Number(v.carpenter_cost ?? 0));
+        });
+        items.forEach((i) => {
+          if (i.product_id) {
+            const p: any = map.get(i.product_id);
+            i.image_url = p?.image_url ?? null;
+            const key = `${i.product_id}|${(i.size ?? "").toLowerCase()}`;
+            const vc = vmap.get(key);
+            const baseC = Number(p?.carpenter_cost ?? 0);
+            i.carpenter_cost = (vc && vc > 0) ? vc : baseC;
+          }
+        });
       }
       setOrder({ ...(orderRow as any), order_items: items });
       setLoading(false);
@@ -441,6 +466,8 @@ function OrderDetailPage() {
             notes: order.notes ?? "",
             attachments: (order.attachments ?? []) as ManualAttachment[],
             status: order.status,
+            actual_carpenter_cost: order.actual_carpenter_cost ?? null,
+            carpenter_cost_override: order.carpenter_cost_override ?? null,
           }}
           onClose={() => setEditing(false)}
           onUpdated={async () => {
