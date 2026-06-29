@@ -622,6 +622,11 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
                   <Label className="text-xs">Stock</Label>
                   <Input type="number" min={0} value={variant.stock_quantity} onChange={(e) => setVariants((p) => p.map((x, i) => i === idx ? { ...x, stock_quantity: Number(e.target.value) } : x))} />
                 </div>
+                <div className="sm:col-span-2 space-y-1">
+                  <Label className="text-xs text-amber-700">Carpenter cost</Label>
+                  <Input type="number" min={0} value={variant.carpenter_cost ?? 0}
+                    onChange={(e) => setVariants((p) => p.map((x, i) => i === idx ? { ...x, carpenter_cost: Number(e.target.value) } : x))} />
+                </div>
                 <div className="sm:col-span-2 flex items-end justify-end h-full">
                   <Button type="button" variant="ghost" size="sm" onClick={() => setVariants((p) => p.map((x, i) => i === idx ? { ...x, _delete: true } : x))}>
                     <Trash2 className="h-4 w-4 text-destructive" />
