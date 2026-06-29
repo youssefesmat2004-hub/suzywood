@@ -603,6 +603,12 @@ function OrderDetailPage() {
         </div>
 
         <aside className="space-y-6">
+          {!isCarpenter && (
+            <CarpenterCostCard
+              order={order}
+              onChange={(patch) => setOrder((o) => o ? { ...o, ...patch } : o)}
+            />
+          )}
           <section className="bg-background border rounded-xl p-6">
             <h2 className="font-serif text-lg mb-3">Customer</h2>
             <div className="text-sm space-y-1">
