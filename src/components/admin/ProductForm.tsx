@@ -458,10 +458,6 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
         </div>
       </section>
 
-      <section className="bg-background border rounded-xl p-6 space-y-4">
-        <h2 className="font-serif text-xl">Images</h2>
-      </section>
-
       <section className="bg-background border rounded-xl p-6 space-y-3 border-amber-300/60 bg-amber-50/30">
         <div>
           <h2 className="font-serif text-xl">Internal — Carpenter Cost</h2>
@@ -476,7 +472,7 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
         </div>
       </section>
 
-      <section className="bg-background border rounded-xl p-6 space-y-4 hidden">
+      <section className="bg-background border rounded-xl p-6 space-y-4">
         <h2 className="font-serif text-xl">Images</h2>
         <div>
           <Label>Main image</Label>
