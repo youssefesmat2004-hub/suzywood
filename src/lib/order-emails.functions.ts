@@ -254,6 +254,13 @@ export const sendOrderStatusEmail = createServerFn({ method: "POST" })
       return { ok: false, error: `Resend error ${res.status}` };
     }
 
+    // Stamp this status as "notified" so admins can see it was sent.
+    try {
+      const current = Array.isArray((order as any).notified_statuses) ? (order as any).notified_statuses : [];
+      const next = Array.from(new Set([...current.map(String), String(order.status)]));
+      await supabase.from("orders").update({ notified_statuses: next } as never).eq("id", order.id);
+    } catch (e) { console.error("notified_statuses update failed", e); }
+
     return { ok: true };
   });
 
