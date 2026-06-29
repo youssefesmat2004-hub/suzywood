@@ -170,6 +170,16 @@ function AdminCustomBuilds() {
                       {STATUSES.map((s) => <SelectItem key={s} value={s}>{STATUS_LABELS[s] ?? s}</SelectItem>)}
                     </SelectContent>
                   </Select>
+                  {row.status === "accepted" && (
+                    <Button size="sm" variant="outline" className="border-primary text-primary hover:bg-primary/10" onClick={() => notifyDecision(row, "accepted")}>
+                      <Send className="h-4 w-4 mr-1" /> Send Decision Email
+                    </Button>
+                  )}
+                  {row.status === "declined" && (
+                    <Button size="sm" variant="outline" className="border-primary text-primary hover:bg-primary/10" onClick={() => notifyDecision(row, "rejected")}>
+                      <Send className="h-4 w-4 mr-1" /> Send Decision Email
+                    </Button>
+                  )}
                   <Button size="sm" variant="outline" asChild>
                     <a
                       href={`https://wa.me/${row.phone.replace(/[^0-9]/g, "").replace(/^0/, "2")}?text=${encodeURIComponent(`Hi ${row.full_name}, thanks for your custom build request at Suzy Wood. We'd love to discuss your ${row.room_type}.`)}`}
@@ -184,9 +194,14 @@ function AdminCustomBuilds() {
                   </Button>
                 </div>
               </div>
-              {(row.accepted_email_sent_at || row.rejected_email_sent_at) && (
+              {row.status === "accepted" && row.accepted_email_sent_at && (
                 <div className="mt-2 text-xs text-emerald-700 inline-flex items-center gap-1">
-                  <Check className="h-3 w-3" /> Customer notified by email
+                  <Check className="h-3 w-3" /> Notified · {new Date(row.accepted_email_sent_at).toLocaleString()}
+                </div>
+              )}
+              {row.status === "declined" && row.rejected_email_sent_at && (
+                <div className="mt-2 text-xs text-emerald-700 inline-flex items-center gap-1">
+                  <Check className="h-3 w-3" /> Notified · {new Date(row.rejected_email_sent_at).toLocaleString()}
                 </div>
               )}
               <div className="mt-3 p-3 rounded bg-muted/50 text-sm whitespace-pre-wrap relative">
