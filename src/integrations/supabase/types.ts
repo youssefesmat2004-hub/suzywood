@@ -223,6 +223,7 @@ export type Database = {
       custom_build_requests: {
         Row: {
           accepted_email_sent_at: string | null
+          completed_email_sent_at: string | null
           created_at: string
           customer_notification_sent_at: string | null
           description: string
@@ -239,6 +240,7 @@ export type Database = {
         }
         Insert: {
           accepted_email_sent_at?: string | null
+          completed_email_sent_at?: string | null
           created_at?: string
           customer_notification_sent_at?: string | null
           description: string
@@ -255,6 +257,7 @@ export type Database = {
         }
         Update: {
           accepted_email_sent_at?: string | null
+          completed_email_sent_at?: string | null
           created_at?: string
           customer_notification_sent_at?: string | null
           description?: string
@@ -310,6 +313,7 @@ export type Database = {
           customer_notification_sent_at: string | null
           full_name: string
           id: string
+          installed_email_sent_at: string | null
           notes: string | null
           owner_notification_sent_at: string | null
           payment_email_sent_at: string | null
@@ -338,6 +342,7 @@ export type Database = {
           customer_notification_sent_at?: string | null
           full_name: string
           id?: string
+          installed_email_sent_at?: string | null
           notes?: string | null
           owner_notification_sent_at?: string | null
           payment_email_sent_at?: string | null
@@ -366,6 +371,7 @@ export type Database = {
           customer_notification_sent_at?: string | null
           full_name?: string
           id?: string
+          installed_email_sent_at?: string | null
           notes?: string | null
           owner_notification_sent_at?: string | null
           payment_email_sent_at?: string | null
