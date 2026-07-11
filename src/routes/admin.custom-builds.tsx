@@ -148,6 +148,10 @@ function AdminCustomBuilds() {
                       <Mail className="h-3.5 w-3.5" /> {row.email}
                     </a>
                     <a href={`tel:${row.phone}`} className="hover:text-primary font-mono text-xs">{row.phone}</a>
+                    <WhatsAppLink
+                      phone={row.phone}
+                      message={`Hi ${firstName(row.full_name)}, this is Suzy Wood — about your custom build request for the ${row.room_type}.`}
+                    />
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
