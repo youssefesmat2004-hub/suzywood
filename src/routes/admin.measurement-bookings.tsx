@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { MessageCircle, Check, CheckCircle2, Send, BadgeCheck } from "lucide-react";
 import { toast } from "sonner";
 import { sendMeasurementBookingEmail } from "@/lib/measurement-booking-emails.functions";
+import { WhatsAppLink, firstName } from "@/lib/whatsapp";
 
 export const Route = createFileRoute("/admin/measurement-bookings")({
   head: () => ({ meta: [{ title: "Measurement Bookings — Suzy Wood Admin" }, { name: "robots", content: "noindex,nofollow" }] }),
