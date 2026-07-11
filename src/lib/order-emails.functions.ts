@@ -21,15 +21,19 @@ const STATUS_HEADLINES: Record<string, string> = {
 };
 
 const STATUS_SUBJECTS: Record<string, string> = {
+  pending_payment: "Reminder: Complete Your Suzy Wood Order Payment 🪵",
   confirmed: "Payment Confirmed - We're On It! 🪵 - Suzy Wood",
   in_production: "Payment Confirmed - We're On It! 🪵 - Suzy Wood",
   shipped: "Your Order is On the Way! 🚚🪵 - Suzy Wood",
   delivered: "Thank You! Your Order Has Arrived 🪵 - Suzy Wood",
+  cancelled: "Your Suzy Wood Order Has Been Cancelled",
 };
 
 const WHATSAPP_URL = "https://wa.me/201096313532";
 
 const STATUS_BODY: Record<string, string> = {
+  pending_payment:
+    "Just a friendly reminder — we haven't received payment for your order yet. To secure your piece and start production, please complete the 75% deposit via InstaPay. If you need help or have any questions, we're always here on WhatsApp.",
   confirmed:
     "Thank you so much for your payment — we truly appreciate your trust in us. Your order is now being handcrafted by our team, and we'll keep you updated on the progress every step of the way.",
   in_production:
@@ -38,6 +42,8 @@ const STATUS_BODY: Record<string, string> = {
     "Great news! Your order is out for delivery and on its way to you. Please have the remaining 25% balance ready to settle on delivery.",
   delivered:
     "Thank you so much for choosing Suzy Wood — it means the world to us. We hope you and your little one absolutely love your new piece. If you have a moment, we'd love to see a photo or hear what you think — your reviews keep our small team going. 💛",
+  cancelled:
+    "We're writing to confirm that your order has been cancelled. If this was unexpected or you'd like to place a new order, please reach out to us on WhatsApp — we'd be happy to help.",
 };
 
 function escapeHtml(s: string) {
