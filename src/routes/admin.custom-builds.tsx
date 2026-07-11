@@ -26,6 +26,7 @@ type CB = {
   inspiration_image_url: string | null;
   accepted_email_sent_at: string | null;
   rejected_email_sent_at: string | null;
+  completed_email_sent_at: string | null;
 };
 
 const STATUSES = ["new", "contacted", "accepted", "declined", "completed"];
@@ -80,16 +81,23 @@ function AdminCustomBuilds() {
     toast.success(`Marked as ${STATUS_LABELS[status] ?? status} — customer not notified yet`);
   };
 
-  const notifyDecision = async (row: CB, kind: "accepted" | "rejected") => {
-    const sentAt = kind === "accepted" ? row.accepted_email_sent_at : row.rejected_email_sent_at;
+  const notifyDecision = async (row: CB, kind: "accepted" | "rejected" | "completed") => {
+    const sentAt =
+      kind === "accepted" ? row.accepted_email_sent_at
+      : kind === "rejected" ? row.rejected_email_sent_at
+      : row.completed_email_sent_at;
     if (sentAt && !confirm("Customer was already notified for this status. Send again?")) return;
     try {
       const res = await sendStatusEmail({ data: { requestId: row.id, kind } });
       if (res?.ok) {
-        toast.success("Decision email sent");
+        toast.success("Email sent");
         const stamp = new Date().toISOString();
         setRows((r) => r.map((x) => x.id === row.id
-          ? { ...x, ...(kind === "accepted" ? { accepted_email_sent_at: stamp } : { rejected_email_sent_at: stamp }) }
+          ? { ...x, ...(
+              kind === "accepted" ? { accepted_email_sent_at: stamp }
+              : kind === "rejected" ? { rejected_email_sent_at: stamp }
+              : { completed_email_sent_at: stamp }
+            ) }
           : x));
       } else if (res?.error) toast.error(`Email failed: ${res.error}`);
     } catch (e: any) {
@@ -172,12 +180,17 @@ function AdminCustomBuilds() {
                   </Select>
                   {row.status === "accepted" && (
                     <Button size="sm" variant="outline" className="border-primary text-primary hover:bg-primary/10" onClick={() => notifyDecision(row, "accepted")}>
-                      <Send className="h-4 w-4 mr-1" /> Send Decision Email
+                      <Send className="h-4 w-4 mr-1" /> Send Acceptance Email
                     </Button>
                   )}
                   {row.status === "declined" && (
                     <Button size="sm" variant="outline" className="border-primary text-primary hover:bg-primary/10" onClick={() => notifyDecision(row, "rejected")}>
-                      <Send className="h-4 w-4 mr-1" /> Send Decision Email
+                      <Send className="h-4 w-4 mr-1" /> Send Rejection Email
+                    </Button>
+                  )}
+                  {row.status === "completed" && (
+                    <Button size="sm" variant="outline" className="border-primary text-primary hover:bg-primary/10" onClick={() => notifyDecision(row, "completed")}>
+                      <Send className="h-4 w-4 mr-1" /> Notify Customer
                     </Button>
                   )}
                   <Button size="sm" variant="outline" asChild>
@@ -202,6 +215,11 @@ function AdminCustomBuilds() {
               {row.status === "declined" && row.rejected_email_sent_at && (
                 <div className="mt-2 text-xs text-emerald-700 inline-flex items-center gap-1">
                   <Check className="h-3 w-3" /> Notified · {new Date(row.rejected_email_sent_at).toLocaleString()}
+                </div>
+              )}
+              {row.status === "completed" && row.completed_email_sent_at && (
+                <div className="mt-2 text-xs text-emerald-700 inline-flex items-center gap-1">
+                  <Check className="h-3 w-3" /> Notified · {new Date(row.completed_email_sent_at).toLocaleString()}
                 </div>
               )}
               <div className="mt-3 p-3 rounded bg-muted/50 text-sm whitespace-pre-wrap relative">

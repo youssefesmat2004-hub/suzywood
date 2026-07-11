@@ -76,9 +76,10 @@ type BookingRow = {
   confirmed_email_sent_at: string | null;
   quotation_email_sent_at: string | null;
   payment_email_sent_at: string | null;
+  installed_email_sent_at: string | null;
 };
 
-function renderEmail(kind: "received" | "confirmed" | "quotation" | "paid", b: BookingRow): { subject: string; html: string } {
+function renderEmail(kind: "received" | "confirmed" | "quotation" | "paid" | "installed", b: BookingRow): { subject: string; html: string } {
   const name = escapeHtml(b.full_name);
   const wa = waLink(`Hi Suzy Wood, regarding my safety gate measurement booking for ${b.product_name}.`);
   if (kind === "received") {
@@ -123,14 +124,24 @@ function renderEmail(kind: "received" | "confirmed" | "quotation" | "paid", b: B
       html: shell("Your quotation is ready 🪵", body, wa, "Chat with us on WhatsApp"),
     };
   }
-  // paid
+  if (kind === "paid") {
+    const body =
+      paragraph(`Hi ${name},`) +
+      paragraph(`Thank you — we've received your payment. Your safety gate order is now <strong>in production</strong>.`) +
+      paragraph(`Estimated production & installation timeline: <strong>2–4 weeks</strong>. We'll be in touch on WhatsApp to schedule installation as soon as it's ready.`);
+    return {
+      subject: "Payment Confirmed - Your Safety Gate Order is Set! 🪵 - Suzy Wood",
+      html: shell("Payment confirmed 🪵", body, wa, "Chat with us on WhatsApp"),
+    };
+  }
+  // installed
   const body =
     paragraph(`Hi ${name},`) +
-    paragraph(`Thank you — we've received your payment. Your safety gate order is now <strong>in production</strong>.`) +
-    paragraph(`Estimated production & installation timeline: <strong>2–4 weeks</strong>. We'll be in touch on WhatsApp to schedule installation as soon as it's ready.`);
+    paragraph(`Your <strong>${escapeHtml(b.product_name)}</strong> has been installed — thank you so much for choosing Suzy Wood!`) +
+    paragraph(`We hope it brings you and your little one peace of mind for years to come. If you have a moment, we'd love to see a photo or hear what you think — your reviews mean the world to us. 💛`);
   return {
-    subject: "Payment Confirmed - Your Safety Gate Order is Set! 🪵 - Suzy Wood",
-    html: shell("Payment confirmed 🪵", body, wa, "Chat with us on WhatsApp"),
+    subject: "Your Safety Gate is Installed 🪵 - Suzy Wood",
+    html: shell("All done — enjoy! 🪵", body, wa, "Chat with us on WhatsApp"),
   };
 }
 
@@ -162,13 +173,14 @@ async function sendResend(to: string, subject: string, html: string) {
 }
 
 const SELECT_COLS =
-  "id, full_name, customer_email, phone, product_name, preferred_day, time_slot, confirmed_date, quotation_price, payment_link, received_email_sent_at, confirmed_email_sent_at, quotation_email_sent_at, payment_email_sent_at";
+  "id, full_name, customer_email, phone, product_name, preferred_day, time_slot, confirmed_date, quotation_price, payment_link, received_email_sent_at, confirmed_email_sent_at, quotation_email_sent_at, payment_email_sent_at, installed_email_sent_at";
 
 const SENT_COL: Record<string, keyof BookingRow> = {
   received: "received_email_sent_at",
   confirmed: "confirmed_email_sent_at",
   quotation: "quotation_email_sent_at",
   paid: "payment_email_sent_at",
+  installed: "installed_email_sent_at",
 };
 
 // Public — called right after the customer submits the booking. Only sends the
@@ -202,7 +214,7 @@ export const sendMeasurementBookingEmail = createServerFn({ method: "POST" })
   .inputValidator((data) =>
     z.object({
       bookingId: z.string().uuid(),
-      kind: z.enum(["confirmed", "quotation", "paid"]),
+      kind: z.enum(["confirmed", "quotation", "paid", "installed"]),
     }).parse(data),
   )
   .handler(async ({ data, context }) => {

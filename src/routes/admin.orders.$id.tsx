@@ -383,7 +383,7 @@ function OrderDetailPage() {
               <option key={s.value} value={s.value}>{s.label}</option>
             ))}
           </select>
-          {!isCarpenter && order.status !== "pending_payment" && order.status !== "cancelled" && (
+          {!isCarpenter && (
             <div className="inline-flex items-center gap-1.5">
               <button
                 type="button"

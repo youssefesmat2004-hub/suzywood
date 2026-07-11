@@ -37,6 +37,7 @@ type Booking = {
   confirmed_email_sent_at: string | null;
   quotation_email_sent_at: string | null;
   payment_email_sent_at: string | null;
+  installed_email_sent_at: string | null;
   created_at: string;
 };
 
@@ -138,11 +139,12 @@ function AdminMeasurementBookings() {
     load();
   };
 
-  const notify = async (b: Booking, kind: "confirmed" | "quotation" | "paid") => {
+  const notify = async (b: Booking, kind: "confirmed" | "quotation" | "paid" | "installed") => {
     const sentAt =
       kind === "confirmed" ? b.confirmed_email_sent_at :
       kind === "quotation" ? b.quotation_email_sent_at :
-      b.payment_email_sent_at;
+      kind === "paid"      ? b.payment_email_sent_at :
+      b.installed_email_sent_at;
     if (sentAt && !confirm("Customer was already notified for this. Send again?")) return;
     setBusyFor(b.id, true);
     const res = await sendEmail({ data: { bookingId: b.id, kind } });
@@ -279,8 +281,14 @@ function AdminMeasurementBookings() {
                   <Button size="sm" variant="outline" disabled={isBusy || b.booking_status === "installed"} onClick={() => markInstalled(b)}>
                     Mark as Installed
                   </Button>
+                  <Button size="sm" variant="outline" disabled={isBusy || b.booking_status !== "installed"} onClick={() => notify(b, "installed")}>
+                    <Send className="h-4 w-4 mr-1" /> Notify Customer Installed
+                  </Button>
                   {b.payment_email_sent_at && (
                     <span className="text-xs text-emerald-700 flex items-center gap-1"><Check className="h-3 w-3" /> Notified · {new Date(b.payment_email_sent_at).toLocaleString()}</span>
+                  )}
+                  {b.installed_email_sent_at && (
+                    <span className="text-xs text-emerald-700 flex items-center gap-1"><Check className="h-3 w-3" /> Installed notified · {new Date(b.installed_email_sent_at).toLocaleString()}</span>
                   )}
                 </div>
               </div>

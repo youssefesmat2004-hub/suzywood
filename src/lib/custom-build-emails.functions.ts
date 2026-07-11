@@ -119,13 +119,49 @@ function renderRejected(opts: { customerName: string; roomType: string }) {
 </body></html>`;
 }
 
+function renderCompleted(opts: { customerName: string; roomType: string }) {
+  const roomLabel = ROOM_LABELS[opts.roomType] ?? opts.roomType;
+  const waLink = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
+    `Hi Suzy Wood, I just received my completion email for my ${opts.roomType} build — thank you!`,
+  )}`;
+  return `<!doctype html>
+<html><body style="margin:0;padding:0;background:#f6f4ef;font-family:Georgia,'Times New Roman',serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f6f4ef;padding:32px 12px;">
+    <tr><td align="center">
+      <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;max-width:560px;width:100%;">
+        <tr><td style="padding:32px 32px 8px;text-align:center;">
+          <h1 style="margin:0;font-size:24px;color:#1a1a1a;letter-spacing:0.5px;">Suzy Wood</h1>
+          <p style="margin:6px 0 0;color:#888;font-size:12px;font-family:Arial,sans-serif;letter-spacing:2px;text-transform:uppercase;">Handcrafted in Egypt</p>
+        </td></tr>
+        <tr><td style="padding:16px 32px 0;">
+          <h2 style="margin:16px 0 8px;font-size:20px;color:#1a1a1a;">Your custom ${escapeHtml(roomLabel.toLowerCase())} is complete 🪵</h2>
+          <p style="margin:0;color:#444;font-size:15px;line-height:1.6;font-family:Arial,sans-serif;">Hi ${escapeHtml(opts.customerName)},</p>
+          <p style="margin:12px 0 0;color:#444;font-size:15px;line-height:1.6;font-family:Arial,sans-serif;">
+            We're thrilled to share that your custom build is complete! Thank you for trusting Suzy Wood with something so personal. We hope your new piece brings you and your little one years of joy.
+          </p>
+          <p style="margin:12px 0 0;color:#444;font-size:15px;line-height:1.6;font-family:Arial,sans-serif;">
+            If you have a moment, we'd love to see a photo or hear what you think — your reviews keep our small team going. 💛
+          </p>
+        </td></tr>
+        <tr><td style="padding:24px 32px 8px;text-align:center;">
+          <a href="${waLink}" style="display:inline-block;background:#25D366;color:#fff;text-decoration:none;padding:14px 28px;border-radius:6px;font-family:Arial,sans-serif;font-size:15px;font-weight:600;">Share on WhatsApp</a>
+        </td></tr>
+        <tr><td style="padding:8px 32px 32px;">
+          <p style="margin:16px 0 0;color:#888;font-size:12px;font-family:Arial,sans-serif;">With love,<br/>The Suzy Wood team</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>`;
+}
+
 export const sendCustomBuildStatusEmail = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) =>
     z
       .object({
         requestId: z.string().uuid(),
-        kind: z.enum(["accepted", "rejected"]),
+        kind: z.enum(["accepted", "rejected", "completed"]),
       })
       .parse(data),
   )
@@ -147,14 +183,16 @@ export const sendCustomBuildStatusEmail = createServerFn({ method: "POST" })
 
     const { data: row, error } = await supabaseAdmin
       .from("custom_build_requests")
-      .select("id, full_name, email, room_type, description, inspiration_image_url, accepted_email_sent_at, rejected_email_sent_at")
+      .select("id, full_name, email, room_type, description, inspiration_image_url, accepted_email_sent_at, rejected_email_sent_at, completed_email_sent_at")
       .eq("id", data.requestId)
       .single();
 
     if (error || !row) return { ok: false, error: "Request not found" };
 
     const alreadySent =
-      data.kind === "accepted" ? row.accepted_email_sent_at : row.rejected_email_sent_at;
+      data.kind === "accepted" ? row.accepted_email_sent_at
+      : data.kind === "rejected" ? row.rejected_email_sent_at
+      : (row as { completed_email_sent_at: string | null }).completed_email_sent_at;
     if (alreadySent) return { ok: true, skipped: true };
 
     const html =
@@ -165,12 +203,16 @@ export const sendCustomBuildStatusEmail = createServerFn({ method: "POST" })
             description: row.description,
             inspirationUrl: row.inspiration_image_url,
           })
-        : renderRejected({ customerName: row.full_name, roomType: row.room_type });
+        : data.kind === "rejected"
+        ? renderRejected({ customerName: row.full_name, roomType: row.room_type })
+        : renderCompleted({ customerName: row.full_name, roomType: row.room_type });
 
     const subject =
       data.kind === "accepted"
         ? "Your Custom Build Request is Accepted! 🪵 - Suzy Wood"
-        : "An update on your custom build request — Suzy Wood";
+        : data.kind === "rejected"
+        ? "An update on your custom build request — Suzy Wood"
+        : "Your Custom Build is Complete 🪵 - Suzy Wood";
 
     const res = await fetch("https://connector-gateway.lovable.dev/resend/emails", {
       method: "POST",
@@ -197,7 +239,9 @@ export const sendCustomBuildStatusEmail = createServerFn({ method: "POST" })
     const update =
       data.kind === "accepted"
         ? { accepted_email_sent_at: nowIso }
-        : { rejected_email_sent_at: nowIso };
+        : data.kind === "rejected"
+        ? { rejected_email_sent_at: nowIso }
+        : { completed_email_sent_at: nowIso };
     await supabaseAdmin
       .from("custom_build_requests")
       .update(update)

@@ -1,0 +1,2 @@
+ALTER TABLE public.measurement_bookings ADD COLUMN IF NOT EXISTS installed_email_sent_at TIMESTAMPTZ;
+ALTER TABLE public.custom_build_requests ADD COLUMN IF NOT EXISTS completed_email_sent_at TIMESTAMPTZ;
