@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MessageCircle, Mail, Trash2, Copy, Check, X, Send } from "lucide-react";
 import { toast } from "sonner";
 import { sendCustomBuildStatusEmail } from "@/lib/custom-build-emails.functions";
+import { WhatsAppLink, firstName } from "@/lib/whatsapp";
 
 export const Route = createFileRoute("/admin/custom-builds")({
   head: () => ({ meta: [{ title: "Custom Builds — Suzy Wood Admin" }, { name: "robots", content: "noindex,nofollow" }] }),
@@ -148,6 +149,10 @@ function AdminCustomBuilds() {
                       <Mail className="h-3.5 w-3.5" /> {row.email}
                     </a>
                     <a href={`tel:${row.phone}`} className="hover:text-primary font-mono text-xs">{row.phone}</a>
+                    <WhatsAppLink
+                      phone={row.phone}
+                      message={`Hi ${firstName(row.full_name)}, this is Suzy Wood — about your custom build request for the ${row.room_type}.`}
+                    />
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">

@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { MessageCircle, Check, CheckCircle2, Send, BadgeCheck } from "lucide-react";
 import { toast } from "sonner";
 import { sendMeasurementBookingEmail } from "@/lib/measurement-booking-emails.functions";
+import { WhatsAppLink, firstName } from "@/lib/whatsapp";
 
 export const Route = createFileRoute("/admin/measurement-bookings")({
   head: () => ({ meta: [{ title: "Measurement Bookings — Suzy Wood Admin" }, { name: "robots", content: "noindex,nofollow" }] }),
@@ -205,7 +206,14 @@ function AdminMeasurementBookings() {
 
                 <div className="grid sm:grid-cols-2 gap-3 text-sm">
                   <div><span className="text-muted-foreground">Email:</span> {b.customer_email || <span className="text-rose-600">missing</span>}</div>
-                  <div><span className="text-muted-foreground">Phone:</span> <span className="font-mono">{b.phone}</span></div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-muted-foreground">Phone:</span>
+                    <span className="font-mono">{b.phone}</span>
+                    <WhatsAppLink
+                      phone={b.phone}
+                      message={`Hi ${firstName(b.full_name)}, this is Suzy Wood — about your measurement booking${b.product_name ? ` for the ${b.product_name}` : ""}.`}
+                    />
+                  </div>
                   <div><span className="text-muted-foreground">Area:</span> {b.area}</div>
                   <div><span className="text-muted-foreground">Preferred:</span> {DAY_LABELS[b.preferred_day] ?? b.preferred_day} · {SLOT_LABELS[b.time_slot] ?? b.time_slot}</div>
                   <div className="sm:col-span-2"><span className="text-muted-foreground">Address:</span> {b.address}</div>

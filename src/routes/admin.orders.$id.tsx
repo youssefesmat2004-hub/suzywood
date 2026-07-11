@@ -10,6 +10,7 @@ import { signManualAttachmentUrls } from "@/lib/manual-orders.functions";
 import { useIsAdmin } from "@/lib/admin";
 import { getAreaLabel } from "@/lib/delivery";
 import { ManualOrderModal, type ManualAttachment } from "@/components/admin/ManualOrderModal";
+import { WhatsAppLink, firstName } from "@/lib/whatsapp";
 
 type OrderItem = {
   id: string;
@@ -614,7 +615,13 @@ function OrderDetailPage() {
             <div className="text-sm space-y-1">
               <p className="font-medium">{order.customer_name}</p>
               <p><a href={`mailto:${order.customer_email}`} className="text-primary underline">{order.customer_email}</a></p>
-              <p><a href={`tel:${order.customer_phone}`} className="text-primary underline">{order.customer_phone}</a></p>
+              <p className="flex items-center gap-2">
+                <a href={`tel:${order.customer_phone}`} className="text-primary underline">{order.customer_phone}</a>
+                <WhatsAppLink
+                  phone={order.customer_phone}
+                  message={`Hi ${firstName(order.customer_name)}, this is Suzy Wood — regarding your order #${order.order_number}.`}
+                />
+              </p>
             </div>
           </section>
 

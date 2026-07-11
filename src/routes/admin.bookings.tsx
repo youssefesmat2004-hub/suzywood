@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MessageCircle } from "lucide-react";
 import { toast } from "sonner";
+import { WhatsAppLink, firstName } from "@/lib/whatsapp";
 
 export const Route = createFileRoute("/admin/bookings")({
   head: () => ({ meta: [{ title: "Bookings — Suzy Wood Admin" }, { name: "robots", content: "noindex,nofollow" }] }),
@@ -113,7 +114,16 @@ function AdminBookings() {
             ) : bookings.map((b) => (
               <TableRow key={b.id}>
                 <TableCell className="font-medium">{b.full_name}</TableCell>
-                <TableCell className="font-mono text-xs">{b.phone}</TableCell>
+                <TableCell className="font-mono text-xs">
+                  <div className="flex items-center gap-2">
+                    <span>{b.phone}</span>
+                    <WhatsAppLink
+                      phone={b.phone}
+                      message={`Hi ${firstName(b.full_name)}, this is Suzy Wood — about your free guidance session (${DAY_LABELS[b.preferred_day] ?? b.preferred_day}, ${SLOT_LABELS[b.time_slot] ?? b.time_slot}).`}
+                      label="Chat on WhatsApp"
+                    />
+                  </div>
+                </TableCell>
                 <TableCell className="capitalize">{b.contact_method === "whatsapp" ? "WhatsApp" : "Phone"}</TableCell>
                 <TableCell>{DAY_LABELS[b.preferred_day] ?? b.preferred_day}</TableCell>
                 <TableCell>{SLOT_LABELS[b.time_slot] ?? b.time_slot}</TableCell>
