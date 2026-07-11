@@ -10,6 +10,7 @@ import { signManualAttachmentUrls } from "@/lib/manual-orders.functions";
 import { useIsAdmin } from "@/lib/admin";
 import { getAreaLabel } from "@/lib/delivery";
 import { ManualOrderModal, type ManualAttachment } from "@/components/admin/ManualOrderModal";
+import { WhatsAppLink, firstName } from "@/lib/whatsapp";
 
 type OrderItem = {
   id: string;

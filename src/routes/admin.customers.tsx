@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Download, Search, MessageCircle, Mail } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { WhatsAppLink, firstName } from "@/lib/whatsapp";
 
 export const Route = createFileRoute("/admin/customers")({
   head: () => ({ meta: [{ title: "Customers — Suzy Wood Admin" }, { name: "robots", content: "noindex,nofollow" }] }),

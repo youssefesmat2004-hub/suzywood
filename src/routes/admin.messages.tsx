@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Mail, Phone, MessageCircle, Check, Trash2, MailOpen } from "lucide-react";
 import { toast } from "sonner";
+import { WhatsAppLink, firstName } from "@/lib/whatsapp";
 
 export const Route = createFileRoute("/admin/messages")({
   head: () => ({ meta: [{ title: "Messages — Suzy Wood Admin" }, { name: "robots", content: "noindex,nofollow" }] }),

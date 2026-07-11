@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MessageCircle, Mail, Trash2, Copy, Check, X, Send } from "lucide-react";
 import { toast } from "sonner";
 import { sendCustomBuildStatusEmail } from "@/lib/custom-build-emails.functions";
+import { WhatsAppLink, firstName } from "@/lib/whatsapp";
 
 export const Route = createFileRoute("/admin/custom-builds")({
   head: () => ({ meta: [{ title: "Custom Builds — Suzy Wood Admin" }, { name: "robots", content: "noindex,nofollow" }] }),
