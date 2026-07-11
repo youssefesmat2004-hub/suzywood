@@ -102,15 +102,11 @@ function AdminMessages() {
                 </div>
                 <div className="flex gap-2">
                   {m.phone && (
-                    <Button size="sm" variant="outline" asChild>
-                      <a
-                        href={`https://wa.me/${m.phone.replace(/[^0-9]/g, "").replace(/^0/, "2")}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <MessageCircle className="h-4 w-4" />
-                      </a>
-                    </Button>
+                    <WhatsAppLink
+                      phone={m.phone}
+                      message={`Hi ${firstName(m.full_name)}, this is Suzy Wood — regarding your message to us.`}
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
+                    />
                   )}
                   <Button size="sm" variant="outline" onClick={() => toggleRead(m)} title={m.is_read ? "Mark unread" : "Mark read"}>
                     {m.is_read ? <MailOpen className="h-4 w-4" /> : <Check className="h-4 w-4" />}

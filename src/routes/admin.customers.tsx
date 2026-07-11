@@ -157,15 +157,11 @@ function AdminCustomers() {
                 </TableCell>
                 <TableCell onClick={(e) => e.stopPropagation()}>
                   <div className="flex gap-1">
-                    <Button size="sm" variant="ghost" asChild>
-                      <a
-                        href={`https://wa.me/${c.phone.replace(/[^0-9]/g, "").replace(/^0/, "2")}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <MessageCircle className="h-4 w-4" />
-                      </a>
-                    </Button>
+                    <WhatsAppLink
+                      phone={c.phone}
+                      message={`Hi ${firstName(c.name)}, this is Suzy Wood — just checking in.`}
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-md text-emerald-700 hover:bg-emerald-50 transition-colors"
+                    />
                     <Button size="sm" variant="ghost" asChild>
                       <a href={`mailto:${c.email}`}>
                         <Mail className="h-4 w-4" />
