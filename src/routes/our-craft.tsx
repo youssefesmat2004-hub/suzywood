@@ -13,6 +13,23 @@ export const Route = createFileRoute("/our-craft")({
       { property: "og:url", content: "https://suzywoodofficial.com/our-craft" },
     ],
     links: [{ rel: "canonical", href: "https://suzywoodofficial.com/our-craft" }],
+    scripts: [{
+      type: "application/ld+json",
+      children: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "AboutPage",
+        name: "Our Craft — Suzy Wood",
+        headline: "Furniture worth keeping for the next child.",
+        description: "How Suzy Wood designs and builds heirloom-quality nursery furniture by hand in Cairo — solid wood joinery, non-toxic finishes, and pieces built to be inherited.",
+        url: "https://suzywoodofficial.com/our-craft",
+        image: "https://suzywoodofficial.com" + craft,
+        about: {
+          "@type": "Organization",
+          name: "Suzy Wood",
+          url: "https://suzywoodofficial.com",
+        },
+      }),
+    }],
   }),
   component: OurCraft,
 });
