@@ -8,9 +8,9 @@ export const Route = createFileRoute("/privacy")({
   head: () => ({
     meta: [
       { title: "Privacy Policy — Suzy Wood" },
-      { name: "description", content: "How Suzy Wood collects and uses your personal information." },
+      { name: "description", content: "Read the Suzy Wood privacy policy to learn what personal information we collect, how we use it, and the choices you have over your data." },
       { property: "og:title", content: "Privacy Policy — Suzy Wood" },
-      { property: "og:description", content: "How Suzy Wood handles your data." },
+      { property: "og:description", content: "Learn how Suzy Wood collects, uses, and safeguards your personal information when you shop our handcrafted nursery furniture." },
       { property: "og:url", content: "https://suzywoodofficial.com/privacy" },
     ],
     links: [{ rel: "canonical", href: "https://suzywoodofficial.com/privacy" }],
