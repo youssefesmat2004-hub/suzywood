@@ -33,6 +33,7 @@ export const Route = createFileRoute("/shop/category/$slug")({
     const raw = loaderData?.category.description?.trim();
     const desc = raw && raw.length >= 50 ? raw : fallback;
     const url = `https://suzywoodofficial.com/shop/category/${params.slug}`;
+    const products = loaderData?.products ?? [];
     return {
       meta: [
         { title },
@@ -43,6 +44,27 @@ export const Route = createFileRoute("/shop/category/$slug")({
         { property: "og:type", content: "website" },
       ],
       links: [{ rel: "canonical", href: url }],
+      scripts: [{
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          name: title,
+          description: desc,
+          url,
+          isPartOf: { "@type": "WebSite", name: "Suzy Wood", url: "https://suzywoodofficial.com" },
+          mainEntity: {
+            "@type": "ItemList",
+            numberOfItems: products.length,
+            itemListElement: products.slice(0, 30).map((p, i) => ({
+              "@type": "ListItem",
+              position: i + 1,
+              url: `https://suzywoodofficial.com/shop/${p.slug}`,
+              name: p.name,
+            })),
+          },
+        }),
+      }],
     };
   },
   component: CategoryPage,
