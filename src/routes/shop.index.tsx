@@ -55,6 +55,17 @@ export const Route = createFileRoute("/shop/")({
       { property: "og:url", content: "https://suzywoodofficial.com/shop" },
     ],
     links: [{ rel: "canonical", href: "https://suzywoodofficial.com/shop" }],
+    scripts: [{
+      type: "application/ld+json",
+      children: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        name: "Shop the Collection — Suzy Wood",
+        description: "Browse handcrafted, made-to-order nursery and toddler furniture from Suzy Wood.",
+        url: "https://suzywoodofficial.com/shop",
+        isPartOf: { "@type": "WebSite", name: "Suzy Wood", url: "https://suzywoodofficial.com" },
+      }),
+    }],
   }),
   loader: async () => {
     const [{ data: categories }, { data: products }] = await Promise.all([
