@@ -28,8 +28,6 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Suzy Wood — Premium Babies & Toddlers Furniture" },
-      { name: "description", content: "Handcrafted nursery and toddler furniture made to order in Cairo." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:site_name", content: "Suzy Wood" },
