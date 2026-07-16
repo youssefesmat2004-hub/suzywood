@@ -5,6 +5,7 @@ import { Layout } from "@/components/site/Layout";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { trackPurchase } from "@/lib/metaPixel";
 
 const searchSchema = z.object({
   order: z.string().optional(),
@@ -34,7 +35,11 @@ function ThankYou() {
       .select("upfront_amount, remaining_amount, total")
       .eq("order_number", order)
       .maybeSingle()
-      .then(({ data }) => data && setData(data as any));
+      .then(({ data }) => {
+        if (!data) return;
+        setData(data as any);
+        trackPurchase(Number((data as any).total) || 0, order);
+      });
   }, [order]);
 
   return (
