@@ -16,7 +16,7 @@ import { Reviews } from "@/components/site/Reviews";
 import { ProductCard } from "@/components/site/ProductCard";
 import { WishlistButton } from "@/components/site/WishlistButton";
 import { useCart } from "@/lib/cart";
-import { trackViewContent } from "@/lib/metaPixel";
+import { trackViewContent, trackAddToCart, trackLead } from "@/lib/metaPixel";
 import { Check, ShoppingBag, Minus, Plus, Ruler, CalendarCheck, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
@@ -307,6 +307,7 @@ function ProductPage() {
         categorySlug: category?.slug,
       });
       toast.success("Added to cart", { description: `${product.name} · ${customLabel} × ${qty}` });
+      trackAddToCart(product.name, unitPrice);
       return;
     }
     const sizeLabel = sizes.find((s) => s.value === size)?.label ?? "";
@@ -334,6 +335,7 @@ function ProductPage() {
       categorySlug: category?.slug,
     });
     toast.success("Added to cart", { description: `${product.name}${variantSuffix}${ottomanSuffix}${portableSuffix}${bedRailsSuffix}${mattressSuffix} × ${qty}`, action: { label: "View cart", onClick: () => navigate({ to: "/cart" }) } });
+    trackAddToCart(product.name, unitPrice);
   };
 
   return (
@@ -818,6 +820,7 @@ function MeasurementBookingDialog({
       const { notifyOwnerNewMeasurementBooking } = await import("@/lib/owner-notifications.functions");
       notifyOwnerNewMeasurementBooking({ data: { bookingId: inserted.id } }).catch(() => {});
     }
+    trackLead("measurement_booking", productName);
     setDone(true);
   };
 
