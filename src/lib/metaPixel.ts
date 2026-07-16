@@ -39,3 +39,22 @@ export function trackPurchase(orderValue: number, orderId: string) {
     order_id: orderId,
   });
 }
+
+export function trackLead(source: string, productName: string) {
+  track("Lead", {
+    content_name: productName,
+    lead_source: source,
+  });
+}
+
+export function trackAddToCart(productName: string, price: number) {
+  track("AddToCart", {
+    content_name: productName,
+    value: Number(price) || 0,
+    currency: "EGP",
+  });
+}
+
+export function trackContact() {
+  track("Contact", {});
+}
