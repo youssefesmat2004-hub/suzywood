@@ -1,5 +1,5 @@
 import { createFileRoute, Link, notFound, useNavigate, useRouter } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Layout } from "@/components/site/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,7 @@ import { Reviews } from "@/components/site/Reviews";
 import { ProductCard } from "@/components/site/ProductCard";
 import { WishlistButton } from "@/components/site/WishlistButton";
 import { useCart } from "@/lib/cart";
+import { trackViewContent } from "@/lib/metaPixel";
 import { Check, ShoppingBag, Minus, Plus, Ruler, CalendarCheck, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
@@ -216,6 +217,10 @@ function ProductPage() {
   const [withPortable, setWithPortable] = useState(false);
   const [withBedRails, setWithBedRails] = useState(false);
   const [withMattress, setWithMattress] = useState(false);
+
+  useEffect(() => {
+    trackViewContent(product.name, Number(product.starting_price) || 0);
+  }, [product.name, product.starting_price]);
 
   const selectedVariant = useMemo(
     () => (customMode ? null : variants.find((v) => v.id === variantId) ?? null),
