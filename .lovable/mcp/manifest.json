@@ -26,20 +26,21 @@
           "openWorldHint": false
         },
         "inputSchema": {
-          "$schema": "http://json-schema.org/draft-07/schema#",
           "type": "object",
           "properties": {
             "search": {
-              "description": "Optional name/slug substring filter",
-              "type": "string"
+              "type": "string",
+              "description": "Optional name/slug substring filter"
             },
             "limit": {
-              "description": "Max rows (default 20)",
               "type": "integer",
               "minimum": 1,
-              "maximum": 50
+              "maximum": 50,
+              "description": "Max rows (default 20)"
             }
-          }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
         },
         "outputSchema": null
       },
@@ -53,16 +54,17 @@
           "openWorldHint": false
         },
         "inputSchema": {
-          "$schema": "http://json-schema.org/draft-07/schema#",
           "type": "object",
           "properties": {
             "limit": {
-              "description": "Max rows (default 20)",
               "type": "integer",
               "minimum": 1,
-              "maximum": 50
+              "maximum": 50,
+              "description": "Max rows (default 20)"
             }
-          }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
         },
         "outputSchema": null
       },
@@ -76,7 +78,6 @@
           "openWorldHint": false
         },
         "inputSchema": {
-          "$schema": "http://json-schema.org/draft-07/schema#",
           "type": "object",
           "properties": {
             "order_number": {
@@ -87,7 +88,9 @@
           },
           "required": [
             "order_number"
-          ]
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
         },
         "outputSchema": null
       },
@@ -101,7 +104,6 @@
           "openWorldHint": false
         },
         "inputSchema": {
-          "$schema": "http://json-schema.org/draft-07/schema#",
           "type": "object",
           "properties": {
             "name": {
@@ -111,9 +113,8 @@
             },
             "email": {
               "type": "string",
-              "maxLength": 200,
               "format": "email",
-              "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+              "maxLength": 200
             },
             "message": {
               "type": "string",
@@ -129,7 +130,9 @@
             "name",
             "email",
             "message"
-          ]
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
         },
         "outputSchema": null
       }
