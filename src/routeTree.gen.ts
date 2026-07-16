@@ -18,6 +18,7 @@ import { Route as ShopRouteImport } from './routes/shop'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PaymentRouteImport } from './routes/payment'
 import { Route as OurCraftRouteImport } from './routes/our-craft'
+import { Route as McpRouteImport } from './routes/mcp'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as CustomBuildsRouteImport } from './routes/custom-builds'
 import { Route as ContactRouteImport } from './routes/contact'
@@ -50,12 +51,16 @@ import { Route as AdminCarpentersRouteImport } from './routes/admin.carpenters'
 import { Route as AdminCarpenterPaymentsRouteImport } from './routes/admin.carpenter-payments'
 import { Route as AdminBookingsRouteImport } from './routes/admin.bookings'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
+import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
+import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as AdminProductsIndexRouteImport } from './routes/admin.products.index'
 import { Route as AdminOrdersIndexRouteImport } from './routes/admin.orders.index'
 import { Route as ShopCategorySlugRouteImport } from './routes/shop.category.$slug'
 import { Route as AdminProductsNewRouteImport } from './routes/admin.products.new'
 import { Route as AdminProductsIdRouteImport } from './routes/admin.products.$id'
 import { Route as AdminOrdersIdRouteImport } from './routes/admin.orders.$id'
+import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
+import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 
 const WishlistRoute = WishlistRouteImport.update({
   id: '/wishlist',
@@ -100,6 +105,11 @@ const PaymentRoute = PaymentRouteImport.update({
 const OurCraftRoute = OurCraftRouteImport.update({
   id: '/our-craft',
   path: '/our-craft',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FaqRoute = FaqRouteImport.update({
@@ -263,6 +273,18 @@ const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
   path: '/analytics',
   getParentRoute: () => AdminRoute,
 } as any)
+const Char91DotwellKnownChar93OauthProtectedResourceRoute =
+  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
+    id: '/.well-known/oauth-protected-resource',
+    path: '/.well-known/oauth-protected-resource',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char91DotmcpChar93ListToolsRoute =
+  Char91DotmcpChar93ListToolsRouteImport.update({
+    id: '/.mcp/list-tools',
+    path: '/.mcp/list-tools',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AdminProductsIndexRoute = AdminProductsIndexRouteImport.update({
   id: '/products/',
   path: '/products/',
@@ -293,6 +315,17 @@ const AdminOrdersIdRoute = AdminOrdersIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AdminOrdersRoute,
 } as any)
+const Char91DotmcpChar93InvokeToolToolRoute =
+  Char91DotmcpChar93InvokeToolToolRouteImport.update({
+    id: '/.mcp/invoke-tool/$tool',
+    path: '/.mcp/invoke-tool/$tool',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
+  id: '/.lovable/oauth/consent',
+  path: '/.lovable/oauth/consent',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -308,6 +341,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/custom-builds': typeof CustomBuildsRoute
   '/faq': typeof FaqRoute
+  '/mcp': typeof McpRoute
   '/our-craft': typeof OurCraftRoute
   '/payment': typeof PaymentRoute
   '/privacy': typeof PrivacyRoute
@@ -317,6 +351,8 @@ export interface FileRoutesByFullPath {
   '/thank-you': typeof ThankYouRoute
   '/track-order': typeof TrackOrderRoute
   '/wishlist': typeof WishlistRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/bookings': typeof AdminBookingsRoute
   '/admin/carpenter-payments': typeof AdminCarpenterPaymentsRoute
@@ -336,6 +372,8 @@ export interface FileRoutesByFullPath {
   '/shop/$slug': typeof ShopSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/shop/': typeof ShopIndexRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/admin/orders/$id': typeof AdminOrdersIdRoute
   '/admin/products/$id': typeof AdminProductsIdRoute
   '/admin/products/new': typeof AdminProductsNewRoute
@@ -356,6 +394,7 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/custom-builds': typeof CustomBuildsRoute
   '/faq': typeof FaqRoute
+  '/mcp': typeof McpRoute
   '/our-craft': typeof OurCraftRoute
   '/payment': typeof PaymentRoute
   '/privacy': typeof PrivacyRoute
@@ -364,6 +403,8 @@ export interface FileRoutesByTo {
   '/thank-you': typeof ThankYouRoute
   '/track-order': typeof TrackOrderRoute
   '/wishlist': typeof WishlistRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/bookings': typeof AdminBookingsRoute
   '/admin/carpenter-payments': typeof AdminCarpenterPaymentsRoute
@@ -382,6 +423,8 @@ export interface FileRoutesByTo {
   '/shop/$slug': typeof ShopSlugRoute
   '/admin': typeof AdminIndexRoute
   '/shop': typeof ShopIndexRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/admin/orders/$id': typeof AdminOrdersIdRoute
   '/admin/products/$id': typeof AdminProductsIdRoute
   '/admin/products/new': typeof AdminProductsNewRoute
@@ -404,6 +447,7 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/custom-builds': typeof CustomBuildsRoute
   '/faq': typeof FaqRoute
+  '/mcp': typeof McpRoute
   '/our-craft': typeof OurCraftRoute
   '/payment': typeof PaymentRoute
   '/privacy': typeof PrivacyRoute
@@ -413,6 +457,8 @@ export interface FileRoutesById {
   '/thank-you': typeof ThankYouRoute
   '/track-order': typeof TrackOrderRoute
   '/wishlist': typeof WishlistRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/bookings': typeof AdminBookingsRoute
   '/admin/carpenter-payments': typeof AdminCarpenterPaymentsRoute
@@ -432,6 +478,8 @@ export interface FileRoutesById {
   '/shop/$slug': typeof ShopSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/shop/': typeof ShopIndexRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/admin/orders/$id': typeof AdminOrdersIdRoute
   '/admin/products/$id': typeof AdminProductsIdRoute
   '/admin/products/new': typeof AdminProductsNewRoute
@@ -455,6 +503,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/custom-builds'
     | '/faq'
+    | '/mcp'
     | '/our-craft'
     | '/payment'
     | '/privacy'
@@ -464,6 +513,8 @@ export interface FileRouteTypes {
     | '/thank-you'
     | '/track-order'
     | '/wishlist'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/admin/analytics'
     | '/admin/bookings'
     | '/admin/carpenter-payments'
@@ -483,6 +534,8 @@ export interface FileRouteTypes {
     | '/shop/$slug'
     | '/admin/'
     | '/shop/'
+    | '/.lovable/oauth/consent'
+    | '/.mcp/invoke-tool/$tool'
     | '/admin/orders/$id'
     | '/admin/products/$id'
     | '/admin/products/new'
@@ -503,6 +556,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/custom-builds'
     | '/faq'
+    | '/mcp'
     | '/our-craft'
     | '/payment'
     | '/privacy'
@@ -511,6 +565,8 @@ export interface FileRouteTypes {
     | '/thank-you'
     | '/track-order'
     | '/wishlist'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/admin/analytics'
     | '/admin/bookings'
     | '/admin/carpenter-payments'
@@ -529,6 +585,8 @@ export interface FileRouteTypes {
     | '/shop/$slug'
     | '/admin'
     | '/shop'
+    | '/.lovable/oauth/consent'
+    | '/.mcp/invoke-tool/$tool'
     | '/admin/orders/$id'
     | '/admin/products/$id'
     | '/admin/products/new'
@@ -550,6 +608,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/custom-builds'
     | '/faq'
+    | '/mcp'
     | '/our-craft'
     | '/payment'
     | '/privacy'
@@ -559,6 +618,8 @@ export interface FileRouteTypes {
     | '/thank-you'
     | '/track-order'
     | '/wishlist'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/admin/analytics'
     | '/admin/bookings'
     | '/admin/carpenter-payments'
@@ -578,6 +639,8 @@ export interface FileRouteTypes {
     | '/shop/$slug'
     | '/admin/'
     | '/shop/'
+    | '/.lovable/oauth/consent'
+    | '/.mcp/invoke-tool/$tool'
     | '/admin/orders/$id'
     | '/admin/products/$id'
     | '/admin/products/new'
@@ -600,6 +663,7 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   CustomBuildsRoute: typeof CustomBuildsRoute
   FaqRoute: typeof FaqRoute
+  McpRoute: typeof McpRoute
   OurCraftRoute: typeof OurCraftRoute
   PaymentRoute: typeof PaymentRoute
   PrivacyRoute: typeof PrivacyRoute
@@ -609,7 +673,11 @@ export interface RootRouteChildren {
   ThankYouRoute: typeof ThankYouRoute
   TrackOrderRoute: typeof TrackOrderRoute
   WishlistRoute: typeof WishlistRoute
+  Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
+  Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   RoomsSlugRoute: typeof RoomsSlugRoute
+  DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
+  Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -675,6 +743,13 @@ declare module '@tanstack/react-router' {
       path: '/our-craft'
       fullPath: '/our-craft'
       preLoaderRoute: typeof OurCraftRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/faq': {
@@ -901,6 +976,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAnalyticsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/.well-known/oauth-protected-resource': {
+      id: '/.well-known/oauth-protected-resource'
+      path: '/.well-known/oauth-protected-resource'
+      fullPath: '/.well-known/oauth-protected-resource'
+      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.mcp/list-tools': {
+      id: '/.mcp/list-tools'
+      path: '/.mcp/list-tools'
+      fullPath: '/.mcp/list-tools'
+      preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/products/': {
       id: '/admin/products/'
       path: '/products'
@@ -942,6 +1031,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/orders/$id'
       preLoaderRoute: typeof AdminOrdersIdRouteImport
       parentRoute: typeof AdminOrdersRoute
+    }
+    '/.mcp/invoke-tool/$tool': {
+      id: '/.mcp/invoke-tool/$tool'
+      path: '/.mcp/invoke-tool/$tool'
+      fullPath: '/.mcp/invoke-tool/$tool'
+      preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.lovable/oauth/consent': {
+      id: '/.lovable/oauth/consent'
+      path: '/.lovable/oauth/consent'
+      fullPath: '/.lovable/oauth/consent'
+      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -1034,6 +1137,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   CustomBuildsRoute: CustomBuildsRoute,
   FaqRoute: FaqRoute,
+  McpRoute: McpRoute,
   OurCraftRoute: OurCraftRoute,
   PaymentRoute: PaymentRoute,
   PrivacyRoute: PrivacyRoute,
@@ -1043,7 +1147,12 @@ const rootRouteChildren: RootRouteChildren = {
   ThankYouRoute: ThankYouRoute,
   TrackOrderRoute: TrackOrderRoute,
   WishlistRoute: WishlistRoute,
+  Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
+  Char91DotwellKnownChar93OauthProtectedResourceRoute:
+    Char91DotwellKnownChar93OauthProtectedResourceRoute,
   RoomsSlugRoute: RoomsSlugRoute,
+  DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
+  Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
