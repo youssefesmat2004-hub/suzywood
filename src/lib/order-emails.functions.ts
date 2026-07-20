@@ -195,6 +195,7 @@ function renderEmail(opts: {
         </td></tr>
         ${remainingNote}
         ${paymentBlock}
+        ${pendingPaymentBlock}
         ${descBlock}
         ${itemsSection}
         ${whatsappBlock}
