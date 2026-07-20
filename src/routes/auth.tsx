@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Layout } from "@/components/site/Layout";
 import { Button } from "@/components/ui/button";
@@ -9,9 +9,6 @@ import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/auth")({
-  validateSearch: (s: Record<string, unknown>) => ({
-    next: typeof s.next === "string" ? s.next : undefined,
-  }),
   head: () => ({
     meta: [
       { title: "Sign in or Create Account — Suzy Wood" },
@@ -29,9 +26,6 @@ export const Route = createFileRoute("/auth")({
 function Auth() {
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
-  const { next } = useSearch({ from: "/auth" });
-  // Only same-origin relative paths allowed.
-  const safeNext = next && next.startsWith("/") && !next.startsWith("//") ? next : null;
   const [loading, setLoading] = useState(false);
 
   const onSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -41,11 +35,7 @@ function Auth() {
     const { error } = await signIn(String(fd.get("email")), String(fd.get("password")));
     setLoading(false);
     if (error) toast.error(error);
-    else {
-      toast.success("Welcome back");
-      if (safeNext) window.location.href = safeNext;
-      else navigate({ to: "/account" });
-    }
+    else { toast.success("Welcome back"); navigate({ to: "/account" }); }
   };
 
   const onSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -60,11 +50,7 @@ function Auth() {
     );
     setLoading(false);
     if (error) toast.error(error);
-    else {
-      toast.success("Account created");
-      if (safeNext) window.location.href = safeNext;
-      else navigate({ to: "/account" });
-    }
+    else { toast.success("Account created"); navigate({ to: "/account" }); }
   };
 
   return (
