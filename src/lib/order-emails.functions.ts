@@ -33,7 +33,7 @@ const WHATSAPP_URL = "https://wa.me/201096313532";
 
 const STATUS_BODY: Record<string, string> = {
   pending_payment:
-    "Just a friendly reminder — we haven't received payment for your order yet. To secure your piece and start production, please complete the 75% deposit via InstaPay. If you need help or have any questions, we're always here on WhatsApp.",
+    "We haven't received your 75% deposit yet. Please complete the payment via InstaPay so we can start crafting your order. If you need help, we're always here on WhatsApp.",
   confirmed:
     "Thank you so much for your payment — we truly appreciate your trust in us. Your order is now being handcrafted by our team, and we'll keep you updated on the progress every step of the way.",
   in_production:
@@ -71,6 +71,7 @@ function renderEmail(opts: {
     `Your order status is now ${STATUS_LABELS[opts.status] ?? opts.status}`;
   const statusLabel = STATUS_LABELS[opts.status] ?? opts.status;
   const customBody = STATUS_BODY[opts.status] ?? null;
+  const isPendingPayment = opts.status === "pending_payment";
   const showWhatsApp = ["confirmed", "in_production", "shipped", "delivered"].includes(opts.status);
   const showPaymentBlock = opts.status !== "delivered" && opts.upfront != null && opts.remaining != null;
   const showItemsBlock = opts.status !== "delivered";
@@ -103,7 +104,7 @@ function renderEmail(opts: {
           <h3 style="margin:16px 0 4px;font-size:14px;color:#777;text-transform:uppercase;letter-spacing:1px;font-family:Arial,sans-serif;font-weight:600;">Payment summary</h3>
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-family:Arial,sans-serif;">
             <tr>
-              <td style="padding:8px 0;color:#222;font-size:14px;">Paid upfront (75%)</td>
+              <td style="padding:8px 0;color:#222;font-size:14px;">${isPendingPayment ? "Deposit due now (75%)" : "Paid upfront (75%)"}</td>
               <td style="padding:8px 0;color:#1a1a1a;font-size:14px;text-align:right;font-weight:600;">EGP ${Number(opts.upfront).toLocaleString()}</td>
             </tr>
             <tr>
@@ -111,6 +112,26 @@ function renderEmail(opts: {
               <td style="padding:8px 0;color:#1a1a1a;font-size:14px;text-align:right;border-bottom:1px solid #eee;">EGP ${Number(opts.remaining).toLocaleString()}</td>
             </tr>
           </table>
+        </td></tr>`
+    : "";
+
+  const pendingPaymentBlock = isPendingPayment && opts.isManualOrder
+    ? `
+        <tr><td style="padding:16px 32px 0;">
+          <p style="margin:0 0 12px;color:#1a1a1a;font-size:14px;line-height:1.6;font-family:Arial,sans-serif;background:#faf6ef;padding:14px 16px;border-radius:8px;">
+            <strong>Amount paid so far:</strong> EGP 0<br/>
+            <strong>Amount due now (75% deposit):</strong> EGP ${Number(opts.upfront).toLocaleString()}
+          </p>
+          <p style="margin:0 0 12px;color:#555;font-size:14px;line-height:1.6;font-family:Arial,sans-serif;">
+            Please complete your deposit through the InstaPay link below:
+          </p>
+          <p style="margin:0 0 12px;">
+            <a href="https://ipn.eg/S/suzzywael/instapay/38T4FY" style="display:inline-block;background:#1a1a1a;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:8px;font-family:Arial,sans-serif;font-size:14px;font-weight:600;">Pay Deposit via InstaPay</a>
+          </p>
+          <p style="margin:0;color:#777;font-size:13px;line-height:1.6;font-family:Arial,sans-serif;">
+            Click the link to send money to <strong>suzzywael@instapay</strong><br/>
+            Powered by InstaPay
+          </p>
         </td></tr>`
     : "";
 
@@ -174,6 +195,7 @@ function renderEmail(opts: {
         </td></tr>
         ${remainingNote}
         ${paymentBlock}
+        ${pendingPaymentBlock}
         ${descBlock}
         ${itemsSection}
         ${whatsappBlock}
