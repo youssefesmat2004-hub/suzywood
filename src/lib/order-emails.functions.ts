@@ -33,7 +33,7 @@ const WHATSAPP_URL = "https://wa.me/201096313532";
 
 const STATUS_BODY: Record<string, string> = {
   pending_payment:
-    "Just a friendly reminder — we haven't received payment for your order yet. To secure your piece and start production, please complete the 75% deposit via InstaPay. If you need help or have any questions, we're always here on WhatsApp.",
+    "We haven't received your 75% deposit yet. Please complete the payment via InstaPay so we can start crafting your order. If you need help, we're always here on WhatsApp.",
   confirmed:
     "Thank you so much for your payment — we truly appreciate your trust in us. Your order is now being handcrafted by our team, and we'll keep you updated on the progress every step of the way.",
   in_production:
