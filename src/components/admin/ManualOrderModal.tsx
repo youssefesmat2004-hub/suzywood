@@ -4,7 +4,6 @@ import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { createManualOrder, updateManualOrder, signManualAttachmentUrls } from "@/lib/manual-orders.functions";
-import { trackLead } from "@/lib/metaPixel";
 import { X, Paperclip, Loader2 } from "lucide-react";
 
 const WHATSAPP_ORDER_DEPOSIT_RATE = 0.75;
@@ -212,7 +211,6 @@ export function ManualOrderModal({
           },
         });
         toast.success(`Manual order ${res.order_number} created`);
-        trackLead("whatsapp_order", form.product_description.trim() || "Manual WhatsApp order");
         onCreated?.({ id: res.id, order_number: res.order_number });
       }
     } catch (err: any) {

@@ -1,5 +1,5 @@
 import { createFileRoute, Link, notFound, useNavigate, useRouter } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Layout } from "@/components/site/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +16,6 @@ import { Reviews } from "@/components/site/Reviews";
 import { ProductCard } from "@/components/site/ProductCard";
 import { WishlistButton } from "@/components/site/WishlistButton";
 import { useCart } from "@/lib/cart";
-import { trackViewContent, trackAddToCart, trackLead } from "@/lib/metaPixel";
 import { Check, ShoppingBag, Minus, Plus, Ruler, CalendarCheck, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
@@ -218,10 +217,6 @@ function ProductPage() {
   const [withBedRails, setWithBedRails] = useState(false);
   const [withMattress, setWithMattress] = useState(false);
 
-  useEffect(() => {
-    trackViewContent(product.name, Number(product.starting_price) || 0);
-  }, [product.name, product.starting_price]);
-
   const selectedVariant = useMemo(
     () => (customMode ? null : variants.find((v) => v.id === variantId) ?? null),
     [variants, variantId, customMode],
@@ -307,7 +302,6 @@ function ProductPage() {
         categorySlug: category?.slug,
       });
       toast.success("Added to cart", { description: `${product.name} · ${customLabel} × ${qty}` });
-      trackAddToCart(product.name, unitPrice);
       return;
     }
     const sizeLabel = sizes.find((s) => s.value === size)?.label ?? "";
@@ -335,7 +329,6 @@ function ProductPage() {
       categorySlug: category?.slug,
     });
     toast.success("Added to cart", { description: `${product.name}${variantSuffix}${ottomanSuffix}${portableSuffix}${bedRailsSuffix}${mattressSuffix} × ${qty}`, action: { label: "View cart", onClick: () => navigate({ to: "/cart" }) } });
-    trackAddToCart(product.name, unitPrice);
   };
 
   return (
@@ -820,7 +813,6 @@ function MeasurementBookingDialog({
       const { notifyOwnerNewMeasurementBooking } = await import("@/lib/owner-notifications.functions");
       notifyOwnerNewMeasurementBooking({ data: { bookingId: inserted.id } }).catch(() => {});
     }
-    trackLead("measurement_booking", productName);
     setDone(true);
   };
 

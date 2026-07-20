@@ -7,7 +7,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Phone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { trackContact } from "@/lib/metaPixel";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/contact")({
@@ -66,11 +65,7 @@ function Contact() {
     });
     setSubmitting(false);
     if (error) toast.error("Couldn't send", { description: error.message });
-    else {
-      toast.success("Message sent");
-      trackContact();
-      (e.target as HTMLFormElement).reset();
-    }
+    else { toast.success("Message sent"); (e.target as HTMLFormElement).reset(); }
   };
 
   return (
