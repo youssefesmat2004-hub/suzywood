@@ -15,6 +15,7 @@ import { Route as ThankYouRouteImport } from './routes/thank-you'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ShopRouteImport } from './routes/shop'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PaymentRouteImport } from './routes/payment'
 import { Route as OurCraftRouteImport } from './routes/our-craft'
@@ -85,6 +86,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const ShopRoute = ShopRouteImport.update({
   id: '/shop',
   path: '/shop',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -311,6 +317,7 @@ export interface FileRoutesByFullPath {
   '/our-craft': typeof OurCraftRoute
   '/payment': typeof PaymentRoute
   '/privacy': typeof PrivacyRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/shop': typeof ShopRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
@@ -359,6 +366,7 @@ export interface FileRoutesByTo {
   '/our-craft': typeof OurCraftRoute
   '/payment': typeof PaymentRoute
   '/privacy': typeof PrivacyRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/thank-you': typeof ThankYouRoute
@@ -407,6 +415,7 @@ export interface FileRoutesById {
   '/our-craft': typeof OurCraftRoute
   '/payment': typeof PaymentRoute
   '/privacy': typeof PrivacyRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/shop': typeof ShopRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
@@ -458,6 +467,7 @@ export interface FileRouteTypes {
     | '/our-craft'
     | '/payment'
     | '/privacy'
+    | '/reset-password'
     | '/shop'
     | '/sitemap.xml'
     | '/terms'
@@ -506,6 +516,7 @@ export interface FileRouteTypes {
     | '/our-craft'
     | '/payment'
     | '/privacy'
+    | '/reset-password'
     | '/sitemap.xml'
     | '/terms'
     | '/thank-you'
@@ -553,6 +564,7 @@ export interface FileRouteTypes {
     | '/our-craft'
     | '/payment'
     | '/privacy'
+    | '/reset-password'
     | '/shop'
     | '/sitemap.xml'
     | '/terms'
@@ -603,6 +615,7 @@ export interface RootRouteChildren {
   OurCraftRoute: typeof OurCraftRoute
   PaymentRoute: typeof PaymentRoute
   PrivacyRoute: typeof PrivacyRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   ShopRoute: typeof ShopRouteWithChildren
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
@@ -654,6 +667,13 @@ declare module '@tanstack/react-router' {
       path: '/shop'
       fullPath: '/shop'
       preLoaderRoute: typeof ShopRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -1037,6 +1057,7 @@ const rootRouteChildren: RootRouteChildren = {
   OurCraftRoute: OurCraftRoute,
   PaymentRoute: PaymentRoute,
   PrivacyRoute: PrivacyRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   ShopRoute: ShopRouteWithChildren,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,

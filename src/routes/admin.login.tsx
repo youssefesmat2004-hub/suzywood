@@ -23,6 +23,8 @@ function AdminLogin() {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [mode, setMode] = useState<"login" | "forgot">("login");
+  const [info, setInfo] = useState<string | null>(null);
 
   // If already signed in as admin, send straight to dashboard
   useEffect(() => {
@@ -40,6 +42,7 @@ function AdminLogin() {
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
+    setInfo(null);
     const fd = new FormData(e.currentTarget);
     const parsed = schema.safeParse({ email: fd.get("email"), password: fd.get("password") });
     if (!parsed.success) {
@@ -74,6 +77,25 @@ function AdminLogin() {
     navigate({ to: "/admin", replace: true });
   };
 
+  const onReset = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
+    setInfo(null);
+    const fd = new FormData(e.currentTarget);
+    const parsed = z.string().trim().email().max(255).safeParse(fd.get("email"));
+    if (!parsed.success) {
+      setError("Invalid email address");
+      return;
+    }
+    setLoading(true);
+    await supabase.auth.resetPasswordForEmail(parsed.data, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setLoading(false);
+    // Always show the same message so the form can't be used to probe accounts.
+    setInfo("If that email has an account, a reset link is on its way. Check your inbox and spam folder.");
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted/40 px-4">
       <div className="w-full max-w-md bg-background border rounded-2xl shadow-elegant p-8">
@@ -81,9 +103,14 @@ function AdminLogin() {
           <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
             <Lock className="h-5 w-5 text-primary" />
           </div>
-          <h1 className="font-serif text-2xl">Admin Login</h1>
-          <p className="text-sm text-muted-foreground mt-1">Suzy Wood Admin Panel</p>
+          <h1 className="font-serif text-2xl">{mode === "login" ? "Admin Login" : "Reset Password"}</h1>
+          <p className="text-sm text-muted-foreground mt-1 text-center">
+            {mode === "login"
+              ? "Suzy Wood Admin Panel"
+              : "Enter your admin email and we'll send a reset link."}
+          </p>
         </div>
+        {mode === "login" ? (
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="email">Email</Label>
@@ -98,10 +125,46 @@ function AdminLogin() {
               {error}
             </div>
           )}
+          {info && (
+            <div className="text-sm text-muted-foreground bg-muted border rounded-md px-3 py-2">{info}</div>
+          )}
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Signing in…" : "Login"}
           </Button>
+          <button
+            type="button"
+            className="w-full text-sm text-muted-foreground hover:text-foreground underline underline-offset-4"
+            onClick={() => { setMode("forgot"); setError(null); setInfo(null); }}
+          >
+            Forgot password?
+          </button>
         </form>
+        ) : (
+        <form onSubmit={onReset} className="space-y-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="reset-email">Email</Label>
+            <Input id="reset-email" name="email" type="email" autoComplete="email" required />
+          </div>
+          {error && (
+            <div className="text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md px-3 py-2">
+              {error}
+            </div>
+          )}
+          {info && (
+            <div className="text-sm text-muted-foreground bg-muted border rounded-md px-3 py-2">{info}</div>
+          )}
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? "Sending…" : "Send reset link"}
+          </Button>
+          <button
+            type="button"
+            className="w-full text-sm text-muted-foreground hover:text-foreground underline underline-offset-4"
+            onClick={() => { setMode("login"); setError(null); setInfo(null); }}
+          >
+            Back to login
+          </button>
+        </form>
+        )}
       </div>
     </div>
   );
