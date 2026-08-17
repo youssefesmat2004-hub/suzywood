@@ -372,7 +372,7 @@ export function ManualOrderModal({
             </div>
           </Field>
 
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="flex justify-end gap-2 pt-2 pb-2 sm:pb-0 shrink-0">
             <button type="button" onClick={onClose} className="text-sm rounded-md border px-4 py-2 hover:bg-muted">Cancel</button>
             <button
               type="submit"
