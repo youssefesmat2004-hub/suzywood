@@ -221,13 +221,13 @@ export function ManualOrderModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-background rounded-xl shadow-xl w-full max-w-lg my-8">
-        <div className="flex items-center justify-between px-6 py-4 border-b">
-          <h2 className="font-serif text-xl">{isEdit ? "Edit WhatsApp Order" : "Add WhatsApp Order"}</h2>
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-start sm:items-center justify-center p-2 sm:p-4 overflow-y-auto">
+      <div className="bg-background rounded-xl shadow-xl w-full max-w-lg max-h-[calc(100vh-1rem)] sm:max-h-[90vh] my-2 sm:my-8 flex flex-col">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b shrink-0">
+          <h2 className="font-serif text-lg sm:text-xl">{isEdit ? "Edit WhatsApp Order" : "Add WhatsApp Order"}</h2>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground text-sm">Cancel</button>
         </div>
-        <form onSubmit={submit} className="px-6 py-5 space-y-4 text-sm">
+        <form onSubmit={submit} className="px-4 sm:px-6 py-4 sm:py-5 space-y-4 text-sm overflow-y-auto">
           <Field label="Customer name" required>
             <Input required disabled={isEdit} value={form.customer_name} onChange={(e) => setForm({ ...form, customer_name: e.target.value })} />
           </Field>
