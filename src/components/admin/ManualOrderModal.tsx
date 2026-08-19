@@ -7,7 +7,6 @@ import { createManualOrder, updateManualOrder, signManualAttachmentUrls } from "
 import { X, Paperclip, Loader2 } from "lucide-react";
 
 const WHATSAPP_ORDER_DEPOSIT_RATE = 0.75;
-const WHATSAPP_ORDER_REMAINING_RATE = 1 - WHATSAPP_ORDER_DEPOSIT_RATE;
 
 export const DELIVERY_AREAS: { value: string; label: string }[] = [
   { value: "maadi", label: "Maadi" },
