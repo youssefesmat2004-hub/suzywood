@@ -675,6 +675,10 @@ function CarpenterCostCard({
     (sum, it) => sum + Number(it.carpenter_cost ?? 0) * Number(it.quantity ?? 1),
     0,
   );
+  const engravingExtraTotal = order.order_items.reduce(
+    (sum, it) => sum + Number(it.engraving_carpenter_cost ?? 0) * Number(it.quantity ?? 1),
+    0,
+  );
   const effectiveCost = Number(
     order.carpenter_cost_override ?? order.actual_carpenter_cost ?? autoCalc ?? 0,
   );
@@ -728,6 +732,9 @@ function CarpenterCostCard({
       <div className="text-sm space-y-1.5">
         <div className="flex justify-between"><span className="text-muted-foreground">Selling price</span><span className="font-medium">EGP {sellingPrice.toLocaleString()}</span></div>
         <div className="flex justify-between"><span className="text-muted-foreground">Auto carpenter cost</span><span>EGP {autoCalc.toLocaleString()}</span></div>
+        {engravingExtraTotal > 0 && (
+          <div className="flex justify-between text-xs"><span className="text-muted-foreground">↳ incl. name engraving extra</span><span>EGP {engravingExtraTotal.toLocaleString()}</span></div>
+        )}
         <div className="flex justify-between text-amber-800"><span>Effective carpenter cost</span><span className="font-semibold">EGP {effectiveCost.toLocaleString()}</span></div>
         <div className="border-t pt-2 mt-2 flex justify-between text-emerald-700">
           <span className="font-medium">Real profit</span>
