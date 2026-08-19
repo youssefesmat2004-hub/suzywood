@@ -24,6 +24,8 @@ type OrderItem = {
   bed_rails?: boolean | null;
   bed_rails_price?: number | null;
   carpenter_cost?: number | null;
+  engraving?: string | null;
+  engraving_carpenter_cost?: number | null;
 };
 
 type Order = {
@@ -168,7 +170,7 @@ function OrderDetailPage() {
       }
       const { data: itemRows, error: itemsErr } = await supabase
         .from("order_items")
-        .select("id, product_id, product_name, quantity, unit_price, size, finish, bed_rails, bed_rails_price")
+        .select("id, product_id, product_name, quantity, unit_price, size, finish, engraving, bed_rails, bed_rails_price")
         .eq("order_id", id);
       if (itemsErr) {
         toast.error(`Couldn't load order items: ${itemsErr.message}`);
@@ -179,9 +181,22 @@ function OrderDetailPage() {
       if (productIds.length) {
         const { data: prods } = await supabase
           .from("products")
-          .select("id, image_url, carpenter_cost")
+          .select("id, image_url, carpenter_cost, category_id")
           .in("id", productIds);
         const map = new Map((prods ?? []).map((p: any) => [p.id, p]));
+        const categoryIds = Array.from(
+          new Set((prods ?? []).map((p: any) => p.category_id).filter(Boolean)),
+        ) as string[];
+        const engravingCostByCat = new Map<string, number>();
+        if (categoryIds.length) {
+          const { data: cats } = await supabase
+            .from("categories")
+            .select("id, name_engraving_carpenter_cost")
+            .in("id", categoryIds);
+          (cats ?? []).forEach((c: any) =>
+            engravingCostByCat.set(c.id, Number(c.name_engraving_carpenter_cost ?? 0)),
+          );
+        }
         const { data: variants } = await supabase
           .from("product_variants")
           .select("product_id, name, carpenter_cost")
@@ -197,7 +212,11 @@ function OrderDetailPage() {
             const key = `${i.product_id}|${(i.size ?? "").toLowerCase()}`;
             const vc = vmap.get(key);
             const baseC = Number(p?.carpenter_cost ?? 0);
-            i.carpenter_cost = (vc && vc > 0) ? vc : baseC;
+            const engravingExtra = (i.engraving ?? "").trim()
+              ? Number(engravingCostByCat.get(p?.category_id) ?? 0)
+              : 0;
+            i.engraving_carpenter_cost = engravingExtra;
+            i.carpenter_cost = ((vc && vc > 0) ? vc : baseC) + engravingExtra;
           }
         });
       }
