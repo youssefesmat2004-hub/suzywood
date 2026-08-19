@@ -117,10 +117,13 @@ export function ManualOrderModal({
   const recalc = (productPriceStr: string, deliveryCostStr: string) => {
     const p = Number(productPriceStr);
     const d = Number(deliveryCostStr);
-    const t = (Number.isFinite(p) ? p : 0) + (Number.isFinite(d) ? d : 0);
+    const prod = Number.isFinite(p) ? p : 0;
+    const del = Number.isFinite(d) ? d : 0;
+    const t = prod + del;
     if (t > 0) {
-      const up = Math.round(t * WHATSAPP_ORDER_DEPOSIT_RATE);
-      const rem = Math.round(t * WHATSAPP_ORDER_REMAINING_RATE);
+      // Deposit is 75% of the product price only — delivery is paid on delivery.
+      const up = Math.round(prod * WHATSAPP_ORDER_DEPOSIT_RATE);
+      const rem = Math.max(0, t - up);
       setForm((f) => ({ ...f, product_price: productPriceStr, delivery_cost: deliveryCostStr, upfront: String(up), remaining: String(rem) }));
     } else {
       setForm((f) => ({ ...f, product_price: productPriceStr, delivery_cost: deliveryCostStr }));
@@ -279,10 +282,10 @@ export function ManualOrderModal({
             </Field>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Deposit Amount (75%)">
+            <Field label="Deposit (75% of product price)">
               <Input type="number" min={0} value={form.upfront} onChange={(e) => setForm({ ...form, upfront: e.target.value })} />
             </Field>
-            <Field label="Remaining Amount (25%)">
+            <Field label="Remaining on Delivery (25% + delivery)">
               <Input type="number" min={0} value={form.remaining} onChange={(e) => setForm({ ...form, remaining: e.target.value })} />
             </Field>
           </div>
@@ -291,6 +294,8 @@ export function ManualOrderModal({
               <div className="flex justify-between"><span className="text-muted-foreground">Product</span><span>EGP {(Number(form.product_price) || 0).toLocaleString()}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Delivery</span><span>EGP {(Number(form.delivery_cost) || 0).toLocaleString()}</span></div>
               <div className="border-t pt-1 mt-1 flex justify-between font-semibold"><span>Total</span><span>EGP {total.toLocaleString()}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Deposit due now (75% of product)</span><span>EGP {(Number(form.upfront) || 0).toLocaleString()}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Remaining on delivery (25% + delivery)</span><span>EGP {(Number(form.remaining) || 0).toLocaleString()}</span></div>
               <div className="flex justify-between text-amber-700"><span>Carpenter cost</span><span>EGP {carpenterCostNum.toLocaleString()}</span></div>
               <div className="flex justify-between font-semibold text-emerald-700"><span>Real profit</span><span>EGP {realProfit.toLocaleString()}</span></div>
             </div>
