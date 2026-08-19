@@ -77,6 +77,7 @@ export type Database = {
           mattress_big_price: number
           mattress_small_price: number
           name: string
+          name_engraving_carpenter_cost: number
           name_engraving_enabled: boolean
           name_engraving_note: string | null
           name_engraving_surcharge: number
@@ -103,6 +104,7 @@ export type Database = {
           mattress_big_price?: number
           mattress_small_price?: number
           name: string
+          name_engraving_carpenter_cost?: number
           name_engraving_enabled?: boolean
           name_engraving_note?: string | null
           name_engraving_surcharge?: number
@@ -129,6 +131,7 @@ export type Database = {
           mattress_big_price?: number
           mattress_small_price?: number
           name?: string
+          name_engraving_carpenter_cost?: number
           name_engraving_enabled?: boolean
           name_engraving_note?: string | null
           name_engraving_surcharge?: number
