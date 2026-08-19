@@ -33,6 +33,7 @@ type CategoryRow = {
   name_engraving_enabled: boolean;
   name_engraving_surcharge: number;
   name_engraving_note: string | null;
+  name_engraving_carpenter_cost?: number;
   finish_label: string | null;
   ottoman_addon_enabled: boolean;
   ottoman_addon_price: number;
@@ -126,6 +127,7 @@ function CategoriesPage() {
       name_engraving_enabled: false,
       name_engraving_surcharge: 0,
       name_engraving_note: null,
+      name_engraving_carpenter_cost: 0,
       finish_label: null,
       ottoman_addon_enabled: false,
       ottoman_addon_price: 0,
@@ -297,6 +299,7 @@ function CategoryDialog({
       name_engraving_enabled: value.name_engraving_enabled,
       name_engraving_surcharge: Number(value.name_engraving_surcharge) || 0,
       name_engraving_note: value.name_engraving_note || null,
+      name_engraving_carpenter_cost: Number(value.name_engraving_carpenter_cost) || 0,
       finish_label: value.finish_label?.trim() || null,
       ottoman_addon_enabled: value.ottoman_addon_enabled,
       ottoman_addon_price: Number(value.ottoman_addon_price) || 0,
@@ -604,6 +607,18 @@ function CategoryDialog({
                 placeholder="e.g. 250"
               />
               <p className="text-xs text-muted-foreground">Added on top of the product's price when a name is entered.</p>
+            </div>
+            <div className="space-y-1.5 rounded-lg border border-amber-300 bg-amber-50/50 p-3">
+              <Label>Extra carpenter cost for name engraving (EGP) — admin only</Label>
+              <Input
+                type="number"
+                min={0}
+                step="0.01"
+                value={value.name_engraving_carpenter_cost ?? 0}
+                onChange={(e) => onChange({ ...value, name_engraving_carpenter_cost: Number(e.target.value) })}
+                placeholder="e.g. 300"
+              />
+              <p className="text-xs text-amber-800/80">What you pay the carpenter extra when a name is added (e.g. tents &amp; swings). Never shown to customers.</p>
             </div>
             <div className="space-y-1.5">
               <Label>Note shown to customers</Label>

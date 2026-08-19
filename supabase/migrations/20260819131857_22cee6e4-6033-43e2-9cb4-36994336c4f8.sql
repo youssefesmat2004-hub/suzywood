@@ -1,0 +1,1 @@
+ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS name_engraving_carpenter_cost NUMERIC NOT NULL DEFAULT 0;

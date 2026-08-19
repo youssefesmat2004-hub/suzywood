@@ -24,6 +24,8 @@ type OrderItem = {
   bed_rails?: boolean | null;
   bed_rails_price?: number | null;
   carpenter_cost?: number | null;
+  engraving?: string | null;
+  engraving_carpenter_cost?: number | null;
 };
 
 type Order = {
@@ -168,7 +170,7 @@ function OrderDetailPage() {
       }
       const { data: itemRows, error: itemsErr } = await supabase
         .from("order_items")
-        .select("id, product_id, product_name, quantity, unit_price, size, finish, bed_rails, bed_rails_price")
+        .select("id, product_id, product_name, quantity, unit_price, size, finish, engraving, bed_rails, bed_rails_price")
         .eq("order_id", id);
       if (itemsErr) {
         toast.error(`Couldn't load order items: ${itemsErr.message}`);
@@ -179,9 +181,22 @@ function OrderDetailPage() {
       if (productIds.length) {
         const { data: prods } = await supabase
           .from("products")
-          .select("id, image_url, carpenter_cost")
+          .select("id, image_url, carpenter_cost, category_id")
           .in("id", productIds);
         const map = new Map((prods ?? []).map((p: any) => [p.id, p]));
+        const categoryIds = Array.from(
+          new Set((prods ?? []).map((p: any) => p.category_id).filter(Boolean)),
+        ) as string[];
+        const engravingCostByCat = new Map<string, number>();
+        if (categoryIds.length) {
+          const { data: cats } = await supabase
+            .from("categories")
+            .select("id, name_engraving_carpenter_cost")
+            .in("id", categoryIds);
+          (cats ?? []).forEach((c: any) =>
+            engravingCostByCat.set(c.id, Number(c.name_engraving_carpenter_cost ?? 0)),
+          );
+        }
         const { data: variants } = await supabase
           .from("product_variants")
           .select("product_id, name, carpenter_cost")
@@ -197,7 +212,11 @@ function OrderDetailPage() {
             const key = `${i.product_id}|${(i.size ?? "").toLowerCase()}`;
             const vc = vmap.get(key);
             const baseC = Number(p?.carpenter_cost ?? 0);
-            i.carpenter_cost = (vc && vc > 0) ? vc : baseC;
+            const engravingExtra = (i.engraving ?? "").trim()
+              ? Number(engravingCostByCat.get(p?.category_id) ?? 0)
+              : 0;
+            i.engraving_carpenter_cost = engravingExtra;
+            i.carpenter_cost = ((vc && vc > 0) ? vc : baseC) + engravingExtra;
           }
         });
       }
@@ -656,6 +675,10 @@ function CarpenterCostCard({
     (sum, it) => sum + Number(it.carpenter_cost ?? 0) * Number(it.quantity ?? 1),
     0,
   );
+  const engravingExtraTotal = order.order_items.reduce(
+    (sum, it) => sum + Number(it.engraving_carpenter_cost ?? 0) * Number(it.quantity ?? 1),
+    0,
+  );
   const effectiveCost = Number(
     order.carpenter_cost_override ?? order.actual_carpenter_cost ?? autoCalc ?? 0,
   );
@@ -709,6 +732,9 @@ function CarpenterCostCard({
       <div className="text-sm space-y-1.5">
         <div className="flex justify-between"><span className="text-muted-foreground">Selling price</span><span className="font-medium">EGP {sellingPrice.toLocaleString()}</span></div>
         <div className="flex justify-between"><span className="text-muted-foreground">Auto carpenter cost</span><span>EGP {autoCalc.toLocaleString()}</span></div>
+        {engravingExtraTotal > 0 && (
+          <div className="flex justify-between text-xs"><span className="text-muted-foreground">↳ incl. name engraving extra</span><span>EGP {engravingExtraTotal.toLocaleString()}</span></div>
+        )}
         <div className="flex justify-between text-amber-800"><span>Effective carpenter cost</span><span className="font-semibold">EGP {effectiveCost.toLocaleString()}</span></div>
         <div className="border-t pt-2 mt-2 flex justify-between text-emerald-700">
           <span className="font-medium">Real profit</span>
