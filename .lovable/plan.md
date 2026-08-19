@@ -1,23 +1,24 @@
-## Goal
-Ensure every product and every variant (size/color) has at least 10 units in stock.
+# Deposit excludes delivery cost
 
-## Current state (verified)
-- `products.stock_quantity < 10`: **0 rows**
-- `product_variants.stock_quantity < 10`: **3 rows**
+Delivery should not be part of the 75% deposit. It moves entirely into the amount paid on delivery.
 
-Products are already fine. Only 3 variant rows need bumping.
+## New math (WhatsApp / manual orders)
 
-## Change
-Run one data update via the insert tool:
-
-```sql
-UPDATE public.product_variants SET stock_quantity = 10 WHERE stock_quantity < 10;
-UPDATE public.products         SET stock_quantity = 10 WHERE stock_quantity < 10;
+```text
+Total      = Product price + Delivery cost
+Deposit    = 75% of Product price only
+Remaining  = 25% of Product price + Delivery cost
 ```
 
-The second statement is a safety net in case any product drops below 10 between now and execution.
+## What changes
 
-## Notes
-- This only raises stock where it's below 10; anything already ≥ 10 is untouched.
-- No schema changes, no code changes.
-- If you'd rather set a different floor (e.g. 20), say the number and I'll adjust.
+- Add WhatsApp Order modal: the auto-calculated Deposit and Remaining fields follow the formula above, so typing a delivery cost only raises the remaining amount, never the deposit.
+- Summary box in the modal: show the split clearly — Product, Delivery, Total, then "Deposit due now (75% of product)" and "Remaining on delivery (25% + delivery)".
+- Field labels updated to "Deposit (75% of product price)" and "Remaining on Delivery (25% + delivery)".
+
+Website checkout already calculates the deposit from the product subtotal only and adds delivery to the remaining amount, so no change is needed there.
+
+## Technical notes
+
+- `src/components/admin/ManualOrderModal.tsx`: `recalc()` computes `upfront = round(product * 0.75)` and `remaining = total - upfront`; update labels and summary rows.
+- Values are still saved as `upfront_amount` / `remaining_amount`, so order emails, order details, and carpenter/profit views pick up the new split automatically. No database or server-function changes.
