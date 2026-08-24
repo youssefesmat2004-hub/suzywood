@@ -88,6 +88,7 @@ function CategoryPage() {
         {category.description && <p className="mt-4 max-w-2xl text-muted-foreground">{category.description}</p>}
       </section>
       <section className="container mx-auto px-6 lg:px-10 pb-24">
+        <h2 className="sr-only">{category.name} collection</h2>
         {products.length === 0 ? (
           <p className="text-muted-foreground">New pieces in this category coming soon.</p>
         ) : (

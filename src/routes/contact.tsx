@@ -74,6 +74,8 @@ function Contact() {
         <p className="text-[11px] uppercase tracking-[0.28em] text-secondary mb-3">Get in touch</p>
         <h1 className="font-serif text-5xl md:text-6xl">We'd love to hear about your space.</h1>
 
+        <h2 className="sr-only">Our Contact Details</h2>
+
         <div className="mt-16 grid lg:grid-cols-3 gap-10">
           <div className="space-y-6">
             {[

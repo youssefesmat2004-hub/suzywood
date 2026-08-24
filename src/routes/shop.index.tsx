@@ -115,8 +115,10 @@ function Shop() {
     <Layout>
       <section className="container mx-auto px-6 lg:px-10 pt-16 pb-8">
         <p className="text-[11px] uppercase tracking-[0.28em] text-secondary mb-3">The Collection</p>
-        <h1 className="font-serif text-5xl md:text-6xl max-w-3xl">Every piece, made to order.</h1>
+        <h1 className="font-serif text-5xl md:text-6xl max-w-3xl">Shop Handcrafted Nursery & Toddler Furniture</h1>
         <p className="mt-5 max-w-xl text-muted-foreground">Choose your size, finish and personalisation. Each piece ships in 1–4 weeks, made to order.</p>
+
+        <h2 className="sr-only">Browse our product collection</h2>
 
         <div className="mt-10 flex flex-wrap gap-2">
           <button
