@@ -54,7 +54,7 @@ export function Hero({ title, subtitle }: HeroProps) {
               <span className="h-1.5 w-1.5 rounded-full bg-secondary animate-pulse" /> Est. 2018 · Cairo
             </span>
             <h1 className="font-serif text-5xl md:text-7xl lg:text-[5.5rem] leading-[1.02] text-balance text-wood-deep">
-              {title ?? "Premium Baby & Toddlers Furniture"}
+              {title ?? "Handcrafted Nursery Furniture in Cairo, Egypt"}
               <br />
               <span className="text-wood-deep">For Your Little One</span>
             </h1>

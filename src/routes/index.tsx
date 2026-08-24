@@ -23,10 +23,10 @@ import { useState } from "react";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Suzy Wood — Handcrafted Kids Interiors" },
-      { name: "description", content: "Crafting safe, beautiful spaces for your little ones. Solid wood, non-toxic, made to order in Cairo." },
-      { property: "og:title", content: "Suzy Wood — Handcrafted Kids Interiors" },
-      { property: "og:description", content: "Heirloom-quality nursery furniture, made to order." },
+      { title: "Suzy Wood — Handcrafted Nursery Furniture in Cairo, Egypt" },
+      { name: "description", content: "Handcrafted nursery and kids furniture in Cairo, Egypt. Solid wood, non-toxic finishes, made to order and delivered across Egypt." },
+      { property: "og:title", content: "Suzy Wood — Handcrafted Nursery Furniture in Cairo, Egypt" },
+      { property: "og:description", content: "Heirloom-quality nursery furniture, handcrafted in Cairo and made to order for families across Egypt." },
       { property: "og:url", content: "https://suzywoodofficial.com/" },
     ],
     links: [
@@ -87,7 +87,7 @@ function Index() {
   const cart = useCart();
   const [wished, setWished] = useState<Set<string>>(new Set());
   const heroTitle = content.hero_title;
-  const heroSubtitle = content.hero_subtitle || "Handmade wooden baby furniture, built to last a lifetime.";
+  const heroSubtitle = content.hero_subtitle || "Handmade wooden baby furniture, built to last a lifetime — delivered across Egypt.";
 
   const quickAdd = (e: React.MouseEvent, p: Product) => {
     const sizes = asOptions(p.sizes);
