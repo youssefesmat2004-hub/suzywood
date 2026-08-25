@@ -6,7 +6,7 @@ import { resolveImage } from "@/lib/images";
 import { useCart } from "@/lib/cart";
 import { toast } from "sonner";
 
-export function ProductCard({ product }: { product: Product }) {
+export function ProductCard({ product, badge }: { product: Product; badge?: React.ReactNode }) {
   const cart = useCart();
   const sizes = asOptions(product.sizes);
   const finishes = asOptions(product.finishes);
