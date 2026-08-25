@@ -108,7 +108,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  const { featured, bundle } = Route.useLoaderData() as { featured: Product[]; bundle: Product | null };
+  const { featured, bundle, tent, swing } = Route.useLoaderData() as { featured: Product[]; bundle: Product | null; tent: Product | null; swing: Product | null };
   const content = useSiteContent();
   const cart = useCart();
   const [wished, setWished] = useState<Set<string>>(new Set());
