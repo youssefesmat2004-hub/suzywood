@@ -48,9 +48,9 @@ export function Reviews({ productId }: { productId: string }) {
     );
     setSubmitting(false);
     if (error) {
-      toast.error(t("shop.couldNotSaveReview", "Couldn't save your review"), { description: error.message });
+      toast.error(t("components.rvSaveFailed", "Couldn't save your review"), { description: error.message });
     } else {
-      toast.success(t("shop.thankYouForReview", "Thank you for your review"));
+      toast.success(t("components.rvThankYou", "Thank you for your review"));
       setTitle(""); setBody(""); setRating(5);
       load();
     }
@@ -62,42 +62,42 @@ export function Reviews({ productId }: { productId: string }) {
         <StarRating value={avg} size="md" />
         <span className="text-sm text-muted-foreground">
           {reviews.length === 0
-            ? t("shop.noReviewsYet", "No reviews yet")
-            : `${avg.toFixed(1)} · ${reviews.length} ${reviews.length === 1 ? t("shop.reviewSingular", "review") : t("shop.reviewPlural", "reviews")}`}
+            ? t("components.rvNoReviews", "No reviews yet")
+            : `${avg.toFixed(1)} · ${reviews.length} ${reviews.length === 1 ? t("components.rvReviewSingular", "review") : t("components.rvReviewPlural", "reviews")}`}
         </span>
       </div>
 
       {user ? (
         <form onSubmit={submit} className="space-y-4 bg-muted/40 border border-border rounded-2xl p-6">
-          <p className="font-serif text-xl">{myReview ? t("shop.updateYourReview", "Update your review") : t("shop.writeAReview", "Write a review")}</p>
+          <p className="font-serif text-xl">{myReview ? t("components.rvUpdateReview", "Update your review") : t("components.rvWriteReview", "Write a review")}</p>
           <div className="flex items-center gap-2">
             {[1, 2, 3, 4, 5].map((i) => (
-              <button type="button" key={i} onClick={() => setRating(i)} aria-label={t("shop.starsAria", "{n} stars").replace("{n}", String(i))}>
+              <button type="button" key={i} onClick={() => setRating(i)} aria-label={`${i} ${t("components.rvStarsAriaSuffix", "stars")}`}>
                 <span className={`text-2xl ${i <= rating ? "text-secondary" : "text-muted-foreground"}`}>★</span>
               </button>
             ))}
           </div>
           <div className="space-y-1">
-            <Label htmlFor="title">{t("shop.reviewTitleLabel", "Title")}</Label>
+            <Label htmlFor="title">{t("components.rvTitleLabel", "Title")}</Label>
             <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={120} required />
           </div>
           <div className="space-y-1">
-            <Label htmlFor="body">{t("shop.yourExperienceLabel", "Your experience")}</Label>
+            <Label htmlFor="body">{t("components.rvExperienceLabel", "Your experience")}</Label>
             <Textarea id="body" value={body} onChange={(e) => setBody(e.target.value)} maxLength={1000} rows={4} required />
           </div>
-          <Button type="submit" disabled={submitting}>{submitting ? t("shop.savingEllipsis", "Saving…") : t("shop.submitReview", "Submit review")}</Button>
+          <Button type="submit" disabled={submitting}>{submitting ? t("components.rvSaving", "Saving…") : t("components.rvSubmitReview", "Submit review")}</Button>
         </form>
       ) : (
         <div className="bg-muted/40 border border-border rounded-2xl p-6 text-sm text-muted-foreground">
-          <Link to="/auth" className="text-primary border-b border-primary">{t("shop.signInLink", "Sign in")}</Link> {t("shop.toWriteAReview", "to write a review.")}
+          <Link to="/auth" className="text-primary border-b border-primary">{t("components.rvSignIn", "Sign in")}</Link> {t("components.rvSignInToReview", "to write a review.")}
         </div>
       )}
 
       <div className="space-y-6">
         {loading ? (
-          <p className="text-sm text-muted-foreground">{t("shop.loadingReviews", "Loading reviews…")}</p>
+          <p className="text-sm text-muted-foreground">{t("components.rvLoading", "Loading reviews…")}</p>
         ) : reviews.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t("shop.beFirstToShare", "Be the first to share your experience.")}</p>
+          <p className="text-sm text-muted-foreground">{t("components.rvBeFirst", "Be the first to share your experience.")}</p>
         ) : (
           reviews.map((r) => (
             <div key={r.id} className="border-t border-border pt-6">
