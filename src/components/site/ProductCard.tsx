@@ -5,6 +5,7 @@ import { asOptions, getActiveSalePrice } from "@/lib/types";
 import { resolveImage } from "@/lib/images";
 import { useCart } from "@/lib/cart";
 import { toast } from "sonner";
+import type { ReactNode } from "react";
 
 export function ProductCard({ product, badge }: { product: Product; badge?: React.ReactNode }) {
   const cart = useCart();
