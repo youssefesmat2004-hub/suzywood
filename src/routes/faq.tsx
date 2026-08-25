@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Layout } from "@/components/site/Layout";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { ARABIC_FAQ } from "@/lib/arabic-faq";
 
 type FAQGroup = { category: string; items: { q: string; a: string }[] };
 
@@ -16,21 +17,27 @@ export const Route = createFileRoute("/faq")({
   },
   head: ({ loaderData }) => ({
     meta: [
-      { title: "FAQ — Suzy Wood" },
-      { name: "description", content: "Common questions about ordering, delivery, custom builds, care and returns." },
-      { property: "og:title", content: "FAQ — Suzy Wood" },
-      { property: "og:description", content: "Answers to common questions about Suzy Wood orders." },
+      { title: "FAQ — Suzy Wood | أسئلة شائعة عن أثاث غرف الأطفال" },
+      { name: "description", content: "Common questions about ordering, delivery, custom builds, care and returns. أسئلة شائعة عن أسعار سراير الأطفال الخشبية، التوصيل داخل القاهرة ومصر، والدفع والتصنيع حسب الطلب." },
+      { property: "og:title", content: "FAQ — Suzy Wood | أسئلة شائعة" },
+      { property: "og:description", content: "إجابات عن أسئلتك حول أثاث غرف الأطفال المصنوع يدويًا في القاهرة — الأسعار، التوصيل، الدفع ومدة التنفيذ." },
       { property: "og:url", content: "https://suzywoodofficial.com/faq" },
+      { property: "og:locale", content: "en_US" },
+      { property: "og:locale:alternate", content: "ar_EG" },
     ],
     links: [{ rel: "canonical", href: "https://suzywoodofficial.com/faq" }],
     scripts: (() => {
-      const items = (loaderData?.groups ?? []).flatMap((g) => g.items);
+      const items = [
+        ...(loaderData?.groups ?? []).flatMap((g) => g.items),
+        ...ARABIC_FAQ,
+      ];
       if (!items.length) return [];
       return [{
         type: "application/ld+json",
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "FAQPage",
+          inLanguage: ["en", "ar"],
           mainEntity: items.map((it) => ({
             "@type": "Question",
             name: it.q,
@@ -40,6 +47,7 @@ export const Route = createFileRoute("/faq")({
       }];
     })(),
   }),
+
   component: FAQPage,
 });
 
@@ -70,7 +78,21 @@ function FAQPage() {
             ))}
           </div>
         )}
+
+        <div dir="rtl" lang="ar" className="mt-16 text-right">
+          <h2 className="font-serif text-2xl mb-2">الأسئلة الشائعة بالعربية</h2>
+          <p className="text-muted-foreground mb-6">إجابات سريعة عن الطلب والتوصيل والدفع لأثاث غرف الأطفال المصنوع يدويًا في القاهرة.</p>
+          <Accordion type="single" collapsible className="rounded-2xl border border-border bg-card divide-y divide-border">
+            {ARABIC_FAQ.map((it, i) => (
+              <AccordionItem key={i} value={`ar-${i}`} className="border-0 px-5">
+                <AccordionTrigger className="text-right hover:no-underline">{it.q}</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">{it.a}</AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </div>
       </section>
+
     </Layout>
   );
 }

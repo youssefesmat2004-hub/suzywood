@@ -13,10 +13,14 @@ export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
       { title: "Contact — Suzy Wood" },
-      { name: "description", content: "Get in touch with Suzy Wood about your nursery project." },
+      { name: "description", content: "Get in touch with Suzy Wood about your nursery project. تواصل معنا على واتساب للاستفسار عن أثاث غرف الأطفال والأسعار والتوصيل داخل القاهرة ومصر." },
+      { name: "keywords", content: "اثاث اطفال القاهرة, سرير اطفال حسب الطلب, واتساب سوزي وود, نجار غرف اطفال مصر" },
       { property: "og:title", content: "Contact Suzy Wood — Custom Nursery Furniture in Cairo" },
-      { property: "og:description", content: "Talk to the Suzy Wood team about custom nursery and toddler furniture, delivery across Egypt, and made-to-order pieces." },
+      { property: "og:description", content: "Talk to the Suzy Wood team about custom nursery and toddler furniture, delivery across Egypt, and made-to-order pieces. تواصل معنا لطلب غرفة أطفال مخصصة." },
       { property: "og:url", content: "https://suzywoodofficial.com/contact" },
+      { property: "og:locale", content: "en_US" },
+      { property: "og:locale:alternate", content: "ar_EG" },
+
     ],
     links: [{ rel: "canonical", href: "https://suzywoodofficial.com/contact" }],
     scripts: [

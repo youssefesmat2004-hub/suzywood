@@ -24,10 +24,14 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Suzy Wood — Handcrafted Nursery Furniture in Cairo, Egypt" },
-      { name: "description", content: "Handcrafted nursery and kids furniture in Cairo, Egypt. Solid wood, non-toxic finishes, made to order and delivered across Egypt." },
+      { name: "description", content: "Handcrafted nursery and kids furniture in Cairo, Egypt. Solid wood, non-toxic finishes, made to order and delivered across Egypt. أثاث غرف أطفال خشب مصنوع يدويًا في القاهرة — سراير أطفال وغرف نوم أطفال حسب الطلب مع التوصيل لكل مصر." },
+      { name: "keywords", content: "سرير اطفال خشب, غرف نوم اطفال القاهرة, اثاث اطفال مصر, سرير بيبي, غرف اطفال حسب الطلب, مرتبة سرير اطفال, nursery furniture Cairo, wooden crib Egypt" },
       { property: "og:title", content: "Suzy Wood — Handcrafted Nursery Furniture in Cairo, Egypt" },
-      { property: "og:description", content: "Heirloom-quality nursery furniture, handcrafted in Cairo and made to order for families across Egypt." },
+      { property: "og:description", content: "Heirloom-quality nursery furniture, handcrafted in Cairo and made to order for families across Egypt. أثاث غرف أطفال يدوي الصنع في القاهرة." },
       { property: "og:url", content: "https://suzywoodofficial.com/" },
+      { property: "og:locale", content: "en_US" },
+      { property: "og:locale:alternate", content: "ar_EG" },
+
     ],
     links: [
       { rel: "canonical", href: "https://suzywoodofficial.com/" },
@@ -42,21 +46,29 @@ export const Route = createFileRoute("/")({
             {
               "@type": "Organization",
               name: "Suzy Wood",
+              alternateName: ["سوزي وود", "سوزي وود لأثاث الأطفال"],
+              description: "Handcrafted nursery and kids furniture made to order in Cairo, Egypt. أثاث غرف أطفال خشبي مصنوع يدويًا في القاهرة.",
               url: "https://suzywoodofficial.com/",
               logo: "https://suzywoodofficial.com/icons/icon-512.png",
               sameAs: ["https://www.instagram.com/suzywoodofficial"],
+              areaServed: [{ "@type": "Country", name: "Egypt" }, { "@type": "City", name: "Cairo" }],
+              knowsLanguage: ["ar", "en"],
               contactPoint: [{
                 "@type": "ContactPoint",
                 telephone: "+20-109-631-3532",
                 contactType: "customer service",
                 areaServed: "EG",
+                availableLanguage: ["ar", "en"],
               }],
             },
             {
               "@type": "WebSite",
               name: "Suzy Wood",
+              alternateName: "سوزي وود",
+              inLanguage: ["en", "ar"],
               url: "https://suzywoodofficial.com/",
             },
+
           ],
         }),
       },
