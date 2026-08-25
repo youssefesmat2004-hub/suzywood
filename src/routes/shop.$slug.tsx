@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import type { Product } from "@/lib/types";
-import { asOptions } from "@/lib/types";
+import { asOptions, getActiveSalePrice } from "@/lib/types";
 import { resolveImage, resolveGallery } from "@/lib/images";
 import { Reviews } from "@/components/site/Reviews";
 import { ProductCard } from "@/components/site/ProductCard";
@@ -23,6 +23,8 @@ type Variant = {
   id: string;
   name: string;
   price: number;
+  sale_price: number | null;
+  sale_ends_at: string | null;
   stock_quantity: number;
   image_url: string | null;
   is_active: boolean;
@@ -121,6 +123,8 @@ export const Route = createFileRoute("/shop/$slug")({
     const url = `https://suzywoodofficial.com/shop/${p.slug}`;
     const fallbackDesc = `${p.name} — handcrafted in Egypt by Suzy Wood. Solid wood, made-to-order in ${p.lead_time_weeks} weeks. Safe, heirloom-quality furniture for kids' rooms.`;
     const desc = (p.tagline && p.tagline.trim().length >= 50) ? p.tagline : fallbackDesc;
+    const salePrice = getActiveSalePrice(p);
+    const offerPrice = salePrice ?? p.starting_price;
     return {
       meta: [
         { title: `${p.name} — Suzy Wood` },
@@ -148,8 +152,9 @@ export const Route = createFileRoute("/shop/$slug")({
               "@type": "Offer",
               url,
               priceCurrency: "EGP",
-              price: p.starting_price,
+              price: offerPrice,
               availability: "https://schema.org/InStock",
+              ...(salePrice !== null ? { priceValidUntil: p.sale_ends_at ?? undefined } : {}),
             },
           }),
         },
@@ -258,9 +263,13 @@ function ProductPage() {
   const finishLabel = category?.finish_label?.trim() || "Wood Finish";
   const stock = customMode ? 99 : (selectedVariant ? selectedVariant.stock_quantity : (product.stock_quantity ?? 99));
   const soldOut = !customMode && stock <= 0;
+  const productSalePrice = getActiveSalePrice(product);
+  const variantSalePrice = selectedVariant ? getActiveSalePrice(selectedVariant) : null;
   const basePrice = customMode
     ? product.starting_price + customSurcharge
-    : (selectedVariant ? selectedVariant.price : product.starting_price);
+    : (selectedVariant
+        ? (variantSalePrice ?? selectedVariant.price)
+        : (productSalePrice ?? product.starting_price));
   const unitPrice = basePrice
     + (engravingApplied ? engravingSurcharge : 0)
     + (ottomanApplied ? ottomanPrice : 0)
@@ -365,13 +374,25 @@ function ProductPage() {
                 <span className={`px-3 py-1 rounded-full text-[11px] uppercase tracking-[0.22em] ${stockBadge.className}`}>
                   {stockBadge.label}
                 </span>
+                {productSalePrice !== null && (
+                  <span className="px-3 py-1 rounded-full bg-destructive text-destructive-foreground text-[11px] uppercase tracking-[0.22em]">
+                    Sale — Save 33%
+                  </span>
+                )}
               </div>
               <h1 className="font-serif text-4xl md:text-5xl mt-5">{product.name}</h1>
               {product.tagline && <p className="mt-3 text-muted-foreground">{product.tagline}</p>}
-              <p className="mt-6 font-serif text-3xl text-primary">
-                {selectedVariant ? "" : "From "}
-                {unitPrice === 0 ? "Price upon measurement" : `EGP ${unitPrice.toLocaleString()}`}
-              </p>
+              <div className="mt-6 flex items-center gap-3">
+                <p className="font-serif text-3xl text-primary">
+                  {selectedVariant ? "" : "From "}
+                  {unitPrice === 0 ? "Price upon measurement" : `EGP ${unitPrice.toLocaleString()}`}
+                </p>
+                {productSalePrice !== null && (
+                  <p className="text-lg text-muted-foreground line-through">
+                    EGP {product.starting_price.toLocaleString()}
+                  </p>
+                )}
+              </div>
             </div>
 
             {product.description && <p className="text-foreground leading-relaxed">{product.description}</p>}
@@ -384,6 +405,8 @@ function ProductPage() {
                     {variants.filter((v) => v.variant_type !== "fabric_color").map((v) => {
                       const isSel = !customMode && v.id === variantId;
                       const out = v.stock_quantity <= 0;
+                      const vSale = getActiveSalePrice(v);
+                      const vDisplay = vSale ?? v.price;
                       return (
                         <button
                           key={v.id}
@@ -392,7 +415,7 @@ function ProductPage() {
                           disabled={out}
                           className={`px-4 py-2 rounded-full border text-sm transition-colors ${isSel ? "border-primary bg-primary text-primary-foreground" : "border-border hover:border-primary"} ${out ? "opacity-50 line-through cursor-not-allowed" : ""}`}
                         >
-                          {v.name} — {Number(v.price) === 0 ? "Price upon measurement" : `EGP ${Number(v.price).toLocaleString()}`}{out ? " (Out of stock)" : ""}
+                          {v.name} — {Number(vDisplay) === 0 ? "Price upon measurement" : `EGP ${Number(vDisplay).toLocaleString()}`}{vSale !== null ? ` (was EGP ${Number(v.price).toLocaleString()})` : ""}{out ? " (Out of stock)" : ""}
                         </button>
                       );
                     })}

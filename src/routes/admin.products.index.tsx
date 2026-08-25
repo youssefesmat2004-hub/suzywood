@@ -8,12 +8,15 @@ import { resolveImage } from "@/lib/images";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getActiveSalePrice } from "@/lib/types";
 
 type ProductRow = {
   id: string;
   name: string;
   slug: string;
   starting_price: number;
+  sale_price: number | null;
+  sale_ends_at: string | null;
   stock_quantity: number;
   image_url: string | null;
   is_active: boolean;
@@ -33,7 +36,7 @@ function ProductsPage() {
   const load = async () => {
     const { data, error } = await supabase
       .from("products")
-      .select("id,name,slug,starting_price,stock_quantity,image_url,is_active,is_featured,category_id")
+      .select("id,name,slug,starting_price,sale_price,sale_ends_at,stock_quantity,image_url,is_active,is_featured,category_id")
       .order("created_at", { ascending: false });
     if (error) toast.error(error.message);
     setProducts((data ?? []) as ProductRow[]);
@@ -137,7 +140,12 @@ function ProductsPage() {
               </div>
               <div className="p-4 flex-1 flex flex-col">
                 <h3 className="font-serif text-lg leading-tight">{p.name}</h3>
-                <p className="text-sm text-primary mt-1">EGP {Number(p.starting_price).toLocaleString()}</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <p className="text-sm text-primary">EGP {Number(getActiveSalePrice(p) ?? p.starting_price).toLocaleString()}</p>
+                  {getActiveSalePrice(p) !== null && (
+                    <p className="text-xs text-muted-foreground line-through">EGP {Number(p.starting_price).toLocaleString()}</p>
+                  )}
+                </div>
                 <p className={`text-xs mt-1 ${p.stock_quantity === 0 ? "text-destructive" : p.stock_quantity < 5 ? "text-amber-600 font-medium" : "text-muted-foreground"}`}>
                   Stock: {p.stock_quantity}
                   {p.stock_quantity > 0 && p.stock_quantity < 5 && " — low!"}

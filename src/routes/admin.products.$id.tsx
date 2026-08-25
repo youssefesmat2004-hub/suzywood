@@ -28,6 +28,8 @@ function EditProduct() {
         tagline: row.tagline ?? "",
         description: row.description ?? "",
         starting_price: Number(row.starting_price),
+        sale_price: row.sale_price != null ? Number(row.sale_price) : null,
+        sale_ends_at: row.sale_ends_at ? new Date(row.sale_ends_at).toISOString() : null,
         stock_quantity: row.stock_quantity ?? 0,
         image_url: row.image_url,
         gallery: Array.isArray(row.gallery) ? (row.gallery as string[]) : [],

@@ -16,6 +16,8 @@ type Variant = {
   id?: string;
   name: string;
   price: number;
+  sale_price?: number | null;
+  sale_ends_at?: string | null;
   stock_quantity: number;
   image_url: string | null;
   sort_order: number;
@@ -69,6 +71,8 @@ export type ProductFormValue = {
   tagline: string;
   description: string;
   starting_price: number;
+  sale_price?: number | null;
+  sale_ends_at?: string | null;
   stock_quantity: number;
   image_url: string | null;
   gallery: string[];
@@ -119,6 +123,8 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
       tagline: "",
       description: "",
       starting_price: 0,
+      sale_price: null,
+      sale_ends_at: null,
       stock_quantity: 0,
       image_url: null,
       gallery: [],
@@ -317,6 +323,8 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
       tagline: v.tagline || null,
       description: v.description || null,
       starting_price: Number(v.starting_price),
+      sale_price: v.sale_price != null && v.sale_price > 0 ? Number(v.sale_price) : null,
+      sale_ends_at: v.sale_ends_at ? new Date(v.sale_ends_at).toISOString() : null,
       stock_quantity: Number(v.stock_quantity),
       image_url: v.image_url,
       gallery: v.gallery,
@@ -356,6 +364,8 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
         await supabase.from("product_variants").update({
           name: variant.name,
           price: Number(variant.price),
+          sale_price: variant.sale_price != null && variant.sale_price > 0 ? Number(variant.sale_price) : null,
+          sale_ends_at: variant.sale_ends_at ? new Date(variant.sale_ends_at).toISOString() : null,
           stock_quantity: Number(variant.stock_quantity),
           image_url: variant.image_url,
           sort_order: variant.sort_order,
@@ -369,6 +379,8 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
           product_id: pid,
           name: variant.name,
           price: Number(variant.price),
+          sale_price: variant.sale_price != null && variant.sale_price > 0 ? Number(variant.sale_price) : null,
+          sale_ends_at: variant.sale_ends_at ? new Date(variant.sale_ends_at).toISOString() : null,
           stock_quantity: Number(variant.stock_quantity),
           image_url: variant.image_url,
           sort_order: variant.sort_order,
@@ -418,6 +430,18 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
           <div className="space-y-1.5">
             <Label>Starting Price (EGP) *</Label>
             <Input type="number" min={0} step="0.01" value={v.starting_price} onChange={(e) => setV({ ...v, starting_price: Number(e.target.value) })} required />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Sale Price (EGP)</Label>
+            <Input type="number" min={0} step="0.01" value={v.sale_price ?? ""} onChange={(e) => setV({ ...v, sale_price: e.target.value ? Number(e.target.value) : null })} placeholder="Leave empty for no sale" />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Sale Ends At</Label>
+            <Input
+              type="datetime-local"
+              value={v.sale_ends_at ? new Date(v.sale_ends_at).toISOString().slice(0, 16) : ""}
+              onChange={(e) => setV({ ...v, sale_ends_at: e.target.value ? new Date(e.target.value).toISOString() : null })}
+            />
           </div>
           <div className="space-y-1.5">
             <Label>Stock Quantity</Label>
@@ -617,6 +641,10 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
                 <div className="sm:col-span-2 space-y-1">
                   <Label className="text-xs">Price</Label>
                   <Input type="number" min={0} value={variant.price} onChange={(e) => setVariants((p) => p.map((x, i) => i === idx ? { ...x, price: Number(e.target.value) } : x))} />
+                </div>
+                <div className="sm:col-span-2 space-y-1">
+                  <Label className="text-xs">Sale Price</Label>
+                  <Input type="number" min={0} value={variant.sale_price ?? ""} placeholder="Optional" onChange={(e) => setVariants((p) => p.map((x, i) => i === idx ? { ...x, sale_price: e.target.value ? Number(e.target.value) : null } : x))} />
                 </div>
                 <div className="sm:col-span-2 space-y-1">
                   <Label className="text-xs">Stock</Label>

@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Plus, Ruler } from "lucide-react";
 import type { Product } from "@/lib/types";
-import { asOptions } from "@/lib/types";
+import { asOptions, getActiveSalePrice } from "@/lib/types";
 import { resolveImage } from "@/lib/images";
 import { useCart } from "@/lib/cart";
 import { toast } from "sonner";
@@ -21,6 +21,9 @@ export function ProductCard({ product }: { product: Product }) {
     "drawers-changing-tables",
   ]);
   const displayFinishes = HIDE_FINISHES_LABEL.has(product.category_slug ?? "") ? [] : finishes;
+  const salePrice = getActiveSalePrice(product);
+  const displayPrice = salePrice ?? product.starting_price;
+  const isOnSale = salePrice !== null;
 
   const quickAdd = (e: React.MouseEvent) => {
     if (soldOut) return;
@@ -41,7 +44,7 @@ export function ProductCard({ product }: { product: Product }) {
       finish: finish?.value ?? "",
       finishLabel: finish?.label ?? "",
       engraving: "",
-      unitPrice: product.starting_price,
+      unitPrice: displayPrice,
       quantity: 1,
     });
     toast.success("Added to cart", { description: product.name });
@@ -62,8 +65,13 @@ export function ProductCard({ product }: { product: Product }) {
           height={1024}
           className={`h-full w-full object-cover transition-transform duration-700 group-hover:scale-105 ${soldOut && !isSafetyGate ? "opacity-70" : ""}`}
         />
+        {isOnSale && (
+          <span className="absolute top-3 left-3 rounded-full bg-destructive text-destructive-foreground text-[10px] uppercase tracking-[0.18em] px-3 py-1 shadow-card">
+            Sale — Save 33%
+          </span>
+        )}
         {isSafetyGate && (
-          <span className="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-secondary text-secondary-foreground text-[10px] uppercase tracking-[0.18em] px-3 py-1">
+          <span className={`absolute top-3 ${isOnSale ? "left-[7.5rem]" : "left-3"} inline-flex items-center gap-1.5 rounded-full bg-secondary text-secondary-foreground text-[10px] uppercase tracking-[0.18em] px-3 py-1`}>
             <Ruler className="h-3 w-3" /> Custom Measurement Required
           </span>
         )}
@@ -106,9 +114,16 @@ export function ProductCard({ product }: { product: Product }) {
           ) : (
             <div>
               <p className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">From</p>
-              <p className="font-serif text-xl text-primary">
-                {product.starting_price === 0 ? "Price upon measurement" : `EGP ${product.starting_price.toLocaleString()}`}
-              </p>
+              <div className="flex items-center gap-2">
+                <p className="font-serif text-xl text-primary">
+                  {displayPrice === 0 ? "Price upon measurement" : `EGP ${displayPrice.toLocaleString()}`}
+                </p>
+                {isOnSale && (
+                  <p className="text-sm text-muted-foreground line-through">
+                    EGP {product.starting_price.toLocaleString()}
+                  </p>
+                )}
+              </div>
             </div>
           )}
           <span className="text-xs text-muted-foreground">View details →</span>
