@@ -16,6 +16,7 @@ import qrImageFallback from "@/assets/instapay-qr.jpeg";
 import { Upload, Check, Tag, MessageCircle } from "lucide-react";
 import { resolveImage } from "@/lib/images";
 import { DELIVERY_AREAS, getAreaLabel, getDeliveryFee, isSmallOrder, type DeliveryAreaKey } from "@/lib/delivery";
+import { useI18n } from "@/lib/i18n";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -52,6 +53,7 @@ type Details = {
 function Checkout() {
   const { items, subtotal, clear } = useCart();
   const { user } = useAuth();
+  const { t } = useI18n();
   const navigate = useNavigate();
   const sendPendingEmail = useServerFn(sendCheckoutPendingEmail);
   const notifyOwner = useServerFn(notifyOwnerNewOrder);
@@ -100,17 +102,17 @@ function Checkout() {
       .rpc("validate_promo_code", { _code: code, _subtotal: subtotal })
       .maybeSingle();
     setPromoApplying(false);
-    if (error || !data) { toast.error("Invalid or expired promo code"); return; }
+    if (error || !data) { toast.error(t("checkout.invalidPromoCode", "Invalid or expired promo code")); return; }
     const d = Number(data.discount_amount ?? 0);
     setPromo({ id: data.id, code: data.code, discount: d });
-    toast.success(`Code ${data.code} applied — EGP ${d.toLocaleString()} off`);
+    toast.success(t("checkout.promoAppliedToast", "Code {code} applied — {amount} off").replace("{code}", data.code).replace("{amount}", `EGP ${d.toLocaleString()}`));
   };
 
   const onDetailsSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (items.length === 0) return;
     if (!deliveryArea) {
-      toast.error("Please select your delivery area");
+      toast.error(t("checkout.selectDeliveryArea", "Please select your delivery area"));
       return;
     }
     const fd = new FormData(e.currentTarget);
@@ -131,7 +133,7 @@ function Checkout() {
   const onConfirmPaid = async () => {
     if (!details) return;
     if (!reference.trim()) {
-      toast.error("Please enter your InstaPay transaction ID");
+      toast.error(t("checkout.enterInstapayId", "Please enter your InstaPay transaction ID"));
       return;
     }
     setSubmitting(true);
@@ -140,8 +142,8 @@ function Checkout() {
     if (proofFile) {
       if (!user?.id) {
         setSubmitting(false);
-        toast.error("Please sign in to upload a payment screenshot", {
-          description: "Payment proof uploads require a signed-in account.",
+        toast.error(t("checkout.signInToUpload", "Please sign in to upload a payment screenshot"), {
+          description: t("checkout.signInToUploadDesc", "Payment proof uploads require a signed-in account."),
         });
         return;
       }
@@ -153,7 +155,7 @@ function Checkout() {
       });
       if (up.error) {
         setSubmitting(false);
-        toast.error("Couldn't upload screenshot", { description: up.error.message });
+        toast.error(t("checkout.uploadFailed", "Couldn't upload screenshot"), { description: up.error.message });
         return;
       }
       proofPath = path;
@@ -192,7 +194,7 @@ function Checkout() {
     setSubmitting(false);
     const order = Array.isArray(rpc) ? rpc[0] : rpc;
     if (error || !order) {
-      toast.error("Couldn't place your order", { description: error?.message });
+      toast.error(t("checkout.orderPlaceFailed", "Couldn't place your order"), { description: error?.message });
       return;
     }
     clear();
@@ -203,8 +205,8 @@ function Checkout() {
     notifyOwner({ data: { orderId: order.id } }).catch((e) =>
       console.error("Owner notify failed", e),
     );
-    toast.success(`Order ${order.order_number} submitted`, {
-      description: "We'll verify your payment and email you once confirmed.",
+    toast.success(t("checkout.orderSubmitted", "Order {number} submitted").replace("{number}", order.order_number), {
+      description: t("checkout.orderSubmittedDesc", "We'll verify your payment and email you once confirmed."),
     });
     navigate({ to: "/thank-you", search: { order: order.order_number } });
   };
@@ -213,8 +215,8 @@ function Checkout() {
     return (
       <Layout>
         <section className="container mx-auto px-6 py-24 text-center">
-          <p className="text-muted-foreground">Your cart is empty.</p>
-          <Button asChild className="mt-6"><Link to="/shop">Browse the Collection</Link></Button>
+          <p className="text-muted-foreground">{t("checkout.cartEmpty", "Your cart is empty.")}</p>
+          <Button asChild className="mt-6"><Link to="/shop">{t("checkout.browseCollection", "Browse the Collection")}</Link></Button>
         </section>
       </Layout>
     );
@@ -223,24 +225,27 @@ function Checkout() {
   return (
     <Layout>
       <section className="container mx-auto px-6 lg:px-10 py-16 max-w-5xl">
-        <h1 className="font-serif text-5xl mb-2">Checkout</h1>
+        <h1 className="font-serif text-5xl mb-2">{t("checkout.checkoutTitle", "Checkout")}</h1>
         <p className="text-sm text-muted-foreground mb-10">
-          Step {step === "details" ? "1" : "2"} of 2 — {step === "details" ? "Your details" : "InstaPay payment"}
+          {t("checkout.stepOf", "Step {current} of {total} — {label}")
+            .replace("{current}", step === "details" ? "1" : "2")
+            .replace("{total}", "2")
+            .replace("{label}", step === "details" ? t("checkout.stepDetails", "Your details") : t("checkout.stepPayment", "InstaPay payment"))}
         </p>
         <div className="grid lg:grid-cols-3 gap-10">
           {step === "details" ? (
           <form onSubmit={onDetailsSubmit} className="lg:col-span-2 space-y-5 bg-card border border-border rounded-2xl p-8">
             <div className="grid sm:grid-cols-2 gap-5">
-              <div className="space-y-1"><Label htmlFor="name">Full name</Label><Input id="name" name="name" required maxLength={100} defaultValue={details?.name ?? user?.user_metadata?.full_name ?? ""} /></div>
-              <div className="space-y-1"><Label htmlFor="phone">Phone</Label><Input id="phone" name="phone" type="tel" required maxLength={20} defaultValue={details?.phone ?? user?.user_metadata?.phone ?? ""} /></div>
+              <div className="space-y-1"><Label htmlFor="name">{t("checkout.fullName", "Full name")}</Label><Input id="name" name="name" required maxLength={100} defaultValue={details?.name ?? user?.user_metadata?.full_name ?? ""} /></div>
+              <div className="space-y-1"><Label htmlFor="phone">{t("checkout.phone", "Phone")}</Label><Input id="phone" name="phone" type="tel" required maxLength={20} defaultValue={details?.phone ?? user?.user_metadata?.phone ?? ""} /></div>
             </div>
-            <div className="space-y-1"><Label htmlFor="email">Email</Label><Input id="email" type="email" name="email" required defaultValue={details?.email ?? user?.email ?? ""} /></div>
-            <div className="space-y-1"><Label htmlFor="address">Address</Label><Textarea id="address" name="address" required maxLength={500} rows={2} defaultValue={details?.address ?? ""} /></div>
+            <div className="space-y-1"><Label htmlFor="email">{t("checkout.email", "Email")}</Label><Input id="email" type="email" name="email" required defaultValue={details?.email ?? user?.email ?? ""} /></div>
+            <div className="space-y-1"><Label htmlFor="address">{t("checkout.address", "Address")}</Label><Textarea id="address" name="address" required maxLength={500} rows={2} defaultValue={details?.address ?? ""} /></div>
             <div className="grid sm:grid-cols-2 gap-5">
               <div className="space-y-1">
-                <Label htmlFor="delivery-area">Delivery area *</Label>
+                <Label htmlFor="delivery-area">{t("checkout.deliveryArea", "Delivery area *")}</Label>
                 <Select value={deliveryArea} onValueChange={(v) => setDeliveryArea(v as DeliveryAreaKey)}>
-                  <SelectTrigger id="delivery-area"><SelectValue placeholder="Select your area" /></SelectTrigger>
+                  <SelectTrigger id="delivery-area"><SelectValue placeholder={t("checkout.selectYourArea", "Select your area")} /></SelectTrigger>
                   <SelectContent>
                     {DELIVERY_AREAS.map((a) => (
                       <SelectItem key={a.value} value={a.value}>
@@ -253,38 +258,47 @@ function Checkout() {
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">
-                  Order type: <strong>{sizeType === "small" ? "Small" : "Big"}</strong> — fees depend on area + size.
+                  {t("checkout.orderType", "Order type:")} <strong>{sizeType === "small" ? t("checkout.orderTypeSmall", "Small") : t("checkout.orderTypeBig", "Big")}</strong> {t("checkout.orderTypeFeesNote", "— fees depend on area + size.")}
                 </p>
               </div>
-              <div className="space-y-1"><Label htmlFor="city">Neighborhood / street</Label><Input id="city" name="city" required maxLength={100} placeholder="e.g. Street 9, Building 12" defaultValue={details?.city ?? ""} /></div>
+              <div className="space-y-1"><Label htmlFor="city">{t("checkout.neighborhoodStreet", "Neighborhood / street")}</Label><Input id="city" name="city" required maxLength={100} placeholder={t("checkout.neighborhoodPlaceholder", "e.g. Street 9, Building 12")} defaultValue={details?.city ?? ""} /></div>
             </div>
             {isOther && (
               <div className="rounded-xl bg-amber-50 border border-amber-200 text-amber-900 p-3 text-sm">
-                Delivery fee will be confirmed via WhatsApp after your order is placed.
+                {t("checkout.otherAreaNote", "Delivery fee will be confirmed via WhatsApp after your order is placed.")}
               </div>
             )}
-            <div className="space-y-1"><Label htmlFor="notes">Delivery notes (optional)</Label><Textarea id="notes" name="notes" maxLength={500} rows={2} defaultValue={details?.notes ?? ""} /></div>
+            <div className="space-y-1"><Label htmlFor="notes">{t("checkout.deliveryNotesOptional", "Delivery notes (optional)")}</Label><Textarea id="notes" name="notes" maxLength={500} rows={2} defaultValue={details?.notes ?? ""} /></div>
 
             <div className="rounded-xl bg-muted/50 border border-border p-4 text-sm text-muted-foreground">
-              Next step: pay <strong>EGP {upfront.toLocaleString()}</strong> upfront via{" "}
-              <strong>InstaPay</strong> — this is {UPFRONT_PERCENT}% of the furniture total after discounts.
-              Pay <strong>EGP {remainingOnDelivery.toLocaleString()}</strong> on delivery: {REMAINING_PERCENT}% furniture balance{" "}
-              (EGP {remainingProduct.toLocaleString()}) + delivery {isOther ? "(TBD)" : `(EGP ${shipping.toLocaleString()})`}.
+              {t("checkout.nextStepNote", "Next step: pay {upfront} upfront via {instapay} — this is {percent}% of the furniture total after discounts. Pay {remaining} on delivery: {remainingPercent}% furniture balance ({remainingProduct}) + delivery {delivery}.")
+                .replace("{upfront}", `EGP ${upfront.toLocaleString()}`)
+                .replace("{instapay}", t("checkout.instapayBrand", "InstaPay"))
+                .replace("{percent}", String(UPFRONT_PERCENT))
+                .replace("{remaining}", `EGP ${remainingOnDelivery.toLocaleString()}`)
+                .replace("{remainingPercent}", String(REMAINING_PERCENT))
+                .replace("{remainingProduct}", `EGP ${remainingProduct.toLocaleString()}`)
+                .replace("{delivery}", isOther ? "(TBD)" : `(EGP ${shipping.toLocaleString()})`)}
             </div>
 
             <Button type="submit" size="lg" className="w-full" disabled={!deliveryArea}>
-              Continue to payment — Pay {UPFRONT_PERCENT}% now (EGP {upfront.toLocaleString()})
+              {t("checkout.continueToPayment", "Continue to payment — Pay {percent}% now ({amount})")
+                .replace("{percent}", String(UPFRONT_PERCENT))
+                .replace("{amount}", `EGP ${upfront.toLocaleString()}`)}
             </Button>
           </form>
           ) : (
           <div className="lg:col-span-2 space-y-5 bg-card border border-border rounded-2xl p-8">
             <div>
-              <h2 className="font-serif text-2xl mb-1">Pay with InstaPay</h2>
+              <h2 className="font-serif text-2xl mb-1">{t("checkout.payWithInstapay", "Pay with InstaPay")}</h2>
               <p className="text-sm text-muted-foreground">
-                Send exactly <strong className="text-foreground">EGP {upfront.toLocaleString()}</strong>{" "}
-                using the QR below to confirm your order. This is {UPFRONT_PERCENT}% of the furniture total after discounts.
-                On delivery, pay <strong className="text-foreground">EGP {remainingOnDelivery.toLocaleString()}</strong>: {REMAINING_PERCENT}% furniture balance{" "}
-                (EGP {remainingProduct.toLocaleString()}) + delivery {isOther ? "(TBD)" : `(EGP ${shipping.toLocaleString()})`}.
+                {t("checkout.payExactlyNote", "Send exactly {amount} using the QR below to confirm your order. This is {percent}% of the furniture total after discounts. On delivery, pay {remaining}: {remainingPercent}% furniture balance ({remainingProduct}) + delivery {delivery}.")
+                  .replace("{amount}", `EGP ${upfront.toLocaleString()}`)
+                  .replace("{percent}", String(UPFRONT_PERCENT))
+                  .replace("{remaining}", `EGP ${remainingOnDelivery.toLocaleString()}`)
+                  .replace("{remainingPercent}", String(REMAINING_PERCENT))
+                  .replace("{remainingProduct}", `EGP ${remainingProduct.toLocaleString()}`)
+                  .replace("{delivery}", isOther ? "(TBD)" : `(EGP ${shipping.toLocaleString()})`)}
               </p>
             </div>
 
@@ -293,28 +307,28 @@ function Checkout() {
                 qrUrl === null ? (
                   <img
                     src={qrImageFallback}
-                    alt="Suzy Wood InstaPay QR code"
+                    alt={t("checkout.qrAlt", "Suzy Wood InstaPay QR code")}
                     className="w-full max-w-[200px] rounded-lg"
                   />
                 ) : (
                   <div className="w-full max-w-[200px] rounded-lg border border-dashed border-border bg-muted/40 p-4 text-center">
                     <p className="text-sm text-foreground mb-3">
-                      Payment QR code temporarily unavailable. Please contact us on WhatsApp.
+                      {t("checkout.qrUnavailable", "Payment QR code temporarily unavailable. Please contact us on WhatsApp.")}
                     </p>
                     <a
-                      href={`https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent("Hi Suzy Wood, the InstaPay QR is not loading on checkout.")}`}
+                      href={`https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(t("checkout.whatsappQrMessage", "Hi Suzy Wood, the InstaPay QR is not loading on checkout."))}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 rounded-md bg-[oklch(0.38_0.055_50)] px-3 py-2 text-xs text-white hover:opacity-90"
                     >
-                      <MessageCircle className="h-3.5 w-3.5" /> WhatsApp us
+                      <MessageCircle className="h-3.5 w-3.5" /> {t("checkout.whatsappUs", "WhatsApp us")}
                     </a>
                   </div>
                 )
               ) : (
                 <img
                   src={qrUrl}
-                  alt="Suzy Wood InstaPay QR code"
+                  alt={t("checkout.qrAlt", "Suzy Wood InstaPay QR code")}
                   className="w-full max-w-[200px] rounded-lg"
                   onError={() => setQrLoadFailed(true)}
                   referrerPolicy="no-referrer"
@@ -322,37 +336,39 @@ function Checkout() {
               )}
               <div className="space-y-3 text-sm">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Pay now ({UPFRONT_PERCENT}%)</p>
+                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{t("checkout.payNowPercent", "Pay now ({percent}%)").replace("{percent}", String(UPFRONT_PERCENT))}</p>
                   <p className="font-serif text-2xl text-primary">EGP {upfront.toLocaleString()}</p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Furniture total after discounts EGP {subtotalAfter.toLocaleString()} · On delivery EGP {remainingOnDelivery.toLocaleString()}
+                    {t("checkout.furnitureTotalAfterDiscounts", "Furniture total after discounts {subtotal} · On delivery {remaining}")
+                      .replace("{subtotal}", `EGP ${subtotalAfter.toLocaleString()}`)
+                      .replace("{remaining}", `EGP ${remainingOnDelivery.toLocaleString()}`)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">InstaPay number</p>
+                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{t("checkout.instapayNumber", "InstaPay number")}</p>
                   <p className="font-medium">{INSTAPAY_NUMBER}</p>
                 </div>
                 <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">InstaPay handle</p>
+                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{t("checkout.instapayHandle", "InstaPay handle")}</p>
                   <p className="font-medium">{INSTAPAY_HANDLE}</p>
                 </div>
               </div>
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="reference">InstaPay transaction ID for the {UPFRONT_PERCENT}% payment *</Label>
+              <Label htmlFor="reference">{t("checkout.transactionIdLabel", "InstaPay transaction ID for the {percent}% payment *").replace("{percent}", String(UPFRONT_PERCENT))}</Label>
               <Input
                 id="reference"
                 value={reference}
                 onChange={(e) => setReference(e.target.value)}
-                placeholder="e.g. 1234567890"
+                placeholder={t("checkout.transactionIdPlaceholder", "e.g. 1234567890")}
                 maxLength={100}
                 required
               />
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="proof">Screenshot of the {UPFRONT_PERCENT}% payment (optional but recommended)</Label>
+              <Label htmlFor="proof">{t("checkout.screenshotLabel", "Screenshot of the {percent}% payment (optional but recommended)").replace("{percent}", String(UPFRONT_PERCENT))}</Label>
               <input
                 ref={fileInputRef}
                 id="proof"
@@ -362,8 +378,8 @@ function Checkout() {
                 onChange={(e) => {
                   const f = e.target.files?.[0] ?? null;
                   if (f && f.size > 3 * 1024 * 1024) {
-                    toast.error("Screenshot is too large", {
-                      description: "Please upload an image under 3MB.",
+                    toast.error(t("checkout.screenshotTooLarge", "Screenshot is too large"), {
+                      description: t("checkout.screenshotTooLargeDesc", "Please upload an image under 3MB."),
                     });
                     e.target.value = "";
                     return;
@@ -380,14 +396,14 @@ function Checkout() {
                 {proofFile ? (
                   <><Check className="h-4 w-4 mr-2" />{proofFile.name}</>
                 ) : (
-                  <><Upload className="h-4 w-4 mr-2" />Upload screenshot</>
+                  <><Upload className="h-4 w-4 mr-2" />{t("checkout.uploadScreenshot", "Upload screenshot")}</>
                 )}
               </Button>
             </div>
 
             <div className="flex gap-3 pt-2">
               <Button type="button" variant="outline" onClick={() => setStep("details")} disabled={submitting}>
-                Back
+                {t("checkout.back", "Back")}
               </Button>
               <Button
                 type="button"
@@ -396,14 +412,14 @@ function Checkout() {
                 disabled={submitting || !reference.trim()}
                 className="flex-1"
               >
-                {submitting ? "Submitting…" : "I Have Paid - Place Order"}
+                {submitting ? t("checkout.submitting", "Submitting…") : t("checkout.havePaidPlaceOrder", "I Have Paid - Place Order")}
               </Button>
             </div>
           </div>
           )}
 
           <aside className="bg-muted/40 border border-border rounded-2xl p-6 h-fit space-y-4">
-            <h2 className="font-serif text-xl">Order summary</h2>
+            <h2 className="font-serif text-xl">{t("checkout.orderSummary", "Order summary")}</h2>
             <div className="space-y-3">
               {items.map((it, i) => (
                 <div key={i} className="flex justify-between gap-3 text-sm">
@@ -413,36 +429,36 @@ function Checkout() {
               ))}
             </div>
             <div className="border-t border-border pt-3 space-y-1 text-sm">
-              <div className="flex justify-between"><span>Subtotal</span><span>EGP {subtotal.toLocaleString()}</span></div>
+              <div className="flex justify-between"><span>{t("common.subtotal", "Subtotal")}</span><span>EGP {subtotal.toLocaleString()}</span></div>
               {promo && (
                 <div className="flex justify-between text-primary">
-                  <span>Promo ({promo.code})</span>
+                  <span>{t("checkout.promoLabel", "Promo ({code})").replace("{code}", promo.code)}</span>
                   <span>− EGP {promo.discount.toLocaleString()}</span>
                 </div>
               )}
               <div className="flex justify-between">
-                <span>Delivery{deliveryArea ? ` — ${getAreaLabel(deliveryArea)}` : ""}</span>
-                <span>{isOther ? "TBD" : `EGP ${shipping.toLocaleString()}`}</span>
+                <span>{t("checkout.deliveryLabel", "Delivery{area}").replace("{area}", deliveryArea ? ` — ${getAreaLabel(deliveryArea)}` : "")}</span>
+                <span>{isOther ? t("checkout.deliveryTBD", "TBD") : `EGP ${shipping.toLocaleString()}`}</span>
               </div>
-              <div className="flex justify-between font-serif text-lg pt-2"><span>Total</span><span className="text-primary">EGP {total.toLocaleString()}</span></div>
+              <div className="flex justify-between font-serif text-lg pt-2"><span>{t("common.total", "Total")}</span><span className="text-primary">EGP {total.toLocaleString()}</span></div>
             </div>
 
             <div className="border-t border-border pt-3">
               {promo ? (
                 <div className="flex items-center justify-between text-xs">
-                  <span className="inline-flex items-center gap-1.5 text-primary"><Tag className="h-3 w-3" />{promo.code} applied</span>
-                  <button type="button" className="underline text-muted-foreground" onClick={() => { setPromo(null); setPromoCode(""); }}>Remove</button>
+                  <span className="inline-flex items-center gap-1.5 text-primary"><Tag className="h-3 w-3" />{t("checkout.promoApplied", "{code} applied").replace("{code}", promo.code)}</span>
+                  <button type="button" className="underline text-muted-foreground" onClick={() => { setPromo(null); setPromoCode(""); }}>{t("checkout.remove", "Remove")}</button>
                 </div>
               ) : (
                 <div className="flex gap-2">
                   <Input
-                    placeholder="Promo code"
+                    placeholder={t("checkout.promoCodePlaceholder", "Promo code")}
                     value={promoCode}
                     onChange={(e) => setPromoCode(e.target.value)}
                     className="h-9 text-xs uppercase"
                   />
                   <Button type="button" variant="outline" size="sm" onClick={applyPromo} disabled={promoApplying || !promoCode.trim()}>
-                    {promoApplying ? "…" : "Apply"}
+                    {promoApplying ? t("checkout.applying", "…") : t("checkout.apply", "Apply")}
                   </Button>
                 </div>
               )}
@@ -450,19 +466,19 @@ function Checkout() {
 
             <div className="border-t border-border pt-3 space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Pay now ({UPFRONT_PERCENT}% furniture)</span>
+                <span className="text-muted-foreground">{t("checkout.payNowFurniture", "Pay now ({percent}% furniture)").replace("{percent}", String(UPFRONT_PERCENT))}</span>
                 <span className="font-medium text-primary">EGP {upfront.toLocaleString()}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Furniture balance ({REMAINING_PERCENT}%)</span>
+                <span className="text-muted-foreground">{t("checkout.furnitureBalance", "Furniture balance ({percent}%)").replace("{percent}", String(REMAINING_PERCENT))}</span>
                 <span className="font-medium">EGP {remainingProduct.toLocaleString()}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Delivery</span>
-                <span className="font-medium">{isOther ? "TBD" : `EGP ${shipping.toLocaleString()}`}</span>
+                <span className="text-muted-foreground">{t("checkout.delivery", "Delivery")}</span>
+                <span className="font-medium">{isOther ? t("checkout.deliveryTBD", "TBD") : `EGP ${shipping.toLocaleString()}`}</span>
               </div>
               <div className="flex justify-between border-t border-border pt-2">
-                <span className="text-muted-foreground">Due on delivery</span>
+                <span className="text-muted-foreground">{t("checkout.dueOnDelivery", "Due on delivery")}</span>
                 <span className="font-medium">EGP {remainingOnDelivery.toLocaleString()}</span>
               </div>
             </div>

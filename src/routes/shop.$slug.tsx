@@ -19,6 +19,7 @@ import { WishlistButton } from "@/components/site/WishlistButton";
 import { useCart } from "@/lib/cart";
 import { Check, ShoppingBag, Minus, Plus, Ruler, CalendarCheck, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import { useI18n } from "@/lib/i18n";
 
 type Variant = {
   id: string;
@@ -36,12 +37,13 @@ type Variant = {
 
 function ProductError({ error, reset }: { error: Error; reset: () => void }) {
   const router = useRouter();
+  const { t } = useI18n();
 
   return (
     <Layout>
       <div className="container mx-auto px-6 py-32 text-center">
-        <h1 className="font-serif text-4xl">This product could not load</h1>
-        <p className="mx-auto mt-3 max-w-md text-sm text-muted-foreground">Please try again in a moment.</p>
+        <h1 className="font-serif text-4xl">{t("shop.productCouldNotLoad", "This product could not load")}</h1>
+        <p className="mx-auto mt-3 max-w-md text-sm text-muted-foreground">{t("shop.tryAgainMoment", "Please try again in a moment.")}</p>
         {import.meta.env.DEV && <p className="mt-3 text-xs text-destructive">{error.message}</p>}
         <div className="mt-6 flex items-center justify-center gap-4">
           <button
@@ -52,9 +54,9 @@ function ProductError({ error, reset }: { error: Error; reset: () => void }) {
             }}
             className="inline-flex items-center justify-center rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
           >
-            Try again
+            {t("shop.tryAgain", "Try again")}
           </button>
-          <Link to="/shop" className="text-primary border-b border-primary">Back to collection</Link>
+          <Link to="/shop" className="text-primary border-b border-primary">{t("shop.backToCollectionLink", "Back to collection")}</Link>
         </div>
       </div>
     </Layout>
@@ -167,14 +169,17 @@ export const Route = createFileRoute("/shop/$slug")({
   },
   component: ProductPage,
   errorComponent: ProductError,
-  notFoundComponent: () => (
-    <Layout>
-      <div className="container mx-auto px-6 py-32 text-center">
-        <h1 className="font-serif text-4xl">Piece not found</h1>
-        <Link to="/shop" className="mt-6 inline-block text-primary border-b border-primary">Back to collection</Link>
-      </div>
-    </Layout>
-  ),
+  notFoundComponent: () => {
+    const { t } = useI18n();
+    return (
+      <Layout>
+        <div className="container mx-auto px-6 py-32 text-center">
+          <h1 className="font-serif text-4xl">{t("shop.pieceNotFound", "Piece not found")}</h1>
+          <Link to="/shop" className="mt-6 inline-block text-primary border-b border-primary">{t("shop.backToCollectionLink", "Back to collection")}</Link>
+        </div>
+      </Layout>
+    );
+  },
 });
 
 function ProductPage() {
@@ -207,6 +212,7 @@ function ProductPage() {
     } | null;
     categorySizes: { label: string; mattress_tier: "small" | "big" | null }[];
   };
+  const { t } = useI18n();
   const navigate = useNavigate();
   const cart = useCart();
   const sizes = asOptions(product.sizes);
@@ -273,7 +279,7 @@ function ProductPage() {
   const lightsEnabled = !!category?.lights_addon_enabled;
   const lightsPrice = Number(category?.lights_addon_price ?? 0);
   const lightsApplied = lightsEnabled && withLights;
-  const finishLabel = category?.finish_label?.trim() || "Wood Finish";
+  const finishLabel = category?.finish_label?.trim() || t("product.finish", "Wood Finish");
   const stock = customMode ? 99 : (selectedVariant ? selectedVariant.stock_quantity : (product.stock_quantity ?? 99));
   const soldOut = !customMode && stock <= 0;
   const productSalePrice = getActiveSalePrice(product);
@@ -292,10 +298,10 @@ function ProductPage() {
     + (lightsApplied ? lightsPrice : 0);
 
   const stockBadge = soldOut
-    ? { label: "Sold out", className: "bg-destructive text-destructive-foreground" }
+    ? { label: t("shop.soldOutBadge", "Sold out"), className: "bg-destructive text-destructive-foreground" }
     : stock <= 5
-      ? { label: `Only ${stock} left`, className: "bg-amber text-amber-foreground" }
-      : { label: "In stock", className: "bg-secondary text-secondary-foreground" };
+      ? { label: t("shop.onlyLeft", "Only {count} left").replace("{count}", String(stock)), className: "bg-amber text-amber-foreground" }
+      : { label: t("shop.inStockBadge", "In stock"), className: "bg-secondary text-secondary-foreground" };
 
   const relatedAnnotated = related.map((p) => ({ ...p, category_slug: category?.slug }));
 
@@ -305,7 +311,7 @@ function ProductPage() {
       const w = Number(customWidth);
       const l = Number(customLength);
       if (!w || !l || w <= 0 || l <= 0) {
-        toast.error("Enter width and length in cm");
+        toast.error(t("shop.enterWidthLength", "Enter width and length in cm"));
         return;
       }
       const customLabel = `Custom: ${w} x ${l} cm`;
@@ -324,7 +330,7 @@ function ProductPage() {
         bedRailsPrice: bedRailsApplied ? BED_RAILS_PRICE : 0,
         categorySlug: category?.slug,
       });
-      toast.success("Added to cart", { description: `${product.name} · ${customLabel} × ${qty}` });
+      toast.success(t("shop.addedToCart", "Added to cart"), { description: `${product.name} · ${customLabel} × ${qty}` });
       return;
     }
     const sizeLabel = sizes.find((s) => s.value === size)?.label ?? "";
@@ -352,13 +358,13 @@ function ProductPage() {
       mattressPrice: mattressApplied ? mattressPrice : 0,
       categorySlug: category?.slug,
     });
-    toast.success("Added to cart", { description: `${product.name}${variantSuffix}${ottomanSuffix}${portableSuffix}${bedRailsSuffix}${mattressSuffix}${lightsSuffix} × ${qty}`, action: { label: "View cart", onClick: () => navigate({ to: "/cart" }) } });
+    toast.success(t("shop.addedToCart", "Added to cart"), { description: `${product.name}${variantSuffix}${ottomanSuffix}${portableSuffix}${bedRailsSuffix}${mattressSuffix}${lightsSuffix} × ${qty}`, action: { label: t("shop.viewCart", "View cart"), onClick: () => navigate({ to: "/cart" }) } });
   };
 
   return (
     <Layout>
       <div className="container mx-auto px-6 lg:px-10 py-12 lg:py-16">
-        <Link to="/shop" className="text-xs uppercase tracking-[0.22em] text-muted-foreground hover:text-primary">← Back to collection</Link>
+        <Link to="/shop" className="text-xs uppercase tracking-[0.22em] text-muted-foreground hover:text-primary">{t("shop.backToCollection", "← Back to collection")}</Link>
 
         <div className="mt-8 grid lg:grid-cols-2 gap-12 lg:gap-16">
           <div>
@@ -368,7 +374,7 @@ function ProductPage() {
             {images.length > 1 && (
               <div className="mt-4 flex gap-3">
                 {images.map((src, i) => (
-                  <button key={i} onClick={() => setActive(i)} aria-label={`View product image ${i + 1}`} className={`h-20 w-20 rounded-xl overflow-hidden border-2 transition-all ${active === i ? "border-primary" : "border-transparent opacity-70 hover:opacity-100"}`}>
+                  <button key={i} onClick={() => setActive(i)} aria-label={t("shop.viewProductImage", "View product image {n}").replace("{n}", String(i + 1))} className={`h-20 w-20 rounded-xl overflow-hidden border-2 transition-all ${active === i ? "border-primary" : "border-transparent opacity-70 hover:opacity-100"}`}>
                     <img src={src} alt="" loading="lazy" width={160} height={160} className="h-full w-full object-cover" />
                   </button>
                 ))}
@@ -384,14 +390,14 @@ function ProductPage() {
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary text-secondary-foreground text-[11px] uppercase tracking-[0.22em]">
-                  <Check className="h-3 w-3" /> Make-to-Order · {product.lead_time_weeks} Weeks
+                  <Check className="h-3 w-3" /> {t("shop.makeToOrderWeeks", "Make-to-Order · {weeks} Weeks").replace("{weeks}", String(product.lead_time_weeks))}
                 </span>
                 <span className={`px-3 py-1 rounded-full text-[11px] uppercase tracking-[0.22em] ${stockBadge.className}`}>
                   {stockBadge.label}
                 </span>
                 {productSalePrice !== null && (
                   <span className="px-3 py-1 rounded-full bg-destructive text-destructive-foreground text-[11px] uppercase tracking-[0.22em]">
-                    Sale — Save 33%
+                    {t("shop.saleSave33", "Sale — Save 33%")}
                   </span>
                 )}
               </div>
@@ -399,8 +405,8 @@ function ProductPage() {
               {product.tagline && <p className="mt-3 text-muted-foreground">{product.tagline}</p>}
               <div className="mt-6 flex items-center gap-3">
                 <p className="font-serif text-3xl text-primary">
-                  {selectedVariant ? "" : "From "}
-                  {unitPrice === 0 ? "Price upon measurement" : `EGP ${unitPrice.toLocaleString()}`}
+                  {selectedVariant ? "" : t("shop.fromPrefix", "From ")}
+                  {unitPrice === 0 ? t("shop.priceUponMeasurement", "Price upon measurement") : `EGP ${unitPrice.toLocaleString()}`}
                 </p>
                 {productSalePrice !== null && (
                   <p className="text-lg text-muted-foreground line-through">
@@ -415,7 +421,7 @@ function ProductPage() {
             <div className="space-y-5 pt-2 border-t border-border">
               {variants.some((v) => v.variant_type !== "fabric_color") && (
                 <div className="space-y-2 pt-5">
-                  <Label>Select Size</Label>
+                  <Label>{t("shop.selectSize", "Select Size")}</Label>
                   <div className="flex flex-wrap gap-2">
                     {variants.filter((v) => v.variant_type !== "fabric_color").map((v) => {
                       const isSel = !customMode && v.id === variantId;
@@ -430,7 +436,7 @@ function ProductPage() {
                           disabled={out}
                           className={`px-4 py-2 rounded-full border text-sm transition-colors ${isSel ? "border-primary bg-primary text-primary-foreground" : "border-border hover:border-primary"} ${out ? "opacity-50 line-through cursor-not-allowed" : ""}`}
                         >
-                          {v.name} — {Number(vDisplay) === 0 ? "Price upon measurement" : `EGP ${Number(vDisplay).toLocaleString()}`}{vSale !== null ? ` (was EGP ${Number(v.price).toLocaleString()})` : ""}{out ? " (Out of stock)" : ""}
+                          {v.name} — {Number(vDisplay) === 0 ? t("shop.priceUponMeasurement", "Price upon measurement") : `EGP ${Number(vDisplay).toLocaleString()}`}{vSale !== null ? ` ${t("shop.wasPrice", "(was EGP {price})").replace("{price}", Number(v.price).toLocaleString())}` : ""}{out ? ` ${t("shop.outOfStockSuffix", "(Out of stock)")}` : ""}
                         </button>
                       );
                     })}
@@ -440,7 +446,7 @@ function ProductPage() {
                         onClick={() => setCustomMode(true)}
                         className={`px-4 py-2 rounded-full border text-sm transition-colors ${customMode ? "border-primary bg-primary text-primary-foreground" : "border-dashed border-border hover:border-primary"}`}
                       >
-                        ✏️ Custom Size — +{customSurcharge.toLocaleString()} EGP
+                        {t("shop.customSizeOption", "✏️ Custom Size — +{price} EGP").replace("{price}", customSurcharge.toLocaleString())}
                       </button>
                     )}
                   </div>
@@ -448,12 +454,12 @@ function ProductPage() {
                     <div className="mt-3 rounded-xl border border-dashed border-primary/40 bg-muted/30 p-4 space-y-3">
                       <div className="grid sm:grid-cols-2 gap-3">
                         <div className="space-y-1">
-                          <Label htmlFor={customWidthId} className="text-xs">Width (cm)</Label>
-                          <Input id={customWidthId} type="number" min={1} value={customWidth} onChange={(e) => setCustomWidth(e.target.value)} placeholder="e.g. 110" />
+                          <Label htmlFor={customWidthId} className="text-xs">{t("shop.widthLabel", "Width (cm)")}</Label>
+                          <Input id={customWidthId} type="number" min={1} value={customWidth} onChange={(e) => setCustomWidth(e.target.value)} placeholder={t("shop.widthPlaceholder", "e.g. 110")} />
                         </div>
                         <div className="space-y-1">
-                          <Label htmlFor={customLengthId} className="text-xs">Length (cm)</Label>
-                          <Input id={customLengthId} type="number" min={1} value={customLength} onChange={(e) => setCustomLength(e.target.value)} placeholder="e.g. 55" />
+                          <Label htmlFor={customLengthId} className="text-xs">{t("shop.lengthLabel", "Length (cm)")}</Label>
+                          <Input id={customLengthId} type="number" min={1} value={customLength} onChange={(e) => setCustomLength(e.target.value)} placeholder={t("shop.lengthPlaceholder", "e.g. 55")} />
                         </div>
                       </div>
                       {category?.custom_size_note && (
@@ -461,7 +467,9 @@ function ProductPage() {
                       )}
                       {customWidth && customLength && (
                         <p className="text-xs">
-                          Custom size: <strong>{customWidth} x {customLength} cm</strong> — Additional charge: <strong>{customSurcharge.toLocaleString()} EGP</strong>
+                          {t("shop.customSizeSummary", "Custom size: {size} — Additional charge: {price} EGP")
+                            .replace("{size}", `${customWidth} x ${customLength} cm`)
+                            .replace("{price}", `${customSurcharge.toLocaleString()}`)}
                         </p>
                       )}
                     </div>
@@ -470,7 +478,7 @@ function ProductPage() {
               )}
               {variants.length > 0 && variants.some((v) => v.variant_type === "fabric_color") && (
                 <div className="space-y-3 pt-5">
-                  <Label>Fabric Color</Label>
+                  <Label>{t("shop.fabricColor", "Fabric Color")}</Label>
                   <div className="flex flex-wrap gap-3">
                     {variants
                       .filter((v) => v.variant_type === "fabric_color")
@@ -483,7 +491,7 @@ function ProductPage() {
                             type="button"
                             onClick={() => { setVariantId(v.id); setCustomMode(false); setActive(0); }}
                             disabled={out}
-                            title={`${v.name}${out ? " — Out of stock" : ""}`}
+                            title={`${v.name}${out ? ` — ${t("shop.soldOutBadge", "Sold out")}` : ""}`}
                             aria-label={v.name}
                             className={`relative h-10 w-10 rounded-full border-2 transition-all ${isSel ? "border-primary ring-2 ring-primary/30 ring-offset-2 ring-offset-background" : "border-border hover:border-primary"} ${out ? "opacity-60 cursor-not-allowed" : ""}`}
                             style={{ backgroundColor: v.color_hex ?? "#ccc" }}
@@ -499,14 +507,14 @@ function ProductPage() {
                   </div>
                   {selectedVariant?.variant_type === "fabric_color" && (
                     <p className="text-sm text-muted-foreground">
-                      Selected: <span className="text-foreground font-medium">{selectedVariant.name}</span>
+                      {t("shop.selectedLabel", "Selected:")} <span className="text-foreground font-medium">{selectedVariant.name}</span>
                     </p>
                   )}
                 </div>
               )}
               {sizes.length > 0 && (
                 <div className={`space-y-2 ${variants.length === 0 ? "pt-5" : ""}`}>
-                  <Label>Size</Label>
+                  <Label>{t("shop.sizeLabel", "Size")}</Label>
                   <div className="flex flex-wrap gap-2">
                     {sizes.map((s) => (
                       <button
@@ -541,14 +549,14 @@ function ProductPage() {
               {engravingEnabled && (
                 <div className="space-y-2">
                   <Label htmlFor="engrave">
-                    Add child's name for custom engraving (optional)
+                    {t("shop.engravingLabel", "Add child's name for custom engraving (optional)")}
                     {engravingSurcharge > 0 && (
                       <span className="ml-2 text-xs text-muted-foreground">
                         +{engravingSurcharge.toLocaleString()} EGP
                       </span>
                     )}
                   </Label>
-                  <Input id="engrave" value={engraving} onChange={(e) => setEngraving(e.target.value)} maxLength={20} placeholder="e.g. Layla" />
+                  <Input id="engrave" value={engraving} onChange={(e) => setEngraving(e.target.value)} maxLength={20} placeholder={t("shop.engravingPlaceholder", "e.g. Layla")} />
                   {category?.name_engraving_note && (
                     <p className="text-xs text-muted-foreground italic">{category.name_engraving_note}</p>
                   )}
@@ -557,7 +565,7 @@ function ProductPage() {
 
               {ottomanEnabled && (
                 <div className="space-y-2">
-                  <Label>Add-on</Label>
+                  <Label>{t("shop.addOnLabel", "Add-on")}</Label>
                   <label className={`flex items-start gap-3 rounded-xl border p-4 cursor-pointer transition-colors ${withOttoman ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"}`}>
                     <input
                       type="checkbox"
@@ -567,9 +575,9 @@ function ProductPage() {
                     />
                     <div className="flex-1">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="font-medium text-sm">Include matching Ottoman Leg Rest</span>
+                        <span className="font-medium text-sm">{t("shop.ottomanTitle", "Include matching Ottoman Leg Rest")}</span>
                         <span className="text-sm text-primary font-medium">
-                          {ottomanPrice > 0 ? `+${ottomanPrice.toLocaleString()} EGP` : "Price on request"}
+                          {ottomanPrice > 0 ? `+${ottomanPrice.toLocaleString()} EGP` : t("shop.priceOnRequest", "Price on request")}
                         </span>
                       </div>
                       {category?.ottoman_addon_note && (
@@ -582,7 +590,7 @@ function ProductPage() {
 
               {portableEnabled && (
                 <div className="space-y-2">
-                  {!ottomanEnabled && <Label>Add-on</Label>}
+                  {!ottomanEnabled && <Label>{t("shop.addOnLabel", "Add-on")}</Label>}
                   <label className={`flex items-start gap-3 rounded-xl border p-4 cursor-pointer transition-colors ${withPortable ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"}`}>
                     <input
                       type="checkbox"
@@ -592,9 +600,9 @@ function ProductPage() {
                     />
                     <div className="flex-1">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="font-medium text-sm">Add a Portable Changing Table</span>
+                        <span className="font-medium text-sm">{t("shop.portableTitle", "Add a Portable Changing Table")}</span>
                         <span className="text-sm text-primary font-medium">
-                          {portablePrice > 0 ? `+${portablePrice.toLocaleString()} EGP` : "Price on request"}
+                          {portablePrice > 0 ? `+${portablePrice.toLocaleString()} EGP` : t("shop.priceOnRequest", "Price on request")}
                         </span>
                       </div>
                       {category?.portable_changing_table_note && (
@@ -607,7 +615,7 @@ function ProductPage() {
 
               {isToddlerBed && (
                 <div className="space-y-2">
-                  {!ottomanEnabled && !portableEnabled && <Label>Add-on</Label>}
+                  {!ottomanEnabled && !portableEnabled && <Label>{t("shop.addOnLabel", "Add-on")}</Label>}
                   <label className={`flex items-start gap-3 rounded-xl border p-4 cursor-pointer transition-colors ${withBedRails ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"}`}>
                     <input
                       type="checkbox"
@@ -617,10 +625,10 @@ function ProductPage() {
                     />
                     <div className="flex-1">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="font-medium text-sm">Add Bed Rails</span>
+                        <span className="font-medium text-sm">{t("shop.bedRailsTitle", "Add Bed Rails")}</span>
                         <span className="text-sm text-primary font-medium">+{BED_RAILS_PRICE.toLocaleString()} EGP</span>
                       </div>
-                      <p className="text-xs text-muted-foreground italic mt-1">Protective side rails to keep little ones safe at night.</p>
+                      <p className="text-xs text-muted-foreground italic mt-1">{t("shop.bedRailsNote", "Protective side rails to keep little ones safe at night.")}</p>
                     </div>
                   </label>
                 </div>
@@ -637,7 +645,7 @@ function ProductPage() {
                     />
                     <div className="flex-1">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="font-medium text-sm">Add Mattress ({mattressTier === "small" ? "Small" : "Big"})</span>
+                        <span className="font-medium text-sm">{mattressTier === "small" ? t("shop.mattressTitleSmall", "Add Mattress (Small)") : t("shop.mattressTitleBig", "Add Mattress (Big)")}</span>
                         <span className="text-sm text-primary font-medium">+{mattressPrice.toLocaleString()} EGP</span>
                       </div>
                       {category?.mattress_addon_note && (
@@ -650,7 +658,7 @@ function ProductPage() {
 
               {lightsEnabled && (
                 <div className="space-y-2">
-                  {!ottomanEnabled && !portableEnabled && <Label>Add-on</Label>}
+                  {!ottomanEnabled && !portableEnabled && <Label>{t("shop.addOnLabel", "Add-on")}</Label>}
                   <label className={`flex items-start gap-3 rounded-xl border p-4 cursor-pointer transition-colors ${withLights ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"}`}>
                     <input
                       type="checkbox"
@@ -660,13 +668,13 @@ function ProductPage() {
                     />
                     <div className="flex-1">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="font-medium text-sm">Add Fairy Lights</span>
+                        <span className="font-medium text-sm">{t("shop.fairyLightsTitle", "Add Fairy Lights")}</span>
                         <span className="text-sm text-primary font-medium">
-                          {lightsPrice > 0 ? `+${lightsPrice.toLocaleString()} EGP` : "Price on request"}
+                          {lightsPrice > 0 ? `+${lightsPrice.toLocaleString()} EGP` : t("shop.priceOnRequest", "Price on request")}
                         </span>
                       </div>
                       <p className="text-xs text-muted-foreground italic mt-1">
-                        {category?.lights_addon_note || "Lights and pompoms are not included with the tent."}
+                        {category?.lights_addon_note || t("shop.fairyLightsNoteDefault", "Lights and pompoms are not included with the tent.")}
                       </p>
                     </div>
                   </label>
@@ -674,11 +682,11 @@ function ProductPage() {
               )}
 
               <div className="space-y-2">
-                <Label>Quantity</Label>
+                <Label>{t("shop.quantityLabel", "Quantity")}</Label>
                 <div className="inline-flex items-center rounded-full border border-border">
                   <button
                     type="button"
-                    aria-label="Decrease quantity"
+                    aria-label={t("shop.decreaseQuantity", "Decrease quantity")}
                     onClick={() => setQty((q) => Math.max(1, q - 1))}
                     disabled={qty <= 1 || soldOut}
                     className="h-10 w-10 inline-flex items-center justify-center hover:bg-muted disabled:opacity-40 rounded-l-full"
@@ -688,7 +696,7 @@ function ProductPage() {
                   <span className="w-12 text-center text-sm tabular-nums">{qty}</span>
                   <button
                     type="button"
-                    aria-label="Increase quantity"
+                    aria-label={t("shop.increaseQuantity", "Increase quantity")}
                     onClick={() => setQty((q) => Math.min(stock || 99, q + 1))}
                     disabled={soldOut || qty >= stock}
                     className="h-10 w-10 inline-flex items-center justify-center hover:bg-muted disabled:opacity-40 rounded-r-full"
@@ -703,17 +711,17 @@ function ProductPage() {
               <div className="flex gap-3">
                 {soldOut ? (
                   <Button size="lg" className="flex-1" disabled variant="secondary">
-                    Sold Out
+                    {t("shop.soldOutButton", "Sold Out")}
                   </Button>
                 ) : (
                   <Button size="lg" className="flex-1" onClick={addToCart}>
-                    <ShoppingBag className="h-4 w-4 mr-2" /> Add to Cart
+                    <ShoppingBag className="h-4 w-4 me-2" /> {t("shop.addToCartButton", "Add to Cart")}
                   </Button>
                 )}
                 <WishlistButton productId={product.id} />
               </div>
               <Button asChild size="lg" variant="outline" className="w-full">
-                <Link to="/custom-builds">Need a specific size? Request a Custom Build</Link>
+                <Link to="/custom-builds">{t("shop.requestCustomBuild", "Need a specific size? Request a Custom Build")}</Link>
               </Button>
             </div>
 
@@ -728,16 +736,16 @@ function ProductPage() {
         <div className="mt-20">
           <Tabs defaultValue="safety">
             <TabsList>
-              <TabsTrigger value="safety">Safety & Materials</TabsTrigger>
-              <TabsTrigger value="care">Care</TabsTrigger>
-              <TabsTrigger value="reviews">Reviews</TabsTrigger>
+              <TabsTrigger value="safety">{t("shop.tabSafety", "Safety & Materials")}</TabsTrigger>
+              <TabsTrigger value="care">{t("shop.tabCare", "Care")}</TabsTrigger>
+              <TabsTrigger value="reviews">{t("shop.tabReviews", "Reviews")}</TabsTrigger>
             </TabsList>
             <TabsContent value="safety" className="pt-6 max-w-3xl space-y-4 text-foreground leading-relaxed">
-              {product.materials && (<><h3 className="font-serif text-xl">Materials</h3><p>{product.materials}</p></>)}
-              {product.safety_info && (<><h3 className="font-serif text-xl mt-6">Safety</h3><p>{product.safety_info}</p></>)}
+              {product.materials && (<><h3 className="font-serif text-xl">{t("shop.materialsHeading", "Materials")}</h3><p>{product.materials}</p></>)}
+              {product.safety_info && (<><h3 className="font-serif text-xl mt-6">{t("shop.safetyHeading", "Safety")}</h3><p>{product.safety_info}</p></>)}
             </TabsContent>
             <TabsContent value="care" className="pt-6 max-w-3xl text-foreground leading-relaxed">
-              <p>{product.care_info ?? "Wipe with a damp cloth. Keep out of direct sunlight."}</p>
+              <p>{product.care_info ?? t("shop.careInfoDefault", "Wipe with a damp cloth. Keep out of direct sunlight.")}</p>
             </TabsContent>
             <TabsContent value="reviews" className="pt-6 max-w-3xl">
               <Reviews productId={product.id} />
@@ -749,10 +757,10 @@ function ProductPage() {
           <section className="mt-24 pt-12 border-t border-border">
             <div className="flex items-end justify-between gap-4 mb-8">
               <div>
-                <p className="text-[11px] uppercase tracking-[0.28em] text-secondary mb-2">You may also like</p>
-                <h2 className="font-serif text-3xl md:text-4xl">More from this collection</h2>
+                <p className="text-[11px] uppercase tracking-[0.28em] text-secondary mb-2">{t("shop.youMayAlsoLike", "You may also like")}</p>
+                <h2 className="font-serif text-3xl md:text-4xl">{t("shop.moreFromCollection", "More from this collection")}</h2>
               </div>
-              <Link to="/shop" className="text-sm border-b border-primary pb-0.5 hover:text-primary">View all →</Link>
+              <Link to="/shop" className="text-sm border-b border-primary pb-0.5 hover:text-primary">{t("shop.viewAllArrow", "View all →")}</Link>
             </div>
             <div className="grid gap-6 grid-cols-2 lg:grid-cols-4">
               {relatedAnnotated.map((p) => <ProductCard key={p.id} product={p} />)}
@@ -765,48 +773,63 @@ function ProductPage() {
 }
 
 const AREAS = ["Cairo", "Giza", "Alexandria", "Other"] as const;
+const AREA_KEYS: Record<string, string> = {
+  Cairo: "shop.areaCairo",
+  Giza: "shop.areaGiza",
+  Alexandria: "shop.areaAlexandria",
+  Other: "shop.areaOther",
+};
 const DAYS = ["saturday","sunday","monday","tuesday","wednesday","thursday"] as const;
+const DAY_KEYS: Record<string, string> = {
+  saturday: "shop.daySaturday",
+  sunday: "shop.daySunday",
+  monday: "shop.dayMonday",
+  tuesday: "shop.dayTuesday",
+  wednesday: "shop.dayWednesday",
+  thursday: "shop.dayThursday",
+};
 const SLOTS = [
-  { value: "morning", label: "Morning (9am – 12pm)" },
-  { value: "afternoon", label: "Afternoon (12pm – 4pm)" },
-  { value: "evening", label: "Evening (4pm – 8pm)" },
+  { value: "morning", label: "Morning (9am – 12pm)", labelKey: "shop.morningSlot" },
+  { value: "afternoon", label: "Afternoon (12pm – 4pm)", labelKey: "shop.afternoonSlot" },
+  { value: "evening", label: "Evening (4pm – 8pm)", labelKey: "shop.eveningSlot" },
 ] as const;
 
 function SafetyGateRightColumn({ product }: { product: Product }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   return (
     <>
       <div>
         <div className="flex flex-wrap items-center gap-2">
           <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary text-secondary-foreground text-[11px] uppercase tracking-[0.22em]">
-            <Ruler className="h-3 w-3" /> Custom Measurement Required
+            <Ruler className="h-3 w-3" /> {t("shop.customMeasurementRequired", "Custom Measurement Required")}
           </span>
         </div>
         <h1 className="font-serif text-4xl md:text-5xl mt-5">{product.name}</h1>
         {product.tagline && <p className="mt-3 text-muted-foreground">{product.tagline}</p>}
-        <p className="mt-6 font-serif text-2xl text-primary">Price upon measurement</p>
+        <p className="mt-6 font-serif text-2xl text-primary">{t("shop.priceUponMeasurement", "Price upon measurement")}</p>
       </div>
 
       {product.description && <p className="text-foreground leading-relaxed">{product.description}</p>}
 
       <div className="rounded-2xl border border-border bg-muted/30 p-5 space-y-2">
         <p className="text-sm leading-relaxed">
-          <strong>This product requires custom measurements.</strong> Our team will visit you to measure your space and give you an exact quote.
+          <strong>{t("shop.customMeasurementNoticeStrong", "This product requires custom measurements.")}</strong> {t("shop.customMeasurementNoticeRest", "Our team will visit you to measure your space and give you an exact quote.")}
         </p>
       </div>
 
       <div className="space-y-3">
-        <p className="text-[11px] uppercase tracking-[0.22em] text-secondary">What's included</p>
+        <p className="text-[11px] uppercase tracking-[0.22em] text-secondary">{t("shop.whatsIncluded", "What's included")}</p>
         <ul className="space-y-2 text-sm">
-          <li className="flex items-start gap-2"><Check className="h-4 w-4 text-secondary mt-0.5" /> 250 EGP measurement visit</li>
-          <li className="flex items-start gap-2"><Check className="h-4 w-4 text-secondary mt-0.5" /> Expert advice on the best fit</li>
-          <li className="flex items-start gap-2"><Check className="h-4 w-4 text-secondary mt-0.5" /> Custom quote within 24 hours</li>
+          <li className="flex items-start gap-2"><Check className="h-4 w-4 text-secondary mt-0.5" /> {t("shop.measurementVisitFee", "250 EGP measurement visit")}</li>
+          <li className="flex items-start gap-2"><Check className="h-4 w-4 text-secondary mt-0.5" /> {t("shop.expertAdvice", "Expert advice on the best fit")}</li>
+          <li className="flex items-start gap-2"><Check className="h-4 w-4 text-secondary mt-0.5" /> {t("shop.customQuote24h", "Custom quote within 24 hours")}</li>
         </ul>
       </div>
 
       <div className="flex flex-col gap-3 pt-2">
         <Button size="lg" className="w-full" onClick={() => setOpen(true)}>
-          <CalendarCheck className="h-4 w-4 mr-2" /> Book your Measurement session now
+          <CalendarCheck className="h-4 w-4 me-2" /> {t("shop.bookMeasurementSession", "Book your Measurement session now")}
         </Button>
         <WishlistButton productId={product.id} />
       </div>
@@ -829,6 +852,7 @@ function MeasurementBookingDialog({
   productId: string;
   productName: string;
 }) {
+  const { t } = useI18n();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -847,10 +871,10 @@ function MeasurementBookingDialog({
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fullName.trim() || fullName.length > 100) return toast.error("Please enter your full name");
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return toast.error("Please enter a valid email address");
-    if (!/^01[0-9]{9}$/.test(phone)) return toast.error("Phone must be an 11-digit Egyptian number (01XXXXXXXXX)");
-    if (address.trim().length < 3) return toast.error("Please enter your full address");
+    if (!fullName.trim() || fullName.length > 100) return toast.error(t("shop.enterFullName", "Please enter your full name"));
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return toast.error(t("shop.enterValidEmail", "Please enter a valid email address"));
+    if (!/^01[0-9]{9}$/.test(phone)) return toast.error(t("shop.enterValidPhone", "Phone must be an 11-digit Egyptian number (01XXXXXXXXX)"));
+    if (address.trim().length < 3) return toast.error(t("shop.enterFullAddress", "Please enter your full address"));
     setSubmitting(true);
     const { data: inserted, error } = await supabase.from("measurement_bookings").insert({
       product_id: productId,
@@ -866,7 +890,7 @@ function MeasurementBookingDialog({
     }).select("id").single();
     setSubmitting(false);
     if (error) {
-      toast.error("Couldn't submit booking", { description: error.message });
+      toast.error(t("shop.couldNotSubmitBooking", "Couldn't submit booking"), { description: error.message });
       return;
     }
     if (inserted?.id) {
@@ -888,75 +912,75 @@ function MeasurementBookingDialog({
               <Sparkles className="h-6 w-6" />
             </div>
             <DialogHeader>
-              <DialogTitle className="text-center font-serif text-2xl">Thank you!</DialogTitle>
+              <DialogTitle className="text-center font-serif text-2xl">{t("shop.thankYou", "Thank you!")}</DialogTitle>
               <DialogDescription className="text-center">
-                We will contact you within 24 hours to confirm your measurement appointment.
+                {t("shop.measurementConfirmMessage", "We will contact you within 24 hours to confirm your measurement appointment.")}
               </DialogDescription>
             </DialogHeader>
-            <Button onClick={() => { reset(); onOpenChange(false); }} className="mt-2">Close</Button>
+            <Button onClick={() => { reset(); onOpenChange(false); }} className="mt-2">{t("shop.closeButton", "Close")}</Button>
           </div>
         ) : (
           <>
             <DialogHeader>
-              <DialogTitle className="font-serif text-2xl">Book a Measurement</DialogTitle>
-              <DialogDescription>For {productName}</DialogDescription>
+              <DialogTitle className="font-serif text-2xl">{t("shop.bookMeasurement", "Book a Measurement")}</DialogTitle>
+              <DialogDescription>{t("shop.forProduct", "For {name}").replace("{name}", productName)}</DialogDescription>
             </DialogHeader>
             <form onSubmit={submit} className="space-y-4 pt-2">
               <div className="space-y-1.5">
-                <Label htmlFor="mb-name">Full name</Label>
+                <Label htmlFor="mb-name">{t("shop.fullNameLabel", "Full name")}</Label>
                 <Input id="mb-name" value={fullName} onChange={(e) => setFullName(e.target.value)} maxLength={100} required />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="mb-phone">Phone number</Label>
+                <Label htmlFor="mb-phone">{t("shop.phoneNumberLabel", "Phone number")}</Label>
                 <Input id="mb-phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="01XXXXXXXXX" inputMode="tel" required />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="mb-email">Email</Label>
+                <Label htmlFor="mb-email">{t("shop.emailLabel", "Email")}</Label>
                 <Input id="mb-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" required />
               </div>
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label>Area / Governorate</Label>
+                  <Label>{t("shop.areaGovernorate", "Area / Governorate")}</Label>
                   <Select value={area} onValueChange={setArea}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {AREAS.map((a) => <SelectItem key={a} value={a}>{a}</SelectItem>)}
+                      {AREAS.map((a) => <SelectItem key={a} value={a}>{t(AREA_KEYS[a], a)}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-1.5">
-                  <Label>Preferred day</Label>
+                  <Label>{t("shop.preferredDay", "Preferred day")}</Label>
                   <Select value={day} onValueChange={setDay}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {DAYS.map((d) => <SelectItem key={d} value={d} className="capitalize">{d}</SelectItem>)}
+                      {DAYS.map((d) => <SelectItem key={d} value={d} className="capitalize">{t(DAY_KEYS[d], d)}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="mb-address">Full address</Label>
+                <Label htmlFor="mb-address">{t("shop.fullAddress", "Full address")}</Label>
                 <Textarea id="mb-address" value={address} onChange={(e) => setAddress(e.target.value)} rows={2} maxLength={500} required />
               </div>
               <div className="space-y-1.5">
-                <Label>Preferred time</Label>
+                <Label>{t("shop.preferredTime", "Preferred time")}</Label>
                 <Select value={slot} onValueChange={setSlot}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {SLOTS.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+                    {SLOTS.map((s) => <SelectItem key={s.value} value={s.value}>{t(s.labelKey, s.label)}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="mb-product">Product</Label>
+                <Label htmlFor="mb-product">{t("shop.productLabel", "Product")}</Label>
                 <Input id="mb-product" value={productName} readOnly className="bg-muted" />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="mb-notes">Notes (optional)</Label>
+                <Label htmlFor="mb-notes">{t("shop.notesOptional", "Notes (optional)")}</Label>
                 <Textarea id="mb-notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} maxLength={2000} />
               </div>
               <Button type="submit" disabled={submitting} size="lg" className="w-full">
-                {submitting ? "Submitting..." : "Confirm Booking"}
+                {submitting ? t("shop.submitting", "Submitting...") : t("shop.confirmBooking", "Confirm Booking")}
               </Button>
             </form>
           </>

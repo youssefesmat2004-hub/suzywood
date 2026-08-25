@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 const PHONE = "201096313532";
 const MESSAGE = "Hi Suzy Wood! I need help choosing a product 🪵";
 const HREF = `https://wa.me/${PHONE}?text=${encodeURIComponent(MESSAGE)}`;
 
 export function WhatsAppWidget() {
+  const { t } = useI18n();
   const [showPopup, setShowPopup] = useState(false);
 
   useEffect(() => {
@@ -25,21 +27,21 @@ export function WhatsAppWidget() {
       {showPopup && (
         <div className="relative max-w-[260px] rounded-2xl bg-card border border-border shadow-elegant p-4 pr-9 text-sm animate-[sw-float_5s_ease-in-out_infinite]">
           <button
-            aria-label="Dismiss"
+            aria-label={t("components.waDismissAria", "Dismiss")}
             onClick={dismiss}
             className="absolute right-2 top-2 rounded-full p-1 text-muted-foreground hover:text-foreground hover:bg-muted transition"
           >
             <X className="h-3.5 w-3.5" />
           </button>
-          <p className="font-serif text-base text-foreground">👋 Need help choosing?</p>
-          <p className="text-xs text-muted-foreground mt-1">Chat with us on WhatsApp — we usually reply in minutes.</p>
+          <p className="font-serif text-base text-foreground">{t("components.waNeedHelp", "👋 Need help choosing?")}</p>
+          <p className="text-xs text-muted-foreground mt-1">{t("components.waChatDesc", "Chat with us on WhatsApp — we usually reply in minutes.")}</p>
         </div>
       )}
       <a
         href={HREF}
         target="_blank"
         rel="noopener noreferrer"
-        aria-label="Chat on WhatsApp"
+        aria-label={t("components.waChatAria", "Chat on WhatsApp")}
         className="pulse-green flex h-14 w-14 items-center justify-center rounded-full text-white shadow-elegant transition-transform hover:scale-110"
         style={{ backgroundColor: "oklch(0.62 0.18 145)" }}
       >

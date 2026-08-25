@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Layout } from "@/components/site/Layout";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { ARABIC_FAQ } from "@/lib/arabic-faq";
+import { useI18n } from "@/lib/i18n";
 
 type FAQGroup = { category: string; items: { q: string; a: string }[] };
 
@@ -52,15 +53,16 @@ export const Route = createFileRoute("/faq")({
 });
 
 function FAQPage() {
+  const { t } = useI18n();
   const { groups } = Route.useLoaderData() as { groups: FAQGroup[] };
 
   return (
     <Layout>
       <section className="container mx-auto px-6 py-16 lg:py-24 max-w-3xl">
-        <h1 className="font-serif text-4xl lg:text-5xl text-center mb-3">Frequently Asked Questions</h1>
-        <p className="text-center text-muted-foreground mb-12">Everything you might want to know before you order.</p>
+        <h1 className="font-serif text-4xl lg:text-5xl text-center mb-3">{t("pages.faqHeading", "Frequently Asked Questions")}</h1>
+        <p className="text-center text-muted-foreground mb-12">{t("pages.faqSubheading", "Everything you might want to know before you order.")}</p>
         {groups.length === 0 ? (
-          <p className="text-center text-muted-foreground">No FAQs yet.</p>
+          <p className="text-center text-muted-foreground">{t("pages.faqEmpty", "No FAQs yet.")}</p>
         ) : (
           <div className="space-y-10">
             {groups.map((g) => (
@@ -80,8 +82,8 @@ function FAQPage() {
         )}
 
         <div dir="rtl" lang="ar" className="mt-16 text-right">
-          <h2 className="font-serif text-2xl mb-2">الأسئلة الشائعة بالعربية</h2>
-          <p className="text-muted-foreground mb-6">إجابات سريعة عن الطلب والتوصيل والدفع لأثاث غرف الأطفال المصنوع يدويًا في القاهرة.</p>
+          <h2 className="font-serif text-2xl mb-2">{t("pages.faqArabicHeading", "الأسئلة الشائعة بالعربية")}</h2>
+          <p className="text-muted-foreground mb-6">{t("pages.faqArabicSubheading", "إجابات سريعة عن الطلب والتوصيل والدفع لأثاث غرف الأطفال المصنوع يدويًا في القاهرة.")}</p>
           <Accordion type="single" collapsible className="rounded-2xl border border-border bg-card divide-y divide-border">
             {ARABIC_FAQ.map((it, i) => (
               <AccordionItem key={i} value={`ar-${i}`} className="border-0 px-5">

@@ -2,10 +2,12 @@ import { Instagram } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { resolveImage } from "@/lib/images";
+import { useI18n } from "@/lib/i18n";
 
 const IG_URL = "https://www.instagram.com/suzywoodofficial?igsh=MWo3MXJjM296aW9oNA==";
 
 export function InstagramStrip() {
+  const { t } = useI18n();
   const [images, setImages] = useState<string[]>([]);
 
   useEffect(() => {
@@ -33,7 +35,7 @@ export function InstagramStrip() {
   return (
     <section className="container mx-auto px-6 lg:px-10 py-20 md:py-24">
       <div className="text-center mb-10" data-reveal>
-        <p className="text-[11px] uppercase tracking-[0.32em] text-secondary mb-3">Follow our journey</p>
+        <p className="text-[11px] uppercase tracking-[0.32em] text-secondary mb-3">{t("components.igEyebrow", "Follow our journey")}</p>
         <a href={IG_URL} target="_blank" rel="noopener noreferrer" className="inline-block font-serif text-3xl md:text-4xl hover:text-primary transition-colors">
           @suzywood
         </a>
@@ -49,7 +51,7 @@ export function InstagramStrip() {
             style={{ transitionDelay: `${i * 70}ms` }}
             className="group relative aspect-square overflow-hidden rounded-xl bg-muted img-zoom"
           >
-            <img src={src} alt="Suzy Wood instagram" loading="lazy" className="h-full w-full object-cover" />
+            <img src={src} alt={t("components.igAlt", "Suzy Wood instagram")} loading="lazy" className="h-full w-full object-cover" />
             <div className="absolute inset-0 bg-wood-deep/0 group-hover:bg-wood-deep/55 transition-colors duration-300 flex items-center justify-center">
               <Instagram className="h-7 w-7 text-cream opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </div>

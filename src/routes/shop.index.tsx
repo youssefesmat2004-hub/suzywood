@@ -11,15 +11,17 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Category, Product } from "@/lib/types";
 import { PUBLIC_PRODUCT_COLUMNS } from "@/lib/types";
 import { getActiveSalePrice } from "@/lib/types";
+import { useI18n } from "@/lib/i18n";
 
 function ShopError({ error, reset }: { error: Error; reset: () => void }) {
   const router = useRouter();
+  const { t } = useI18n();
 
   return (
     <Layout>
       <div className="container mx-auto px-6 py-32 text-center">
-        <h1 className="font-serif text-4xl">The collection could not load</h1>
-        <p className="mx-auto mt-3 max-w-md text-sm text-muted-foreground">Please try again in a moment.</p>
+        <h1 className="font-serif text-4xl">{t("shop.collectionCouldNotLoad", "The collection could not load")}</h1>
+        <p className="mx-auto mt-3 max-w-md text-sm text-muted-foreground">{t("shop.tryAgainMoment", "Please try again in a moment.")}</p>
         {import.meta.env.DEV && <p className="mt-3 text-xs text-destructive">{error.message}</p>}
         <button
           type="button"
@@ -29,7 +31,7 @@ function ShopError({ error, reset }: { error: Error; reset: () => void }) {
           }}
           className="mt-6 inline-flex items-center justify-center rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
         >
-          Try again
+          {t("shop.tryAgain", "Try again")}
         </button>
       </div>
     </Layout>
@@ -37,11 +39,12 @@ function ShopError({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 function ShopNotFound() {
+  const { t } = useI18n();
   return (
     <Layout>
       <div className="container mx-auto px-6 py-32 text-center">
-        <h1 className="font-serif text-4xl">Collection not found</h1>
-        <Link to="/" className="mt-6 inline-block text-primary border-b border-primary">Return home</Link>
+        <h1 className="font-serif text-4xl">{t("shop.collectionNotFound", "Collection not found")}</h1>
+        <Link to="/" className="mt-6 inline-block text-primary border-b border-primary">{t("shop.returnHome", "Return home")}</Link>
       </div>
     </Layout>
   );
@@ -102,6 +105,7 @@ export const Route = createFileRoute("/shop/")({
 type SortKey = "newest" | "price_asc" | "price_desc";
 
 function Shop() {
+  const { t } = useI18n();
   const { categories, products } = Route.useLoaderData() as { categories: Category[]; products: Product[] };
   const [query, setQuery] = useState("");
   const [categoryId, setCategoryId] = useState<string>("all");
@@ -121,18 +125,18 @@ function Shop() {
   return (
     <Layout>
       <section className="container mx-auto px-6 lg:px-10 pt-16 pb-8">
-        <p className="text-[11px] uppercase tracking-[0.28em] text-secondary mb-3">The Collection</p>
-        <h1 className="font-serif text-5xl md:text-6xl max-w-3xl">Shop Handcrafted Nursery & Toddler Furniture</h1>
-        <p className="mt-5 max-w-xl text-muted-foreground">Choose your size, finish and personalisation. Each piece ships in 1–4 weeks, made to order.</p>
+        <p className="text-[11px] uppercase tracking-[0.28em] text-secondary mb-3">{t("shop.theCollection", "The Collection")}</p>
+        <h1 className="font-serif text-5xl md:text-6xl max-w-3xl">{t("shop.shopPageTitle", "Shop Handcrafted Nursery & Toddler Furniture")}</h1>
+        <p className="mt-5 max-w-xl text-muted-foreground">{t("shop.shopPageSubtitle", "Choose your size, finish and personalisation. Each piece ships in 1–4 weeks, made to order.")}</p>
 
-        <h2 className="sr-only">Browse our product collection</h2>
+        <h2 className="sr-only">{t("shop.browseCollection", "Browse our product collection")}</h2>
 
         <div className="mt-10 flex flex-wrap gap-2">
           <button
             onClick={() => setCategoryId("all")}
             className={`px-4 py-2 rounded-full border text-sm transition-colors ${categoryId === "all" ? "bg-primary text-primary-foreground border-primary" : "border-border hover:border-primary"}`}
           >
-            All
+            {t("shop.allCategoriesFilter", "All")}
           </button>
           {categories.map((c) => (
             <button
@@ -147,23 +151,23 @@ function Shop() {
 
         <div className="mt-6 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
           <div className="relative w-full sm:max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search products…"
-              aria-label="Search products"
-              className="pl-9"
+              placeholder={t("shop.searchProductsPlaceholder", "Search products…")}
+              aria-label={t("shop.searchProductsAria", "Search products")}
+              className="ps-9"
             />
           </div>
           <Select value={sort} onValueChange={(v) => setSort(v as SortKey)}>
             <SelectTrigger className="w-full sm:w-56">
-              <SelectValue placeholder="Sort by" />
+              <SelectValue placeholder={t("shop.sortBy", "Sort by")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="newest">Newest</SelectItem>
-              <SelectItem value="price_asc">Price: Low to High</SelectItem>
-              <SelectItem value="price_desc">Price: High to Low</SelectItem>
+              <SelectItem value="newest">{t("shop.sortNewest", "Newest")}</SelectItem>
+              <SelectItem value="price_asc">{t("shop.sortPriceAsc", "Price: Low to High")}</SelectItem>
+              <SelectItem value="price_desc">{t("shop.sortPriceDesc", "Price: High to Low")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -171,7 +175,7 @@ function Shop() {
 
       <section className="container mx-auto px-6 lg:px-10 pb-24">
         {filtered.length === 0 ? (
-          <p className="py-16 text-center text-muted-foreground">No products match your search.</p>
+          <p className="py-16 text-center text-muted-foreground">{t("shop.noProductsMatch", "No products match your search.")}</p>
         ) : (
           <div className="grid gap-6 grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filtered.map((p) => <ProductCard key={p.id} product={p} />)}

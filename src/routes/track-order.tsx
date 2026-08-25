@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Package, Check, Truck, Hammer, CreditCard, Home, Clock } from "lucide-react";
 import { toast } from "sonner";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/track-order")({
   head: () => ({
@@ -36,16 +37,18 @@ type OrderRow = {
   created_at: string;
 };
 
-const STAGES = [
-  { key: "pending_payment", label: "Pending Payment", icon: CreditCard },
-  { key: "confirmed", label: "Confirmed", icon: Check },
-  { key: "in_production", label: "In Production", icon: Hammer },
-  { key: "ready", label: "Ready", icon: Package },
-  { key: "shipped", label: "Shipped", icon: Truck },
-  { key: "delivered", label: "Delivered", icon: Home },
+const STAGE_DEFS = [
+  { key: "pending_payment", i18nKey: "stagePendingPayment", fallback: "Pending Payment", icon: CreditCard },
+  { key: "confirmed", i18nKey: "stageConfirmed", fallback: "Confirmed", icon: Check },
+  { key: "in_production", i18nKey: "stageInProduction", fallback: "In Production", icon: Hammer },
+  { key: "ready", i18nKey: "stageReady", fallback: "Ready", icon: Package },
+  { key: "shipped", i18nKey: "stageShipped", fallback: "Shipped", icon: Truck },
+  { key: "delivered", i18nKey: "stageDelivered", fallback: "Delivered", icon: Home },
 ];
 
 function TrackOrderPage() {
+  const { t } = useI18n();
+  const STAGES = STAGE_DEFS.map((s) => ({ ...s, label: t(`checkout.${s.i18nKey}`, s.fallback) }));
   const [orderNumber, setOrderNumber] = useState("");
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
@@ -61,7 +64,7 @@ function TrackOrderPage() {
     setLoading(false);
     const row = Array.isArray(data) ? data[0] : null;
     if (error || !row) {
-      toast.error("Order not found", { description: "Check your order number and phone, then try again." });
+      toast.error(t("checkout.orderNotFound", "Order not found"), { description: t("checkout.orderNotFoundDesc", "Check your order number and phone, then try again.") });
       setOrder(null);
       return;
     }
@@ -74,21 +77,21 @@ function TrackOrderPage() {
     <Layout>
       <section className="container mx-auto px-6 py-16 lg:py-24 max-w-3xl">
         <div className="text-center mb-10">
-          <h1 className="font-serif text-4xl lg:text-5xl mb-3">Track Your Order</h1>
-          <p className="text-muted-foreground">Enter your order number and phone to see live status.</p>
+          <h1 className="font-serif text-4xl lg:text-5xl mb-3">{t("checkout.trackOrderTitle", "Track Your Order")}</h1>
+          <p className="text-muted-foreground">{t("checkout.trackOrderSubtitle", "Enter your order number and phone to see live status.")}</p>
         </div>
 
         <form onSubmit={onSubmit} className="rounded-3xl border border-border bg-card p-6 sm:p-8 space-y-5">
           <div className="space-y-2">
-            <Label htmlFor="order_number">Order Number</Label>
-            <Input id="order_number" value={orderNumber} onChange={(e) => setOrderNumber(e.target.value)} placeholder="SW-260520-1234" required />
+            <Label htmlFor="order_number">{t("checkout.orderNumber", "Order Number")}</Label>
+            <Input id="order_number" value={orderNumber} onChange={(e) => setOrderNumber(e.target.value)} placeholder={t("checkout.orderNumberPlaceholder", "SW-260520-1234")} required />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="phone">Phone</Label>
-            <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="01012345678" required />
+            <Label htmlFor="phone">{t("checkout.phone", "Phone")}</Label>
+            <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={t("checkout.phonePlaceholder", "01012345678")} required />
           </div>
           <Button type="submit" size="lg" className="w-full h-12" disabled={loading}>
-            {loading ? "Looking up…" : "Track Order"}
+            {loading ? t("checkout.lookingUp", "Looking up…") : t("checkout.trackOrderButton", "Track Order")}
           </Button>
         </form>
 
@@ -96,14 +99,17 @@ function TrackOrderPage() {
           <div className="mt-10 rounded-3xl border border-border bg-card p-6 sm:p-8 space-y-6">
             <div className="flex items-start justify-between flex-wrap gap-3">
               <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Order</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{t("checkout.orderLabel", "Order")}</p>
                 <p className="font-serif text-2xl">{order.order_number}</p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Placed {new Date(order.created_at).toLocaleDateString()} · {order.shipping_city}, {order.shipping_governorate}
+                  {t("checkout.placedOn", "Placed {date} · {city}, {governorate}")
+                    .replace("{date}", new Date(order.created_at).toLocaleDateString())
+                    .replace("{city}", order.shipping_city)
+                    .replace("{governorate}", order.shipping_governorate)}
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Total</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{t("common.total", "Total")}</p>
                 <p className="font-serif text-2xl text-primary">EGP {Number(order.total).toLocaleString()}</p>
               </div>
             </div>
@@ -120,7 +126,7 @@ function TrackOrderPage() {
                     </div>
                     <div className="flex-1">
                       <div className={`font-medium ${active ? "text-primary" : ""}`}>{s.label}</div>
-                      {active && <div className="text-xs text-muted-foreground">Current status</div>}
+                      {active && <div className="text-xs text-muted-foreground">{t("checkout.currentStatus", "Current status")}</div>}
                     </div>
                     {done && !active && <Check className="h-4 w-4 text-primary" />}
                     {active && <Clock className="h-4 w-4 text-primary animate-pulse" />}
@@ -130,7 +136,7 @@ function TrackOrderPage() {
             </ol>
 
             <p className="text-xs text-muted-foreground text-center">
-              Questions? <a className="underline" href="https://wa.me/201096313532">Message us on WhatsApp</a>.
+              {t("checkout.questionsWhatsapp", "Questions? {link}.").split("{link}")[0]}<a className="underline" href="https://wa.me/201096313532">{t("checkout.messageUsWhatsapp", "Message us on WhatsApp")}</a>{t("checkout.questionsWhatsapp", "Questions? {link}.").split("{link}")[1]}
             </p>
           </div>
         )}

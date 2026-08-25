@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
+import { useI18n } from "@/lib/i18n";
 
 export function BrandLoader() {
+  const { t } = useI18n();
   const [show, setShow] = useState(true);
   const [leaving, setLeaving] = useState(false);
 
@@ -33,7 +35,7 @@ export function BrandLoader() {
         <div className="h-[2px] w-32 overflow-hidden rounded-full bg-beige">
           <div className="h-full w-1/2 animate-shimmer bg-primary/40" />
         </div>
-        <p className="text-xs uppercase tracking-[0.32em] text-muted-foreground">Handcrafted with love</p>
+        <p className="text-xs uppercase tracking-[0.32em] text-muted-foreground">{t("components.loaderTagline", "Handcrafted with love")}</p>
       </div>
     </div>
   );

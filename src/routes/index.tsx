@@ -21,6 +21,7 @@ import craft from "@/assets/craft-story.jpg";
 import heroImg from "@/assets/hero-nursery.jpg";
 import { useSiteContent } from "@/lib/site-content";
 import { useState } from "react";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -112,8 +113,10 @@ function Index() {
   const content = useSiteContent();
   const cart = useCart();
   const [wished, setWished] = useState<Set<string>>(new Set());
-  const heroTitle = content.hero_title;
-  const heroSubtitle = content.hero_subtitle || "Handmade wooden baby furniture, built to last a lifetime — delivered across Egypt.";
+  const { t, lang } = useI18n();
+  // Store-managed hero copy is authored in English; fall back to translated defaults in Arabic.
+  const heroTitle = lang === "ar" ? undefined : content.hero_title;
+  const heroSubtitle = (lang === "ar" ? "" : content.hero_subtitle) || t("shop.heroSubtitleDefault", "Handmade wooden baby furniture, built to last a lifetime — delivered across Egypt.");
 
   const quickAdd = (e: React.MouseEvent, p: Product) => {
     const sizes = asOptions(p.sizes);
@@ -140,7 +143,7 @@ function Index() {
       unitPrice: salePrice ?? p.starting_price,
       quantity: 1,
     });
-    toast.success("Added to cart", {
+    toast.success(t("shop.addedToCart", "Added to cart"), {
       description: `${p.name}${size ? ` · ${size.label}` : ""}${finish ? ` · ${finish.label}` : ""}`,
     });
   };
@@ -167,16 +170,16 @@ function Index() {
           <div className="flex flex-wrap items-end justify-between gap-6 mb-8" data-reveal>
             <div className="max-w-xl">
               <p className="text-[11px] uppercase tracking-[0.32em] text-secondary mb-3 flex items-center gap-2">
-                <Package className="h-3.5 w-3.5" /> Bundle & Save
+                <Package className="h-3.5 w-3.5" /> {t("shop.bundleAndSave", "Bundle & Save")}
               </p>
-              <h2 className="font-serif text-4xl md:text-5xl text-balance">Tent + Swing Bundle</h2>
+              <h2 className="font-serif text-4xl md:text-5xl text-balance">{t("shop.tentSwingBundleTitle", "Tent + Swing Bundle")}</h2>
               <p className="text-muted-foreground mt-3">
-                Get our cozy Teepee Tent and The Swing together for EGP 4,750 — a perfect pair for playtime.
+                {t("shop.tentSwingBundleDesc", "Get our cozy Teepee Tent and The Swing together for EGP 4,750 — a perfect pair for playtime.")}
               </p>
             </div>
             {bundle && (
               <Link to="/shop/$slug" params={{ slug: bundle.slug }} className="group inline-flex items-center gap-2 text-sm font-medium text-primary hover:gap-3 transition-all">
-                View bundle <ArrowRight className="h-4 w-4" />
+                {t("shop.viewBundle", "View bundle")} <ArrowRight className="h-4 w-4" />
               </Link>
             )}
           </div>
@@ -184,10 +187,10 @@ function Index() {
             {tent && (
               <ProductCard
                 product={tent}
-                badge={<>Tent</>}
+                badge={<>{t("shop.tentBadge", "Tent")}</>}
                 footer={
                   <Link to="/shop/$slug" params={{ slug: tent.slug }} className="mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-primary px-4 py-2.5 text-xs font-medium text-primary-foreground hover:bg-wood transition-colors">
-                    Shop Tent <ArrowRight className="h-3.5 w-3.5" />
+                    {t("shop.shopTent", "Shop Tent")} <ArrowRight className="h-3.5 w-3.5" />
                   </Link>
                 }
               />
@@ -195,17 +198,17 @@ function Index() {
             {swing && (
               <ProductCard
                 product={swing}
-                badge={<>Swing</>}
+                badge={<>{t("shop.swingBadge", "Swing")}</>}
                 footer={
                   <Link to="/shop/$slug" params={{ slug: swing.slug }} className="mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-primary px-4 py-2.5 text-xs font-medium text-primary-foreground hover:bg-wood transition-colors">
-                    Shop Swing <ArrowRight className="h-3.5 w-3.5" />
+                    {t("shop.shopSwing", "Shop Swing")} <ArrowRight className="h-3.5 w-3.5" />
                   </Link>
                 }
               />
             )}
             {bundle && (
               <div className="sm:col-span-2 lg:col-span-1">
-                <ProductCard product={bundle} badge={<>Bundle & Save</>} />
+                <ProductCard product={bundle} badge={<>{t("shop.bundleBadge", "Bundle & Save")}</>} />
               </div>
             )}
           </div>
@@ -216,12 +219,12 @@ function Index() {
       <section className="container mx-auto px-6 lg:px-10 py-20 md:py-28">
         <div className="flex flex-wrap items-end justify-between gap-6 mb-12" data-reveal>
           <div className="max-w-xl">
-            <p className="text-[11px] uppercase tracking-[0.32em] text-secondary mb-3">Featured</p>
-            <h2 className="font-serif text-4xl md:text-5xl text-balance">Our Most Loved Pieces</h2>
-            <p className="text-muted-foreground mt-3">Premium quality Furniture, made by hand, chosen by families across Egypt.</p>
+            <p className="text-[11px] uppercase tracking-[0.32em] text-secondary mb-3">{t("shop.featuredLabel", "Featured")}</p>
+            <h2 className="font-serif text-4xl md:text-5xl text-balance">{t("shop.mostLovedTitle", "Our Most Loved Pieces")}</h2>
+            <p className="text-muted-foreground mt-3">{t("shop.mostLovedSubtitle", "Premium quality Furniture, made by hand, chosen by families across Egypt.")}</p>
           </div>
           <Link to="/shop" className="group inline-flex items-center gap-2 text-sm font-medium text-primary hover:gap-3 transition-all">
-            View all <ArrowRight className="h-4 w-4" />
+            {t("common.viewAll", "View all")} <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
 
@@ -249,25 +252,25 @@ function Index() {
                     className="h-full w-full object-cover"
                   />
                   {isOnSale && (
-                    <span className="absolute top-3 left-3 rounded-full bg-destructive text-destructive-foreground text-[10px] uppercase tracking-[0.18em] px-3 py-1 shadow-card">
-                      Sale — Save 33%
+                    <span className="absolute top-3 start-3 rounded-full bg-destructive text-destructive-foreground text-[10px] uppercase tracking-[0.18em] px-3 py-1 shadow-card">
+                      {t("shop.saleSave33", "Sale — Save 33%")}
                     </span>
                   )}
                   <button
                     type="button"
                     onClick={(e) => toggleWish(e, p)}
-                    aria-label={isWished ? `Remove ${p.name} from wishlist` : `Add ${p.name} to wishlist`}
-                    className="absolute top-3 right-3 inline-flex items-center justify-center rounded-full bg-cream/90 backdrop-blur h-9 w-9 text-wood-deep shadow-soft hover:scale-110 transition-transform"
+                    aria-label={isWished ? t("shop.removeFromWishlist", "Remove {name} from wishlist").replace("{name}", p.name) : t("shop.addToWishlist", "Add {name} to wishlist").replace("{name}", p.name)}
+                    className="absolute top-3 end-3 inline-flex items-center justify-center rounded-full bg-cream/90 backdrop-blur h-9 w-9 text-wood-deep shadow-soft hover:scale-110 transition-transform"
                   >
                     <Heart className={`h-4 w-4 ${isWished ? "fill-current text-primary" : ""}`} />
                   </button>
                   <button
                     type="button"
                     onClick={(e) => quickAdd(e, p)}
-                    aria-label={hasVariants ? `Choose size for ${p.name}` : `Add ${p.name} to cart`}
-                    className="absolute bottom-3 left-3 right-3 inline-flex items-center justify-center gap-1.5 rounded-full bg-primary px-4 py-2.5 text-xs font-medium text-primary-foreground shadow-elegant opacity-0 translate-y-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0 hover:bg-wood focus:opacity-100 focus:translate-y-0"
+                    aria-label={hasVariants ? t("shop.chooseSizeFor", "Choose size for {name}").replace("{name}", p.name) : t("shop.addToCartFor", "Add {name} to cart").replace("{name}", p.name)}
+                    className="absolute bottom-3 start-3 end-3 inline-flex items-center justify-center gap-1.5 rounded-full bg-primary px-4 py-2.5 text-xs font-medium text-primary-foreground shadow-elegant opacity-0 translate-y-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0 hover:bg-wood focus:opacity-100 focus:translate-y-0"
                   >
-                    <Plus className="h-3.5 w-3.5" /> {hasVariants ? "Select Size" : "Add to Cart"}
+                    <Plus className="h-3.5 w-3.5" /> {hasVariants ? t("shop.selectSize", "Select Size") : t("common.addToCart", "Add to Cart")}
                   </button>
                 </div>
                 <div className="p-5">
@@ -300,14 +303,13 @@ function Index() {
             <img src={craft} alt="Suzy Wood carpenter hand-shaping a solid wood nursery panel in the Cairo workshop" loading="lazy" className="h-full w-full object-cover" />
           </div>
           <div data-reveal className="space-y-6 order-1 lg:order-2 lg:pl-8">
-            <p className="text-[11px] uppercase tracking-[0.32em] text-secondary">Our Craft</p>
-            <h2 className="font-serif text-4xl md:text-5xl text-balance">Premium quality furniture with reasonable pricing, made the slow way.</h2>
+            <p className="text-[11px] uppercase tracking-[0.32em] text-secondary">{t("shop.ourCraftLabel", "Our Craft")}</p>
+            <h2 className="font-serif text-4xl md:text-5xl text-balance">{t("shop.craftTitle", "Premium quality furniture with reasonable pricing, made the slow way.")}</h2>
             <p className="text-muted-foreground leading-relaxed">
-              Every Suzy Wood piece is hand-joined from solid timber by a small team of carpenters in Cairo.
-              We use plant-based Premium finishes and rounded edges throughout - safe enough for the tiniest hands.
+              {t("shop.craftDesc", "Every Suzy Wood piece is hand-joined from solid timber by a small team of carpenters in Cairo. We use plant-based Premium finishes and rounded edges throughout - safe enough for the tiniest hands.")}
             </p>
             <Button asChild variant="outline" className="border-wood-deep text-wood-deep hover:bg-wood-deep hover:text-cream">
-              <Link to="/our-craft">Read our story</Link>
+              <Link to="/our-craft">{t("shop.readOurStory", "Read our story")}</Link>
             </Button>
           </div>
         </div>
