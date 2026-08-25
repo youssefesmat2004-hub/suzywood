@@ -150,9 +150,11 @@ function CategoriesPage() {
       lights_addon_enabled: false,
       lights_addon_price: 0,
       lights_addon_note: null,
+      lights_addon_carpenter_cost: 0,
       pompom_addon_enabled: false,
       pompom_addon_price: 0,
       pompom_addon_note: null,
+      pompom_addon_carpenter_cost: 0,
     });
     setOpen(true);
   };
