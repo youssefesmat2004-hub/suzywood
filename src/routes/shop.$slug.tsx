@@ -709,7 +709,7 @@ function ProductPage() {
                         setWithPompoms(e.target.checked);
                         if (!e.target.checked) {
                           const isColor = variants.find((v) => v.id === variantId)?.variant_type === "fabric_color";
-                          if (isColor) { setVariantId(null); setActive(0); }
+                          if (isColor) { setVariantId(""); setActive(0); }
                         }
                       }}
                     />
