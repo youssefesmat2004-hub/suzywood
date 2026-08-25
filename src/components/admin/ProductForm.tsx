@@ -643,6 +643,10 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
                   <Input type="number" min={0} value={variant.price} onChange={(e) => setVariants((p) => p.map((x, i) => i === idx ? { ...x, price: Number(e.target.value) } : x))} />
                 </div>
                 <div className="sm:col-span-2 space-y-1">
+                  <Label className="text-xs">Sale Price</Label>
+                  <Input type="number" min={0} value={variant.sale_price ?? ""} placeholder="Optional" onChange={(e) => setVariants((p) => p.map((x, i) => i === idx ? { ...x, sale_price: e.target.value ? Number(e.target.value) : null } : x))} />
+                </div>
+                <div className="sm:col-span-2 space-y-1">
                   <Label className="text-xs">Stock</Label>
                   <Input type="number" min={0} value={variant.stock_quantity} onChange={(e) => setVariants((p) => p.map((x, i) => i === idx ? { ...x, stock_quantity: Number(e.target.value) } : x))} />
                 </div>
