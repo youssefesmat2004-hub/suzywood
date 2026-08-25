@@ -4,21 +4,24 @@ import { useState } from "react";
 import { Logo } from "./Logo";
 import { useCart } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
+import { useI18n } from "@/lib/i18n";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 
 const nav = [
-  { to: "/", label: "Home" },
-  { to: "/shop", label: "Shop" },
-  { to: "/our-craft", label: "Our Craft" },
-  { to: "/custom-builds", label: "Custom Builds" },
-  { to: "/book", label: "Book a Session" },
-  { to: "/faq", label: "FAQ" },
-  { to: "/contact", label: "Contact" },
+  { to: "/", key: "nav.home", label: "Home" },
+  { to: "/shop", key: "nav.shop", label: "Shop" },
+  { to: "/our-craft", key: "nav.ourCraft", label: "Our Craft" },
+  { to: "/custom-builds", key: "nav.customBuilds", label: "Custom Builds" },
+  { to: "/book", key: "nav.bookSession", label: "Book a Session" },
+  { to: "/faq", key: "nav.faq", label: "FAQ" },
+  { to: "/contact", key: "nav.contact", label: "Contact" },
 ] as const;
 
 export function Header() {
   const [open, setOpen] = useState(false);
   const { count } = useCart();
   const { user } = useAuth();
+  const { t } = useI18n();
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/30 bg-background">
@@ -33,15 +36,16 @@ export function Header() {
               activeProps={{ className: "text-primary font-medium" }}
               activeOptions={{ exact: item.to === "/" }}
             >
-              {item.label}
+              {t(item.key, item.label)}
             </Link>
           ))}
         </nav>
         <div className="flex items-center gap-2">
+          <LanguageSwitcher className="hidden sm:inline-flex" />
           {user && (
             <Link
               to="/wishlist"
-              aria-label="Wishlist"
+              aria-label={t("nav.wishlist", "Wishlist")}
               className="hidden sm:flex h-10 w-10 items-center justify-center rounded-full border border-border hover:bg-muted transition-colors"
             >
               <Heart className="h-4 w-4" />
@@ -49,14 +53,14 @@ export function Header() {
           )}
           <Link
             to={user ? "/account" : "/auth"}
-            aria-label="Account"
+            aria-label={t("nav.account", "Account")}
             className="hidden sm:flex h-10 w-10 items-center justify-center rounded-full border border-border hover:bg-muted transition-colors"
           >
             <User className="h-4 w-4" />
           </Link>
           <Link
             to="/cart"
-            aria-label="Cart"
+            aria-label={t("nav.cart", "Cart")}
             className="relative flex h-10 w-10 items-center justify-center rounded-full border border-border hover:bg-muted transition-colors"
           >
             <ShoppingBag className="h-4 w-4" />
@@ -67,7 +71,7 @@ export function Header() {
             )}
           </Link>
           <button
-            aria-label="Menu"
+            aria-label={t("nav.menu", "Menu")}
             className="lg:hidden flex h-10 w-10 items-center justify-center rounded-full border border-border"
             onClick={() => setOpen((o) => !o)}
           >
@@ -87,17 +91,20 @@ export function Header() {
                 activeProps={{ className: "text-primary font-medium" }}
                 activeOptions={{ exact: item.to === "/" }}
               >
-                {item.label}
+                {t(item.key, item.label)}
               </Link>
             ))}
             <Link to={user ? "/account" : "/auth"} onClick={() => setOpen(false)} className="py-3 text-sm text-foreground">
-              {user ? "My Account" : "Sign In"}
+              {user ? t("nav.myAccount", "My Account") : t("nav.signIn", "Sign In")}
             </Link>
             {user && (
               <Link to="/wishlist" onClick={() => setOpen(false)} className="py-3 text-sm text-foreground">
-                Wishlist
+                {t("nav.wishlist", "Wishlist")}
               </Link>
             )}
+            <div className="pt-3 sm:hidden">
+              <LanguageSwitcher />
+            </div>
           </nav>
         </div>
       )}

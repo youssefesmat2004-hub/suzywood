@@ -5,18 +5,20 @@ import { CartProvider } from "@/lib/cart";
 import { BrandLoader } from "@/components/site/BrandLoader";
 import { WhatsAppWidget } from "@/components/site/WhatsAppWidget";
 import { useReveal } from "@/hooks/use-reveal";
+import { I18nProvider, useI18n } from "@/lib/i18n";
 
 import appCss from "../styles.css?url";
 
 function NotFoundComponent() {
+  const { t } = useI18n();
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="font-serif text-7xl text-primary">404</h1>
-        <h2 className="mt-4 text-xl font-serif">Page not found</h2>
-        <p className="mt-2 text-sm text-muted-foreground">The page you're looking for doesn't exist.</p>
+        <h2 className="mt-4 text-xl font-serif">{t("pages.notFoundTitle", "Page not found")}</h2>
+        <p className="mt-2 text-sm text-muted-foreground">{t("pages.notFoundDesc", "The page you're looking for doesn't exist.")}</p>
         <div className="mt-6">
-          <Link to="/" className="inline-flex items-center justify-center rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90">Return Home</Link>
+          <Link to="/" className="inline-flex items-center justify-center rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90">{t("pages.notFoundReturnHome", "Return Home")}</Link>
         </div>
       </div>
     </div>
@@ -43,6 +45,10 @@ export const Route = createRootRoute({
       {
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap",
+      },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap",
       },
       { rel: "stylesheet", href: appCss },
       { rel: "manifest", href: "/manifest.webmanifest" },
@@ -84,13 +90,15 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   useReveal();
   return (
-    <AuthProvider>
+    <I18nProvider>
+      <AuthProvider>
       <CartProvider>
         <BrandLoader />
         <Outlet />
         <WhatsAppWidget />
         <Toaster />
       </CartProvider>
-    </AuthProvider>
+      </AuthProvider>
+    </I18nProvider>
   );
 }

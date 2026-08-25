@@ -204,3 +204,30 @@
   @keyframes sw-fade-out { to { opacity: 0; visibility: hidden; } }
   .loading-fade-out { animation: sw-fade-out .6s ease-out forwards; }
 }
+
+/* ---- Arabic / RTL support ---------------------------------------------- */
+html[dir="rtl"] {
+  --font-sans: 'Cairo', 'Tajawal', ui-sans-serif, system-ui, sans-serif;
+  --font-serif: 'Cairo', 'Tajawal', ui-serif, Georgia, serif;
+}
+html[dir="rtl"] body,
+html[dir="rtl"] .font-serif,
+html[dir="rtl"] .font-sans {
+  font-family: 'Cairo', 'Tajawal', ui-sans-serif, system-ui, sans-serif;
+}
+html[dir="rtl"] body {
+  letter-spacing: 0 !important;
+}
+html[dir="rtl"] [class*="tracking-"] {
+  letter-spacing: 0 !important;
+}
+/* Mirror directional icons (arrows, chevrons) in RTL */
+html[dir="rtl"] .rtl-flip,
+html[dir="rtl"] svg.lucide-arrow-right,
+html[dir="rtl"] svg.lucide-arrow-left,
+html[dir="rtl"] svg.lucide-chevron-right,
+html[dir="rtl"] svg.lucide-chevron-left,
+html[dir="rtl"] svg.lucide-move-right,
+html[dir="rtl"] svg.lucide-move-left {
+  transform: scaleX(-1);
+}

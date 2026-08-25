@@ -4,6 +4,7 @@ import { ProductCard } from "@/components/site/ProductCard";
 import { supabase } from "@/integrations/supabase/client";
 import type { Category, Product } from "@/lib/types";
 import { PUBLIC_PRODUCT_COLUMNS } from "@/lib/types";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/shop/category/$slug")({
   loader: async ({ params }) => {
@@ -69,29 +70,33 @@ export const Route = createFileRoute("/shop/category/$slug")({
     };
   },
   component: CategoryPage,
-  notFoundComponent: () => (
-    <Layout>
-      <div className="container mx-auto px-6 py-32 text-center">
-        <h1 className="font-serif text-4xl">Category not found</h1>
-        <Link to="/shop" className="mt-6 inline-block text-primary border-b border-primary">Back to shop</Link>
-      </div>
-    </Layout>
-  ),
+  notFoundComponent: () => {
+    const { t } = useI18n();
+    return (
+      <Layout>
+        <div className="container mx-auto px-6 py-32 text-center">
+          <h1 className="font-serif text-4xl">{t("shop.categoryNotFound", "Category not found")}</h1>
+          <Link to="/shop" className="mt-6 inline-block text-primary border-b border-primary">{t("shop.backToShop", "Back to shop")}</Link>
+        </div>
+      </Layout>
+    );
+  },
 });
 
 function CategoryPage() {
+  const { t } = useI18n();
   const { category, products } = Route.useLoaderData() as { category: Category; products: Product[] };
   return (
     <Layout>
       <section className="container mx-auto px-6 lg:px-10 pt-16 pb-8">
-        <Link to="/shop" className="text-xs uppercase tracking-[0.22em] text-muted-foreground hover:text-primary">← All categories</Link>
+        <Link to="/shop" className="text-xs uppercase tracking-[0.22em] text-muted-foreground hover:text-primary">{t("shop.allCategories", "← All categories")}</Link>
         <h1 className="font-serif text-5xl md:text-6xl mt-4">{category.name}</h1>
         {category.description && <p className="mt-4 max-w-2xl text-muted-foreground">{category.description}</p>}
       </section>
       <section className="container mx-auto px-6 lg:px-10 pb-24">
-        <h2 className="sr-only">{category.name} collection</h2>
+        <h2 className="sr-only">{category.name} {t("shop.categoryCollectionSuffix", "collection")}</h2>
         {products.length === 0 ? (
-          <p className="text-muted-foreground">New pieces in this category coming soon.</p>
+          <p className="text-muted-foreground">{t("shop.collectionComingSoon", "New pieces in this category coming soon.")}</p>
         ) : (
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             {products.map((p) => <ProductCard key={p.id} product={p} />)}

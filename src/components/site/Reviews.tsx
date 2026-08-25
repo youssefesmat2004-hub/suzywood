@@ -9,8 +9,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { StarRating } from "./StarRating";
 import { toast } from "sonner";
 import type { Review } from "@/lib/types";
+import { useI18n } from "@/lib/i18n";
 
 export function Reviews({ productId }: { productId: string }) {
+  const { t } = useI18n();
   const { user } = useAuth();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,9 +48,9 @@ export function Reviews({ productId }: { productId: string }) {
     );
     setSubmitting(false);
     if (error) {
-      toast.error("Couldn't save your review", { description: error.message });
+      toast.error(t("shop.couldNotSaveReview", "Couldn't save your review"), { description: error.message });
     } else {
-      toast.success("Thank you for your review");
+      toast.success(t("shop.thankYouForReview", "Thank you for your review"));
       setTitle(""); setBody(""); setRating(5);
       load();
     }
@@ -59,41 +61,43 @@ export function Reviews({ productId }: { productId: string }) {
       <div className="flex items-center gap-4">
         <StarRating value={avg} size="md" />
         <span className="text-sm text-muted-foreground">
-          {reviews.length === 0 ? "No reviews yet" : `${avg.toFixed(1)} · ${reviews.length} review${reviews.length === 1 ? "" : "s"}`}
+          {reviews.length === 0
+            ? t("shop.noReviewsYet", "No reviews yet")
+            : `${avg.toFixed(1)} · ${reviews.length} ${reviews.length === 1 ? t("shop.reviewSingular", "review") : t("shop.reviewPlural", "reviews")}`}
         </span>
       </div>
 
       {user ? (
         <form onSubmit={submit} className="space-y-4 bg-muted/40 border border-border rounded-2xl p-6">
-          <p className="font-serif text-xl">{myReview ? "Update your review" : "Write a review"}</p>
+          <p className="font-serif text-xl">{myReview ? t("shop.updateYourReview", "Update your review") : t("shop.writeAReview", "Write a review")}</p>
           <div className="flex items-center gap-2">
             {[1, 2, 3, 4, 5].map((i) => (
-              <button type="button" key={i} onClick={() => setRating(i)} aria-label={`${i} stars`}>
+              <button type="button" key={i} onClick={() => setRating(i)} aria-label={t("shop.starsAria", "{n} stars").replace("{n}", String(i))}>
                 <span className={`text-2xl ${i <= rating ? "text-secondary" : "text-muted-foreground"}`}>★</span>
               </button>
             ))}
           </div>
           <div className="space-y-1">
-            <Label htmlFor="title">Title</Label>
+            <Label htmlFor="title">{t("shop.reviewTitleLabel", "Title")}</Label>
             <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={120} required />
           </div>
           <div className="space-y-1">
-            <Label htmlFor="body">Your experience</Label>
+            <Label htmlFor="body">{t("shop.yourExperienceLabel", "Your experience")}</Label>
             <Textarea id="body" value={body} onChange={(e) => setBody(e.target.value)} maxLength={1000} rows={4} required />
           </div>
-          <Button type="submit" disabled={submitting}>{submitting ? "Saving…" : "Submit review"}</Button>
+          <Button type="submit" disabled={submitting}>{submitting ? t("shop.savingEllipsis", "Saving…") : t("shop.submitReview", "Submit review")}</Button>
         </form>
       ) : (
         <div className="bg-muted/40 border border-border rounded-2xl p-6 text-sm text-muted-foreground">
-          <Link to="/auth" className="text-primary border-b border-primary">Sign in</Link> to write a review.
+          <Link to="/auth" className="text-primary border-b border-primary">{t("shop.signInLink", "Sign in")}</Link> {t("shop.toWriteAReview", "to write a review.")}
         </div>
       )}
 
       <div className="space-y-6">
         {loading ? (
-          <p className="text-sm text-muted-foreground">Loading reviews…</p>
+          <p className="text-sm text-muted-foreground">{t("shop.loadingReviews", "Loading reviews…")}</p>
         ) : reviews.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Be the first to share your experience.</p>
+          <p className="text-sm text-muted-foreground">{t("shop.beFirstToShare", "Be the first to share your experience.")}</p>
         ) : (
           reviews.map((r) => (
             <div key={r.id} className="border-t border-border pt-6">

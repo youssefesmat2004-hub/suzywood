@@ -4,8 +4,10 @@ import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
+import { useI18n } from "@/lib/i18n";
 
 export function WishlistButton({ productId }: { productId: string }) {
+  const { t } = useI18n();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [active, setActive] = useState(false);
@@ -31,10 +33,10 @@ export function WishlistButton({ productId }: { productId: string }) {
     if (active) {
       await supabase.from("wishlist_items").delete().eq("user_id", user.id).eq("product_id", productId);
       setActive(false);
-      toast("Removed from wishlist");
+      toast(t("components.wbRemoved", "Removed from wishlist"));
     } else {
       const { error } = await supabase.from("wishlist_items").insert({ user_id: user.id, product_id: productId });
-      if (!error) { setActive(true); toast.success("Saved to wishlist"); }
+      if (!error) { setActive(true); toast.success(t("components.wbSaved", "Saved to wishlist")); }
     }
     setLoading(false);
   };
@@ -44,7 +46,7 @@ export function WishlistButton({ productId }: { productId: string }) {
       type="button"
       onClick={toggle}
       disabled={loading}
-      aria-label="Toggle wishlist"
+      aria-label={t("components.wbToggleAria", "Toggle wishlist")}
       className="flex h-12 w-12 items-center justify-center rounded-md border border-border hover:bg-muted transition-colors"
     >
       <Heart className={`h-5 w-5 ${active ? "fill-destructive text-destructive" : ""}`} />

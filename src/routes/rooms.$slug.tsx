@@ -3,6 +3,7 @@ import { Layout } from "@/components/site/Layout";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { getRoom, rooms, type Room } from "@/lib/rooms";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/rooms/$slug")({
   loader: ({ params }) => {
@@ -40,30 +41,37 @@ export const Route = createFileRoute("/rooms/$slug")({
       ],
     };
   },
-  notFoundComponent: () => (
-    <Layout>
-      <div className="container mx-auto px-6 lg:px-10 py-24 text-center">
-        <h1 className="font-serif text-4xl mb-3">Room not found</h1>
-        <p className="text-muted-foreground mb-6">This room doesn't exist.</p>
-        <Button asChild>
-          <Link to="/">Back to home</Link>
-        </Button>
-      </div>
-    </Layout>
-  ),
-  errorComponent: ({ error, reset }) => (
-    <Layout>
-      <div className="container mx-auto px-6 lg:px-10 py-24 text-center">
-        <h1 className="font-serif text-4xl mb-3">Something went wrong</h1>
-        <p className="text-muted-foreground mb-6">{error.message}</p>
-        <Button onClick={() => reset()}>Try again</Button>
-      </div>
-    </Layout>
-  ),
+  notFoundComponent: () => {
+    const { t } = useI18n();
+    return (
+      <Layout>
+        <div className="container mx-auto px-6 lg:px-10 py-24 text-center">
+          <h1 className="font-serif text-4xl mb-3">{t("shop.roomNotFound", "Room not found")}</h1>
+          <p className="text-muted-foreground mb-6">{t("shop.roomNotFoundDesc", "This room doesn't exist.")}</p>
+          <Button asChild>
+            <Link to="/">{t("shop.backToHome", "Back to home")}</Link>
+          </Button>
+        </div>
+      </Layout>
+    );
+  },
+  errorComponent: ({ error, reset }) => {
+    const { t } = useI18n();
+    return (
+      <Layout>
+        <div className="container mx-auto px-6 lg:px-10 py-24 text-center">
+          <h1 className="font-serif text-4xl mb-3">{t("shop.somethingWentWrong", "Something went wrong")}</h1>
+          <p className="text-muted-foreground mb-6">{error.message}</p>
+          <Button onClick={() => reset()}>{t("shop.tryAgain", "Try again")}</Button>
+        </div>
+      </Layout>
+    );
+  },
   component: RoomPage,
 });
 
 function RoomPage() {
+  const { t } = useI18n();
   const { room } = Route.useLoaderData() as { room: Room };
   const others = rooms.filter((r) => r.slug !== room.slug);
 
@@ -75,11 +83,11 @@ function RoomPage() {
           hash="whole-rooms"
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-8"
         >
-          <ArrowLeft className="h-4 w-4" /> All rooms
+          <ArrowLeft className="h-4 w-4" /> {t("shop.allRooms", "All rooms")}
         </Link>
 
         <div className="max-w-2xl mb-10">
-          <p className="text-[11px] uppercase tracking-[0.32em] text-secondary mb-3">Whole Room</p>
+          <p className="text-[11px] uppercase tracking-[0.32em] text-secondary mb-3">{t("shop.wholeRoomLabel", "Whole Room")}</p>
           <h1 className="font-serif text-4xl md:text-6xl text-balance">{room.name}</h1>
           <p className="text-muted-foreground mt-4 text-lg">{room.description}</p>
         </div>
@@ -104,7 +112,7 @@ function RoomPage() {
 
         {others.length > 0 && (
           <div className="mt-20">
-            <h2 className="font-serif text-2xl md:text-3xl mb-6">Other rooms</h2>
+            <h2 className="font-serif text-2xl md:text-3xl mb-6">{t("shop.otherRooms", "Other rooms")}</h2>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {others.map((r) => (
                 <Link
@@ -118,7 +126,7 @@ function RoomPage() {
                   </div>
                   <div className="p-5">
                     <h3 className="font-serif text-lg">{r.name}</h3>
-                    <p className="text-xs text-muted-foreground mt-1">{r.images.length} photos</p>
+                    <p className="text-xs text-muted-foreground mt-1">{t("shop.photosCount", "{count} photos").replace("{count}", String(r.images.length))}</p>
                   </div>
                 </Link>
               ))}

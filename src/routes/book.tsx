@@ -14,6 +14,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Check, Clock, Heart } from "lucide-react";
 import { toast } from "sonner";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/book")({
   head: () => ({
@@ -30,31 +31,32 @@ export const Route = createFileRoute("/book")({
 const ADMIN_WHATSAPP = "201096313532";
 
 const DAYS = [
-  { value: "saturday", label: "Saturday" },
-  { value: "sunday", label: "Sunday" },
-  { value: "monday", label: "Monday" },
-  { value: "tuesday", label: "Tuesday" },
-  { value: "wednesday", label: "Wednesday" },
-  { value: "thursday", label: "Thursday" },
+  { value: "saturday", labelKey: "pages.bookDaySaturday", label: "Saturday" },
+  { value: "sunday", labelKey: "pages.bookDaySunday", label: "Sunday" },
+  { value: "monday", labelKey: "pages.bookDayMonday", label: "Monday" },
+  { value: "tuesday", labelKey: "pages.bookDayTuesday", label: "Tuesday" },
+  { value: "wednesday", labelKey: "pages.bookDayWednesday", label: "Wednesday" },
+  { value: "thursday", labelKey: "pages.bookDayThursday", label: "Thursday" },
 ] as const;
 
 const SLOTS = [
-  { value: "morning", label: "Morning (9am – 12pm)" },
-  { value: "afternoon", label: "Afternoon (12pm – 4pm)" },
-  { value: "evening", label: "Evening (4pm – 8pm)" },
+  { value: "morning", labelKey: "pages.bookSlotMorning", label: "Morning (9am – 12pm)" },
+  { value: "afternoon", labelKey: "pages.bookSlotAfternoon", label: "Afternoon (12pm – 4pm)" },
+  { value: "evening", labelKey: "pages.bookSlotEvening", label: "Evening (4pm – 8pm)" },
 ] as const;
 
 const schema = z.object({
-  full_name: z.string().trim().min(1, "Please enter your full name").max(100),
-  phone: z.string().trim().regex(/^01[0-9]{9}$/, "Egyptian phone format, e.g. 01012345678"),
-  customer_email: z.string().trim().email("Enter a valid email").max(255).optional().or(z.literal("")),
-  contact_method: z.enum(["whatsapp", "phone"], { required_error: "Choose a contact method" }),
-  preferred_day: z.enum(["saturday","sunday","monday","tuesday","wednesday","thursday"], { required_error: "Choose a day" }),
-  time_slot: z.enum(["morning","afternoon","evening"], { required_error: "Choose a time slot" }),
+  full_name: z.string().trim().min(1, "pages.bookNameRequired").max(100),
+  phone: z.string().trim().regex(/^01[0-9]{9}$/, "pages.bookPhoneFormat"),
+  customer_email: z.string().trim().email("pages.bookEmailInvalid").max(255).optional().or(z.literal("")),
+  contact_method: z.enum(["whatsapp", "phone"], { required_error: "pages.bookChooseContactMethod" }),
+  preferred_day: z.enum(["saturday","sunday","monday","tuesday","wednesday","thursday"], { required_error: "pages.bookChooseDay" }),
+  time_slot: z.enum(["morning","afternoon","evening"], { required_error: "pages.bookChooseTimeSlot" }),
   notes: z.string().trim().max(2000).optional(),
 });
 
 function BookPage() {
+  const { t } = useI18n();
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState<{ method: string } | null>(null);
   const notifyOwner = useServerFn(notifyOwnerNewBooking);
@@ -76,7 +78,8 @@ function BookPage() {
     e.preventDefault();
     const parsed = schema.safeParse({ ...form, customer_email: form.customer_email || undefined, notes: form.notes || undefined });
     if (!parsed.success) {
-      toast.error(parsed.error.issues[0]?.message ?? "Please complete the form");
+      const msgKey = parsed.error.issues[0]?.message;
+      toast.error(msgKey ? t(msgKey, "Please complete the form") : t("pages.bookPleaseComplete", "Please complete the form"));
       return;
     }
     setSubmitting(true);
@@ -91,7 +94,7 @@ function BookPage() {
     } }).catch(() => null);
     setSubmitting(false);
     if (!res || !res.ok) {
-      toast.error("Couldn't submit your booking. Please try again.");
+      toast.error(t("pages.bookCouldntSubmit", "Couldn't submit your booking. Please try again."));
       return;
     }
 
@@ -105,7 +108,7 @@ function BookPage() {
     // Open WhatsApp pre-filled message to admin (click-to-send)
     const dayLabel = DAYS.find((d) => d.value === parsed.data.preferred_day)?.label ?? parsed.data.preferred_day;
     const slotLabel = SLOTS.find((s) => s.value === parsed.data.time_slot)?.label ?? parsed.data.time_slot;
-    const methodLabel = parsed.data.contact_method === "whatsapp" ? "WhatsApp" : "Phone Call";
+    const methodLabel = parsed.data.contact_method === "whatsapp" ? t("pages.bookMethodWhatsapp", "WhatsApp") : t("pages.bookMethodPhoneCall", "Phone Call");
     const message = [
       "🪴 *New Free Session Booking — Suzy Wood*",
       "",
@@ -129,12 +132,12 @@ function BookPage() {
           <div className="mx-auto h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-6">
             <Check className="h-8 w-8 text-primary" />
           </div>
-          <h1 className="font-serif text-4xl mb-4">Thank you!</h1>
+          <h1 className="font-serif text-4xl mb-4">{t("pages.bookThankYou", "Thank you!")}</h1>
           <p className="text-lg text-muted-foreground mb-8">
-            We will contact you shortly via <span className="text-foreground font-medium">{done.method}</span>.
+            {t("pages.bookWeWillContact", "We will contact you shortly via")} <span className="text-foreground font-medium">{done.method}</span>.
           </p>
           <Button onClick={() => { setDone(null); setForm({ full_name: "", phone: "", customer_email: "", contact_method: "", preferred_day: "", time_slot: "", notes: "" }); }} variant="outline">
-            Book another session
+            {t("pages.bookAnotherSession", "Book another session")}
           </Button>
         </section>
       </Layout>
@@ -146,20 +149,20 @@ function BookPage() {
       <section className="container mx-auto px-6 py-16 lg:py-24 max-w-3xl">
         <div className="text-center mb-12">
           <h1 className="font-serif text-4xl lg:text-5xl leading-tight mb-4">
-            Not sure what to choose?
+            {t("pages.bookHeadingLine1", "Not sure what to choose?")}
             <br />
-            <span className="text-primary">Book a free session with our team</span>
+            <span className="text-primary">{t("pages.bookHeadingLine2", "Book a free session with our team")}</span>
           </h1>
           <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-            A friendly chat to help you find the perfect handcrafted piece for your little one.
+            {t("pages.bookSubheading", "A friendly chat to help you find the perfect handcrafted piece for your little one.")}
           </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12">
           {[
-            { icon: Heart, title: "Free of charge", desc: "No fees, no surprises" },
-            { icon: Check, title: "No commitment", desc: "Just helpful guidance" },
-            { icon: Clock, title: "Reply within 24h", desc: "We're quick to respond" },
+            { icon: Heart, title: t("pages.bookFreeTitle", "Free of charge"), desc: t("pages.bookFreeDesc", "No fees, no surprises") },
+            { icon: Check, title: t("pages.bookNoCommitmentTitle", "No commitment"), desc: t("pages.bookNoCommitmentDesc", "Just helpful guidance") },
+            { icon: Clock, title: t("pages.bookReplyTitle", "Reply within 24h"), desc: t("pages.bookReplyDesc", "We're quick to respond") },
           ].map((b) => (
             <div key={b.title} className="rounded-2xl border border-border bg-card p-5 text-center">
               <div className="mx-auto h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-3">
@@ -173,28 +176,28 @@ function BookPage() {
 
         <form onSubmit={onSubmit} className="rounded-3xl border border-border bg-card p-6 sm:p-10 space-y-6 shadow-sm">
           <div className="space-y-2">
-            <Label htmlFor="full_name">Full Name *</Label>
-            <Input id="full_name" value={form.full_name} onChange={(e) => update("full_name", e.target.value)} placeholder="Your name" required />
+            <Label htmlFor="full_name">{t("pages.bookFullNameLabel", "Full Name *")}</Label>
+            <Input id="full_name" value={form.full_name} onChange={(e) => update("full_name", e.target.value)} placeholder={t("pages.bookFullNamePlaceholder", "Your name")} required />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="phone">Phone Number *</Label>
+            <Label htmlFor="phone">{t("pages.bookPhoneLabel", "Phone Number *")}</Label>
             <Input id="phone" value={form.phone} onChange={(e) => update("phone", e.target.value)} placeholder="01012345678" inputMode="numeric" required />
-            <p className="text-xs text-muted-foreground">Egyptian number starting with 01</p>
+            <p className="text-xs text-muted-foreground">{t("pages.bookPhoneHint", "Egyptian number starting with 01")}</p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="customer_email">Email (optional)</Label>
+            <Label htmlFor="customer_email">{t("pages.bookEmailLabel", "Email (optional)")}</Label>
             <Input id="customer_email" type="email" value={form.customer_email} onChange={(e) => update("customer_email", e.target.value)} placeholder="you@example.com" maxLength={255} />
-            <p className="text-xs text-muted-foreground">Add your email and we'll send a confirmation right away.</p>
+            <p className="text-xs text-muted-foreground">{t("pages.bookEmailHint", "Add your email and we'll send a confirmation right away.")}</p>
           </div>
 
           <div className="space-y-3">
-            <Label>Preferred contact method *</Label>
+            <Label>{t("pages.bookContactMethodLabel", "Preferred contact method *")}</Label>
             <RadioGroup value={form.contact_method} onValueChange={(v) => update("contact_method", v as "whatsapp" | "phone")} className="grid grid-cols-2 gap-3">
               {[
-                { value: "whatsapp", label: "WhatsApp" },
-                { value: "phone", label: "Phone Call" },
+                { value: "whatsapp", label: t("pages.bookMethodWhatsapp", "WhatsApp") },
+                { value: "phone", label: t("pages.bookMethodPhoneCall", "Phone Call") },
               ].map((opt) => (
                 <label key={opt.value} htmlFor={`cm-${opt.value}`} className={`flex items-center gap-3 rounded-xl border p-4 cursor-pointer transition-colors ${form.contact_method === opt.value ? "border-primary bg-primary/5" : "border-border hover:bg-muted/40"}`}>
                   <RadioGroupItem value={opt.value} id={`cm-${opt.value}`} />
@@ -206,32 +209,32 @@ function BookPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Preferred day *</Label>
+              <Label>{t("pages.bookDayLabel", "Preferred day *")}</Label>
               <Select value={form.preferred_day} onValueChange={(v) => update("preferred_day", v as typeof DAYS[number]["value"])}>
-                <SelectTrigger><SelectValue placeholder="Choose a day" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder={t("pages.bookDayPlaceholder", "Choose a day")} /></SelectTrigger>
                 <SelectContent>
-                  {DAYS.map((d) => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
+                  {DAYS.map((d) => <SelectItem key={d.value} value={d.value}>{t(d.labelKey, d.label)}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Preferred time slot *</Label>
+              <Label>{t("pages.bookTimeSlotLabel", "Preferred time slot *")}</Label>
               <Select value={form.time_slot} onValueChange={(v) => update("time_slot", v as typeof SLOTS[number]["value"])}>
-                <SelectTrigger><SelectValue placeholder="Choose a time" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder={t("pages.bookTimeSlotPlaceholder", "Choose a time")} /></SelectTrigger>
                 <SelectContent>
-                  {SLOTS.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+                  {SLOTS.map((s) => <SelectItem key={s.value} value={s.value}>{t(s.labelKey, s.label)}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="notes">Anything you want us to know before the session?</Label>
-            <Textarea id="notes" value={form.notes} onChange={(e) => update("notes", e.target.value)} rows={4} placeholder="Optional notes..." maxLength={2000} />
+            <Label htmlFor="notes">{t("pages.bookNotesLabel", "Anything you want us to know before the session?")}</Label>
+            <Textarea id="notes" value={form.notes} onChange={(e) => update("notes", e.target.value)} rows={4} placeholder={t("pages.bookNotesPlaceholder", "Optional notes...")} maxLength={2000} />
           </div>
 
           <Button type="submit" size="lg" className="w-full h-14 text-base" disabled={submitting}>
-            {submitting ? "Booking..." : "Book My Free Session"}
+            {submitting ? t("pages.bookBooking", "Booking...") : t("pages.bookSubmit", "Book My Free Session")}
           </Button>
         </form>
       </section>

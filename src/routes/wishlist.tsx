@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Layout } from "@/components/site/Layout";
+import { useI18n } from "@/lib/i18n";
 import { ProductCard } from "@/components/site/ProductCard";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,6 +23,7 @@ export const Route = createFileRoute("/wishlist")({
 });
 
 function Wishlist() {
+  const { t } = useI18n();
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
@@ -39,9 +41,9 @@ function Wishlist() {
   return (
     <Layout>
       <section className="container mx-auto px-6 lg:px-10 py-16">
-        <h1 className="font-serif text-5xl">My Wishlist</h1>
+        <h1 className="font-serif text-5xl">{t("checkout.wishlistTitle", "My Wishlist")}</h1>
         {products.length === 0 ? (
-          <p className="mt-8 text-muted-foreground">Nothing saved yet. <Link to="/shop" className="text-primary border-b border-primary">Browse pieces</Link></p>
+          <p className="mt-8 text-muted-foreground">{t("checkout.wishlistEmpty", "Nothing saved yet.")} <Link to="/shop" className="text-primary border-b border-primary">{t("checkout.browsePieces", "Browse pieces")}</Link></p>
         ) : (
           <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             {products.map((p) => <ProductCard key={p.id} product={p} />)}

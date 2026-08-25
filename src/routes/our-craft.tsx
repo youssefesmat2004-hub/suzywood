@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Layout } from "@/components/site/Layout";
 import craft from "@/assets/craft-story.jpg";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/our-craft")({
   head: () => ({
@@ -35,29 +36,29 @@ export const Route = createFileRoute("/our-craft")({
 });
 
 function OurCraft() {
+  const { t } = useI18n();
   return (
     <Layout>
       <section className="container mx-auto px-6 lg:px-10 pt-16 pb-24">
         <div className="max-w-3xl">
-          <p className="text-[11px] uppercase tracking-[0.28em] text-secondary mb-3">Our Craft</p>
+          <p className="text-[11px] uppercase tracking-[0.28em] text-secondary mb-3">{t("pages.craftLabel", "Our Craft")}</p>
           <h1 className="font-serif text-5xl md:text-6xl text-balance">
-            Furniture worth keeping for the next child.
+            {t("pages.craftHeading", "Furniture worth keeping for the next child.")}
           </h1>
           <p className="mt-6 text-lg text-muted-foreground leading-relaxed">
-            Suzy Wood started in a small Cairo workshop with a simple belief: the first piece of furniture in
-            a child's life should be the safest one in the home — and the one most worth keeping.
+            {t("pages.craftIntro", "Suzy Wood started in a small Cairo workshop with a simple belief: the first piece of furniture in a child's life should be the safest one in the home — and the one most worth keeping.")}
           </p>
         </div>
 
         <div className="mt-16 aspect-[16/8] rounded-3xl overflow-hidden shadow-elegant">
-          <img src={craft} alt="Suzy Wood carpenter hand-planing a solid wood crib panel in the Cairo workshop, surrounded by chisels and timber" loading="lazy" width={1280} height={1280} className="h-full w-full object-cover" />
+          <img src={craft} alt={t("pages.craftImageAlt", "Suzy Wood carpenter hand-planing a solid wood crib panel in the Cairo workshop, surrounded by chisels and timber")} loading="lazy" width={1280} height={1280} className="h-full w-full object-cover" />
         </div>
 
         <div className="mt-20 grid md:grid-cols-3 gap-12">
           {[
-            { t: "Solid Wood, Always", d: "We never use particleboard or veneers. Every joint, panel and rail is solid Finnish Moski, Contor or Zan." },
-            { t: "Flawless Finishing", d: "All of our products stand out with their smooth and sleek finishes" },
-            { t: "Built to Be Inherited", d: "Some hardware pieces are replaceable, and every piece can be refinished decades from now for extra cost" },
+            { t: t("pages.craftSolidTitle", "Solid Wood, Always"), d: t("pages.craftSolidDesc", "We never use particleboard or veneers. Every joint, panel and rail is solid Finnish Moski, Contor or Zan.") },
+            { t: t("pages.craftFinishTitle", "Flawless Finishing"), d: t("pages.craftFinishDesc", "All of our products stand out with their smooth and sleek finishes") },
+            { t: t("pages.craftInheritTitle", "Built to Be Inherited"), d: t("pages.craftInheritDesc", "Some hardware pieces are replaceable, and every piece can be refinished decades from now for extra cost") },
           ].map((b) => (
             <div key={b.t}>
               <h2 className="font-serif text-2xl">{b.t}</h2>

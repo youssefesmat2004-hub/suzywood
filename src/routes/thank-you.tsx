@@ -5,6 +5,7 @@ import { Layout } from "@/components/site/Layout";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useI18n } from "@/lib/i18n";
 
 const searchSchema = z.object({
   order: z.string().optional(),
@@ -20,6 +21,7 @@ export const Route = createFileRoute("/thank-you")({
 });
 
 function ThankYou() {
+  const { t } = useI18n();
   const { order } = Route.useSearch();
   const [data, setData] = useState<{
     upfront_amount: number | null;
@@ -41,33 +43,31 @@ function ThankYou() {
     <Layout>
       <section className="container mx-auto px-6 py-20 max-w-2xl text-center">
         <CheckCircle2 className="h-14 w-14 mx-auto text-primary" />
-        <h1 className="font-serif text-4xl sm:text-5xl mt-6">Thank you! Your order is confirmed.</h1>
+        <h1 className="font-serif text-4xl sm:text-5xl mt-6">{t("checkout.thankYouTitle", "Thank you! Your order is confirmed.")}</h1>
         {order ? (
           <p className="mt-4 text-sm uppercase tracking-[0.2em] text-muted-foreground">
-            Order ID: <span className="text-foreground font-medium">{order}</span>
+            {t("checkout.orderIdLabel", "Order ID:")} <span className="text-foreground font-medium">{order}</span>
           </p>
         ) : null}
         {data && data.upfront_amount != null && data.remaining_amount != null ? (
           <div className="mt-8 mx-auto max-w-md text-left bg-muted/40 border border-border rounded-2xl p-6 space-y-3">
-            <h2 className="font-serif text-xl text-center mb-2">Payment summary</h2>
+            <h2 className="font-serif text-xl text-center mb-2">{t("checkout.paymentSummary", "Payment summary")}</h2>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Amount paid now (75%)</span>
+              <span className="text-muted-foreground">{t("checkout.amountPaidNow", "Amount paid now (75%)")}</span>
               <span className="font-medium text-primary">EGP {Number(data.upfront_amount).toLocaleString()}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Due on delivery (25% + delivery fees)</span>
+              <span className="text-muted-foreground">{t("checkout.dueOnDeliveryFull", "Due on delivery (25% + delivery fees)")}</span>
               <span className="font-medium">EGP {Number(data.remaining_amount).toLocaleString()}</span>
             </div>
           </div>
         ) : null}
         <p className="mt-6 text-muted-foreground leading-relaxed">
-          Our team will contact you shortly to arrange delivery. Please have the
-          remaining amount ready upon delivery. A confirmation email with your
-          order details has been sent to your inbox.
+          {t("checkout.thankYouNote", "Our team will contact you shortly to arrange delivery. Please have the remaining amount ready upon delivery. A confirmation email with your order details has been sent to your inbox.")}
         </p>
         <div className="mt-10 flex gap-3 justify-center">
-          <Button asChild><Link to="/shop">Continue shopping</Link></Button>
-          <Button asChild variant="outline"><Link to="/account">My orders</Link></Button>
+          <Button asChild><Link to="/shop">{t("checkout.continueShopping", "Continue shopping")}</Link></Button>
+          <Button asChild variant="outline"><Link to="/account">{t("checkout.myOrders", "My orders")}</Link></Button>
         </div>
       </section>
     </Layout>

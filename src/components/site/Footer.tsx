@@ -2,10 +2,12 @@ import { Link } from "@tanstack/react-router";
 import { Instagram, Facebook, Phone } from "lucide-react";
 import { useSiteContent } from "@/lib/site-content";
 import { NewsletterForm } from "./NewsletterForm";
+import { useI18n } from "@/lib/i18n";
 
 export function Footer() {
+  const { t } = useI18n();
   const content = useSiteContent();
-  const tagline = content.footer_tagline ?? "Heirloom-quality wooden furniture for nurseries and small humans. Made-to-order with care.";
+  const tagline = content.footer_tagline ?? t("components.footerTaglineDefault", "Heirloom-quality wooden furniture for nurseries and small humans. Made-to-order with care.");
   const phone = content.contact_phone ?? "+20 109 631 3532";
   const phoneHref = `tel:${phone.replace(/[^+\d]/g, "")}`;
   return (
@@ -50,25 +52,25 @@ export function Footer() {
           </div>
 
           <div className="mt-10">
-            <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground mb-3">Join our newsletter</p>
+            <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground mb-3">{t("components.footerJoinNewsletter", "Join our newsletter")}</p>
             <NewsletterForm variant="footer" />
           </div>
 
           <nav className="mt-10 flex flex-wrap justify-center gap-x-6 gap-y-2 text-xs text-muted-foreground">
-            <Link to="/shop" className="hover:text-primary">Shop</Link>
-            <Link to="/our-craft" className="hover:text-primary">Our Craft</Link>
-            <Link to="/book" className="hover:text-primary">Book a Session</Link>
-            <Link to="/track-order" className="hover:text-primary">Track Order</Link>
-            <Link to="/faq" className="hover:text-primary">FAQ</Link>
-            <Link to="/contact" className="hover:text-primary">Contact</Link>
-            <Link to="/terms" className="hover:text-primary">Terms</Link>
-            <Link to="/privacy" className="hover:text-primary">Privacy</Link>
+            <Link to="/shop" className="hover:text-primary">{t("nav.shop", "Shop")}</Link>
+            <Link to="/our-craft" className="hover:text-primary">{t("nav.ourCraft", "Our Craft")}</Link>
+            <Link to="/book" className="hover:text-primary">{t("nav.bookSession", "Book a Session")}</Link>
+            <Link to="/track-order" className="hover:text-primary">{t("footer.trackOrder", "Track Order")}</Link>
+            <Link to="/faq" className="hover:text-primary">{t("nav.faq", "FAQ")}</Link>
+            <Link to="/contact" className="hover:text-primary">{t("nav.contact", "Contact")}</Link>
+            <Link to="/terms" className="hover:text-primary">{t("components.footerTermsShort", "Terms")}</Link>
+            <Link to="/privacy" className="hover:text-primary">{t("components.footerPrivacyShort", "Privacy")}</Link>
           </nav>
         </div>
       </div>
       <div className="border-t border-border">
         <div className="container mx-auto px-6 lg:px-10 py-6 flex flex-col sm:flex-row justify-between gap-3 text-xs text-muted-foreground">
-          <p>© 2018 Suzy Wood. Crafted in Cairo.</p>
+          <p>{t("components.footerCopyright", "© 2018 Suzy Wood. Crafted in Cairo.")}</p>
           <p>{"\n"}</p>
         </div>
       </div>
