@@ -78,7 +78,21 @@ function FAQPage() {
             ))}
           </div>
         )}
+
+        <div dir="rtl" lang="ar" className="mt-16 text-right">
+          <h2 className="font-serif text-2xl mb-2">الأسئلة الشائعة بالعربية</h2>
+          <p className="text-muted-foreground mb-6">إجابات سريعة عن الطلب والتوصيل والدفع لأثاث غرف الأطفال المصنوع يدويًا في القاهرة.</p>
+          <Accordion type="single" collapsible className="rounded-2xl border border-border bg-card divide-y divide-border">
+            {ARABIC_FAQ.map((it, i) => (
+              <AccordionItem key={i} value={`ar-${i}`} className="border-0 px-5">
+                <AccordionTrigger className="text-right hover:no-underline">{it.q}</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">{it.a}</AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </div>
       </section>
+
     </Layout>
   );
 }
