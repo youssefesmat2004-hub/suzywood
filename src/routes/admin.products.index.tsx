@@ -8,6 +8,7 @@ import { resolveImage } from "@/lib/images";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getActiveSalePrice } from "@/lib/types";
 
 type ProductRow = {
   id: string;
