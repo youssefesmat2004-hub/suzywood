@@ -374,13 +374,25 @@ function ProductPage() {
                 <span className={`px-3 py-1 rounded-full text-[11px] uppercase tracking-[0.22em] ${stockBadge.className}`}>
                   {stockBadge.label}
                 </span>
+                {productSalePrice !== null && (
+                  <span className="px-3 py-1 rounded-full bg-destructive text-destructive-foreground text-[11px] uppercase tracking-[0.22em]">
+                    Sale — Save 33%
+                  </span>
+                )}
               </div>
               <h1 className="font-serif text-4xl md:text-5xl mt-5">{product.name}</h1>
               {product.tagline && <p className="mt-3 text-muted-foreground">{product.tagline}</p>}
-              <p className="mt-6 font-serif text-3xl text-primary">
-                {selectedVariant ? "" : "From "}
-                {unitPrice === 0 ? "Price upon measurement" : `EGP ${unitPrice.toLocaleString()}`}
-              </p>
+              <div className="mt-6 flex items-center gap-3">
+                <p className="font-serif text-3xl text-primary">
+                  {selectedVariant ? "" : "From "}
+                  {unitPrice === 0 ? "Price upon measurement" : `EGP ${unitPrice.toLocaleString()}`}
+                </p>
+                {productSalePrice !== null && (
+                  <p className="text-lg text-muted-foreground line-through">
+                    EGP {product.starting_price.toLocaleString()}
+                  </p>
+                )}
+              </div>
             </div>
 
             {product.description && <p className="text-foreground leading-relaxed">{product.description}</p>}
