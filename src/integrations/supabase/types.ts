@@ -75,6 +75,7 @@ export type Database = {
           finish_label_ar: string | null
           id: string
           image_url: string | null
+          lights_addon_carpenter_cost: number
           lights_addon_enabled: boolean
           lights_addon_note: string | null
           lights_addon_note_ar: string | null
@@ -95,6 +96,7 @@ export type Database = {
           ottoman_addon_note: string | null
           ottoman_addon_note_ar: string | null
           ottoman_addon_price: number
+          pompom_addon_carpenter_cost: number
           pompom_addon_enabled: boolean
           pompom_addon_note: string | null
           pompom_addon_note_ar: string | null
@@ -118,6 +120,7 @@ export type Database = {
           finish_label_ar?: string | null
           id?: string
           image_url?: string | null
+          lights_addon_carpenter_cost?: number
           lights_addon_enabled?: boolean
           lights_addon_note?: string | null
           lights_addon_note_ar?: string | null
@@ -138,6 +141,7 @@ export type Database = {
           ottoman_addon_note?: string | null
           ottoman_addon_note_ar?: string | null
           ottoman_addon_price?: number
+          pompom_addon_carpenter_cost?: number
           pompom_addon_enabled?: boolean
           pompom_addon_note?: string | null
           pompom_addon_note_ar?: string | null
@@ -161,6 +165,7 @@ export type Database = {
           finish_label_ar?: string | null
           id?: string
           image_url?: string | null
+          lights_addon_carpenter_cost?: number
           lights_addon_enabled?: boolean
           lights_addon_note?: string | null
           lights_addon_note_ar?: string | null
@@ -181,6 +186,7 @@ export type Database = {
           ottoman_addon_note?: string | null
           ottoman_addon_note_ar?: string | null
           ottoman_addon_price?: number
+          pompom_addon_carpenter_cost?: number
           pompom_addon_enabled?: boolean
           pompom_addon_note?: string | null
           pompom_addon_note_ar?: string | null
@@ -1120,6 +1126,7 @@ export type Database = {
           finish_label_ar: string | null
           id: string
           image_url: string | null
+          lights_addon_carpenter_cost: number
           lights_addon_enabled: boolean
           lights_addon_note: string | null
           lights_addon_note_ar: string | null
@@ -1140,6 +1147,7 @@ export type Database = {
           ottoman_addon_note: string | null
           ottoman_addon_note_ar: string | null
           ottoman_addon_price: number
+          pompom_addon_carpenter_cost: number
           pompom_addon_enabled: boolean
           pompom_addon_note: string | null
           pompom_addon_note_ar: string | null

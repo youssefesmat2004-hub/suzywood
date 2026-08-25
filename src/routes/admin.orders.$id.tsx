@@ -26,6 +26,8 @@ type OrderItem = {
   carpenter_cost?: number | null;
   engraving?: string | null;
   engraving_carpenter_cost?: number | null;
+  lights_carpenter_cost?: number | null;
+  pompom_carpenter_cost?: number | null;
 };
 
 type Order = {
@@ -188,14 +190,18 @@ function OrderDetailPage() {
           new Set((prods ?? []).map((p: any) => p.category_id).filter(Boolean)),
         ) as string[];
         const engravingCostByCat = new Map<string, number>();
+        const lightsCostByCat = new Map<string, number>();
+        const pompomCostByCat = new Map<string, number>();
         if (categoryIds.length) {
           const { data: cats } = await supabase
             .rpc("admin_categories")
-            .select("id, name_engraving_carpenter_cost")
+            .select("id, name_engraving_carpenter_cost, lights_addon_carpenter_cost, pompom_addon_carpenter_cost")
             .in("id", categoryIds);
-          (cats ?? []).forEach((c: any) =>
-            engravingCostByCat.set(c.id, Number(c.name_engraving_carpenter_cost ?? 0)),
-          );
+          (cats ?? []).forEach((c: any) => {
+            engravingCostByCat.set(c.id, Number(c.name_engraving_carpenter_cost ?? 0));
+            lightsCostByCat.set(c.id, Number(c.lights_addon_carpenter_cost ?? 0));
+            pompomCostByCat.set(c.id, Number(c.pompom_addon_carpenter_cost ?? 0));
+          });
         }
         const { data: variants } = await supabase
           .rpc("admin_product_variants")
@@ -209,14 +215,23 @@ function OrderDetailPage() {
           if (i.product_id) {
             const p: any = map.get(i.product_id);
             i.image_url = p?.image_url ?? null;
-            const key = `${i.product_id}|${(i.size ?? "").toLowerCase()}`;
+            const sizeLower = (i.size ?? "").toLowerCase();
+            const key = `${i.product_id}|${sizeLower}`;
             const vc = vmap.get(key);
             const baseC = Number(p?.carpenter_cost ?? 0);
             const engravingExtra = (i.engraving ?? "").trim()
               ? Number(engravingCostByCat.get(p?.category_id) ?? 0)
               : 0;
+            const lightsExtra = sizeLower.includes("fairy lights")
+              ? Number(lightsCostByCat.get(p?.category_id) ?? 0)
+              : 0;
+            const pompomExtra = sizeLower.includes("pompoms")
+              ? Number(pompomCostByCat.get(p?.category_id) ?? 0)
+              : 0;
             i.engraving_carpenter_cost = engravingExtra;
-            i.carpenter_cost = ((vc && vc > 0) ? vc : baseC) + engravingExtra;
+            i.lights_carpenter_cost = lightsExtra;
+            i.pompom_carpenter_cost = pompomExtra;
+            i.carpenter_cost = ((vc && vc > 0) ? vc : baseC) + engravingExtra + lightsExtra + pompomExtra;
           }
         });
       }
