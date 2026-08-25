@@ -705,7 +705,13 @@ function ProductPage() {
                       type="checkbox"
                       className="mt-1 h-4 w-4 accent-primary"
                       checked={withPompoms}
-                      onChange={(e) => setWithPompoms(e.target.checked)}
+                      onChange={(e) => {
+                        setWithPompoms(e.target.checked);
+                        if (!e.target.checked) {
+                          const isColor = variants.find((v) => v.id === variantId)?.variant_type === "fabric_color";
+                          if (isColor) { setVariantId(null); setActive(0); }
+                        }
+                      }}
                     />
                     <div className="flex-1">
                       <div className="flex items-center justify-between gap-2">
