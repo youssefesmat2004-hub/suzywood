@@ -228,6 +228,8 @@ function ProductPage() {
   const [withBedRails, setWithBedRails] = useState(false);
   const [withMattress, setWithMattress] = useState(false);
   const [withLights, setWithLights] = useState(false);
+  const customWidthId = useId();
+  const customLengthId = useId();
 
   const selectedVariant = useMemo(
     () => (customMode ? null : variants.find((v) => v.id === variantId) ?? null),
@@ -445,12 +447,12 @@ function ProductPage() {
                     <div className="mt-3 rounded-xl border border-dashed border-primary/40 bg-muted/30 p-4 space-y-3">
                       <div className="grid sm:grid-cols-2 gap-3">
                         <div className="space-y-1">
-                          <Label className="text-xs">Width (cm)</Label>
-                          <Input type="number" min={1} value={customWidth} onChange={(e) => setCustomWidth(e.target.value)} placeholder="e.g. 110" />
+                          <Label htmlFor={customWidthId} className="text-xs">Width (cm)</Label>
+                          <Input id={customWidthId} type="number" min={1} value={customWidth} onChange={(e) => setCustomWidth(e.target.value)} placeholder="e.g. 110" />
                         </div>
                         <div className="space-y-1">
-                          <Label className="text-xs">Length (cm)</Label>
-                          <Input type="number" min={1} value={customLength} onChange={(e) => setCustomLength(e.target.value)} placeholder="e.g. 55" />
+                          <Label htmlFor={customLengthId} className="text-xs">Length (cm)</Label>
+                          <Input id={customLengthId} type="number" min={1} value={customLength} onChange={(e) => setCustomLength(e.target.value)} placeholder="e.g. 55" />
                         </div>
                       </div>
                       {category?.custom_size_note && (
