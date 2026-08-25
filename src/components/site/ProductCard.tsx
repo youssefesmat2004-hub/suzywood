@@ -134,6 +134,7 @@ export function ProductCard({ product, badge, footer }: { product: Product; badg
           )}
           <span className="text-xs text-muted-foreground">View details →</span>
         </div>
+        {footer}
       </div>
     </Link>
   );
