@@ -21,6 +21,9 @@ export function ProductCard({ product }: { product: Product }) {
     "drawers-changing-tables",
   ]);
   const displayFinishes = HIDE_FINISHES_LABEL.has(product.category_slug ?? "") ? [] : finishes;
+  const salePrice = getActiveSalePrice(product);
+  const displayPrice = salePrice ?? product.starting_price;
+  const isOnSale = salePrice !== null;
 
   const quickAdd = (e: React.MouseEvent) => {
     if (soldOut) return;
@@ -41,7 +44,7 @@ export function ProductCard({ product }: { product: Product }) {
       finish: finish?.value ?? "",
       finishLabel: finish?.label ?? "",
       engraving: "",
-      unitPrice: product.starting_price,
+      unitPrice: displayPrice,
       quantity: 1,
     });
     toast.success("Added to cart", { description: product.name });
