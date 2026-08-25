@@ -113,9 +113,10 @@ function Index() {
   const content = useSiteContent();
   const cart = useCart();
   const [wished, setWished] = useState<Set<string>>(new Set());
-  const heroTitle = content.hero_title;
-  const { t } = useI18n();
-  const heroSubtitle = content.hero_subtitle || t("shop.heroSubtitleDefault", "Handmade wooden baby furniture, built to last a lifetime — delivered across Egypt.");
+  const { t, lang } = useI18n();
+  // Store-managed hero copy is authored in English; fall back to translated defaults in Arabic.
+  const heroTitle = lang === "ar" ? undefined : content.hero_title;
+  const heroSubtitle = (lang === "ar" ? "" : content.hero_subtitle) || t("shop.heroSubtitleDefault", "Handmade wooden baby furniture, built to last a lifetime — delivered across Egypt.");
 
   const quickAdd = (e: React.MouseEvent, p: Product) => {
     const sizes = asOptions(p.sizes);
