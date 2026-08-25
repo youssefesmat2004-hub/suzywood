@@ -323,6 +323,8 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
       tagline: v.tagline || null,
       description: v.description || null,
       starting_price: Number(v.starting_price),
+      sale_price: v.sale_price != null && v.sale_price > 0 ? Number(v.sale_price) : null,
+      sale_ends_at: v.sale_ends_at ? new Date(v.sale_ends_at).toISOString() : null,
       stock_quantity: Number(v.stock_quantity),
       image_url: v.image_url,
       gallery: v.gallery,
