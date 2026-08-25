@@ -189,9 +189,9 @@ function Index() {
                 product={tent}
                 badge={<>{t("shop.tentBadge", "Tent")}</>}
                 footer={
-                  <Link to="/shop/$slug" params={{ slug: tent.slug }} className="mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-primary px-4 py-2.5 text-xs font-medium text-primary-foreground hover:bg-wood transition-colors">
+                  <span className="mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-primary px-4 py-2.5 text-xs font-medium text-primary-foreground hover:bg-wood transition-colors">
                     {t("shop.shopTent", "Shop Tent")} <ArrowRight className="h-3.5 w-3.5" />
-                  </Link>
+                  </span>
                 }
               />
             )}
@@ -200,9 +200,9 @@ function Index() {
                 product={swing}
                 badge={<>{t("shop.swingBadge", "Swing")}</>}
                 footer={
-                  <Link to="/shop/$slug" params={{ slug: swing.slug }} className="mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-primary px-4 py-2.5 text-xs font-medium text-primary-foreground hover:bg-wood transition-colors">
+                  <span className="mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-primary px-4 py-2.5 text-xs font-medium text-primary-foreground hover:bg-wood transition-colors">
                     {t("shop.shopSwing", "Shop Swing")} <ArrowRight className="h-3.5 w-3.5" />
-                  </Link>
+                  </span>
                 }
               />
             )}

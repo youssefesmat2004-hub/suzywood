@@ -3,7 +3,7 @@ import { Layout } from "@/components/site/Layout";
 import { ProductCard } from "@/components/site/ProductCard";
 import { supabase } from "@/integrations/supabase/client";
 import type { Category, Product } from "@/lib/types";
-import { PUBLIC_PRODUCT_COLUMNS } from "@/lib/types";
+import { PUBLIC_PRODUCT_COLUMNS, localizedProduct, localizedText } from "@/lib/types";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/shop/category/$slug")({
@@ -84,22 +84,24 @@ export const Route = createFileRoute("/shop/category/$slug")({
 });
 
 function CategoryPage() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { category, products } = Route.useLoaderData() as { category: Category; products: Product[] };
+  const categoryName = localizedText(lang, category.name, category.name_ar);
+  const categoryDescription = localizedText(lang, category.description, category.description_ar);
   return (
     <Layout>
       <section className="container mx-auto px-6 lg:px-10 pt-16 pb-8">
         <Link to="/shop" className="text-xs uppercase tracking-[0.22em] text-muted-foreground hover:text-primary">{t("shop.allCategories", "← All categories")}</Link>
-        <h1 className="font-serif text-5xl md:text-6xl mt-4">{category.name}</h1>
-        {category.description && <p className="mt-4 max-w-2xl text-muted-foreground">{category.description}</p>}
+        <h1 className="font-serif text-5xl md:text-6xl mt-4">{categoryName}</h1>
+        {categoryDescription && <p className="mt-4 max-w-2xl text-muted-foreground">{categoryDescription}</p>}
       </section>
       <section className="container mx-auto px-6 lg:px-10 pb-24">
-        <h2 className="sr-only">{category.name} {t("shop.categoryCollectionSuffix", "collection")}</h2>
+        <h2 className="sr-only">{categoryName} {t("shop.categoryCollectionSuffix", "collection")}</h2>
         {products.length === 0 ? (
           <p className="text-muted-foreground">{t("shop.collectionComingSoon", "New pieces in this category coming soon.")}</p>
         ) : (
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {products.map((p) => <ProductCard key={p.id} product={p} />)}
+            {products.map((p) => <ProductCard key={p.id} product={localizedProduct(p, lang)} />)}
           </div>
         )}
       </section>
