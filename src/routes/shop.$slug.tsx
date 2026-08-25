@@ -81,7 +81,7 @@ export const Route = createFileRoute("/shop/$slug")({
         .limit(4),
       supabase
         .from("categories")
-        .select("slug,custom_size_enabled,custom_size_surcharge,custom_size_note,name_engraving_enabled,name_engraving_surcharge,name_engraving_note,finish_label,ottoman_addon_enabled,ottoman_addon_price,ottoman_addon_note,portable_changing_table_enabled,portable_changing_table_price,portable_changing_table_note,mattress_addon_enabled,mattress_small_price,mattress_big_price,mattress_addon_note")
+        .select("slug,custom_size_enabled,custom_size_surcharge,custom_size_note,name_engraving_enabled,name_engraving_surcharge,name_engraving_note,finish_label,ottoman_addon_enabled,ottoman_addon_price,ottoman_addon_note,portable_changing_table_enabled,portable_changing_table_price,portable_changing_table_note,mattress_addon_enabled,mattress_small_price,mattress_big_price,mattress_addon_note,lights_addon_enabled,lights_addon_price,lights_addon_note")
         .eq("id", product.category_id)
         .maybeSingle(),
     ]);
@@ -112,6 +112,9 @@ export const Route = createFileRoute("/shop/$slug")({
         mattress_small_price: number;
         mattress_big_price: number;
         mattress_addon_note: string | null;
+        lights_addon_enabled: boolean;
+        lights_addon_price: number;
+        lights_addon_note: string | null;
       } | null,
       categorySizes: (catSizes ?? []) as { label: string; mattress_tier: "small" | "big" | null }[],
     };
@@ -197,6 +200,9 @@ function ProductPage() {
       mattress_small_price: number;
       mattress_big_price: number;
       mattress_addon_note: string | null;
+      lights_addon_enabled: boolean;
+      lights_addon_price: number;
+      lights_addon_note: string | null;
     } | null;
     categorySizes: { label: string; mattress_tier: "small" | "big" | null }[];
   };
@@ -221,6 +227,7 @@ function ProductPage() {
   const [withPortable, setWithPortable] = useState(false);
   const [withBedRails, setWithBedRails] = useState(false);
   const [withMattress, setWithMattress] = useState(false);
+  const [withLights, setWithLights] = useState(false);
 
   const selectedVariant = useMemo(
     () => (customMode ? null : variants.find((v) => v.id === variantId) ?? null),
@@ -260,6 +267,9 @@ function ProductPage() {
       ? Number(category?.mattress_big_price ?? 0)
       : 0;
   const mattressApplied = mattressEnabled && !!mattressTier && withMattress && mattressPrice > 0;
+  const lightsEnabled = !!category?.lights_addon_enabled;
+  const lightsPrice = Number(category?.lights_addon_price ?? 0);
+  const lightsApplied = lightsEnabled && withLights;
   const finishLabel = category?.finish_label?.trim() || "Wood Finish";
   const stock = customMode ? 99 : (selectedVariant ? selectedVariant.stock_quantity : (product.stock_quantity ?? 99));
   const soldOut = !customMode && stock <= 0;
@@ -275,7 +285,8 @@ function ProductPage() {
     + (ottomanApplied ? ottomanPrice : 0)
     + (portableApplied ? portablePrice : 0)
     + (bedRailsApplied ? BED_RAILS_PRICE : 0)
-    + (mattressApplied ? mattressPrice : 0);
+    + (mattressApplied ? mattressPrice : 0)
+    + (lightsApplied ? lightsPrice : 0);
 
   const stockBadge = soldOut
     ? { label: "Sold out", className: "bg-destructive text-destructive-foreground" }
@@ -319,14 +330,15 @@ function ProductPage() {
     const ottomanSuffix = ottomanApplied ? " + Ottoman Leg Rest" : "";
     const portableSuffix = portableApplied ? " + Portable Changing Table" : "";
     const bedRailsSuffix = bedRailsApplied ? " + Bed Rails" : "";
+    const lightsSuffix = lightsApplied ? " + Fairy Lights" : "";
     const mattressSuffix = mattressApplied ? ` + ${mattressTier === "small" ? "Small" : "Big"} Mattress` : "";
     cart.add({
       productId: product.id,
       slug: product.slug,
-      name: product.name + variantSuffix + ottomanSuffix + portableSuffix + bedRailsSuffix + mattressSuffix,
+      name: product.name + variantSuffix + ottomanSuffix + portableSuffix + bedRailsSuffix + mattressSuffix + lightsSuffix,
       image: selectedVariant?.image_url ? resolveImage(selectedVariant.image_url) : resolveImage(product.image_url),
-      size: [size || "std", ottomanApplied ? "ottoman" : null, portableApplied ? "portable" : null].filter(Boolean).join("+"),
-      sizeLabel: [sizeLabel, ottomanApplied ? "Ottoman Leg Rest" : null, portableApplied ? "Portable Changing Table" : null].filter(Boolean).join(" · "),
+      size: [size || "std", ottomanApplied ? "ottoman" : null, portableApplied ? "portable" : null, lightsApplied ? "lights" : null].filter(Boolean).join("+"),
+      sizeLabel: [sizeLabel, ottomanApplied ? "Ottoman Leg Rest" : null, portableApplied ? "Portable Changing Table" : null, lightsApplied ? "Fairy Lights" : null].filter(Boolean).join(" · "),
       finish, finishLabel,
       engraving: engraving.slice(0, 20),
       unitPrice,
@@ -337,7 +349,7 @@ function ProductPage() {
       mattressPrice: mattressApplied ? mattressPrice : 0,
       categorySlug: category?.slug,
     });
-    toast.success("Added to cart", { description: `${product.name}${variantSuffix}${ottomanSuffix}${portableSuffix}${bedRailsSuffix}${mattressSuffix} × ${qty}`, action: { label: "View cart", onClick: () => navigate({ to: "/cart" }) } });
+    toast.success("Added to cart", { description: `${product.name}${variantSuffix}${ottomanSuffix}${portableSuffix}${bedRailsSuffix}${mattressSuffix}${lightsSuffix} × ${qty}`, action: { label: "View cart", onClick: () => navigate({ to: "/cart" }) } });
   };
 
   return (
@@ -628,6 +640,31 @@ function ProductPage() {
                       {category?.mattress_addon_note && (
                         <p className="text-xs text-muted-foreground italic mt-1">{category.mattress_addon_note}</p>
                       )}
+                    </div>
+                  </label>
+                </div>
+              )}
+
+              {lightsEnabled && (
+                <div className="space-y-2">
+                  {!ottomanEnabled && !portableEnabled && <Label>Add-on</Label>}
+                  <label className={`flex items-start gap-3 rounded-xl border p-4 cursor-pointer transition-colors ${withLights ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"}`}>
+                    <input
+                      type="checkbox"
+                      className="mt-1 h-4 w-4 accent-primary"
+                      checked={withLights}
+                      onChange={(e) => setWithLights(e.target.checked)}
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-medium text-sm">Add Fairy Lights</span>
+                        <span className="text-sm text-primary font-medium">
+                          {lightsPrice > 0 ? `+${lightsPrice.toLocaleString()} EGP` : "Price on request"}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground italic mt-1">
+                        {category?.lights_addon_note || "Lights and pompoms are not included with the tent."}
+                      </p>
                     </div>
                   </label>
                 </div>
