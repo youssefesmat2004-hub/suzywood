@@ -64,4 +64,4 @@ export const PUBLIC_PRODUCT_COLUMNS =
 
 /** Variant columns safe to expose to storefront (anonymous) visitors. */
 export const PUBLIC_VARIANT_COLUMNS =
-  "id, product_id, name, price, stock_quantity, image_url, sort_order, is_active, created_at, updated_at, variant_type, color_hex, sale_price, sale_ends_at, mattress_tier";
+  "id, product_id, name, price, stock_quantity, image_url, sort_order, is_active, created_at, updated_at, variant_type, color_hex, sale_price, sale_ends_at";

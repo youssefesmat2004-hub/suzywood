@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import type { Product } from "@/lib/types";
+import { PUBLIC_PRODUCT_COLUMNS, PUBLIC_VARIANT_COLUMNS } from "@/lib/types";
 import { asOptions, getActiveSalePrice } from "@/lib/types";
 import { resolveImage, resolveGallery } from "@/lib/images";
 import { Reviews } from "@/components/site/Reviews";
@@ -62,19 +63,19 @@ function ProductError({ error, reset }: { error: Error; reset: () => void }) {
 
 export const Route = createFileRoute("/shop/$slug")({
   loader: async ({ params }) => {
-    const { data } = await supabase.from("products").select("*").eq("slug", params.slug).eq("is_active", true).maybeSingle();
+    const { data } = await supabase.from("products").select(PUBLIC_PRODUCT_COLUMNS).eq("slug", params.slug).eq("is_active", true).maybeSingle();
     if (!data) throw notFound();
     const product = data as Product;
     const [{ data: variants }, { data: related }, { data: cat }] = await Promise.all([
       supabase
         .from("product_variants")
-        .select("*")
+        .select(PUBLIC_VARIANT_COLUMNS)
         .eq("product_id", product.id)
         .eq("is_active", true)
         .order("sort_order"),
       supabase
         .from("products")
-        .select("*")
+        .select(PUBLIC_PRODUCT_COLUMNS)
         .eq("is_active", true)
         .eq("category_id", product.category_id)
         .neq("id", product.id)

@@ -11,6 +11,7 @@ import { ProductCard } from "@/components/site/ProductCard";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import type { Product } from "@/lib/types";
+import { PUBLIC_PRODUCT_COLUMNS } from "@/lib/types";
 import { asOptions, getActiveSalePrice } from "@/lib/types";
 import { resolveImage } from "@/lib/images";
 import { Heart, Plus, ArrowRight, Package } from "lucide-react";
@@ -79,12 +80,12 @@ export const Route = createFileRoute("/")({
     const [{ data }, { data: bundleRow }] = await Promise.all([
       supabase
         .from("products")
-        .select("*")
+        .select(PUBLIC_PRODUCT_COLUMNS)
         .eq("is_active", true)
         .order("is_featured", { ascending: false })
         .order("starting_price")
         .limit(8),
-      supabase.from("products").select("*").eq("slug", "tent-swing-bundle").eq("is_active", true).maybeSingle(),
+      supabase.from("products").select(PUBLIC_PRODUCT_COLUMNS).eq("slug", "tent-swing-bundle").eq("is_active", true).maybeSingle(),
     ]);
     const ids = (data ?? []).map((p) => p.id);
     const bundleId = bundleRow?.id;
