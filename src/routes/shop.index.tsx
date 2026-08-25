@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import type { Category, Product } from "@/lib/types";
+import { getActiveSalePrice } from "@/lib/types";
 
 function ShopError({ error, reset }: { error: Error; reset: () => void }) {
   const router = useRouter();
