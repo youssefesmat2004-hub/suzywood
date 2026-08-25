@@ -15,6 +15,8 @@ type ProductRow = {
   name: string;
   slug: string;
   starting_price: number;
+  sale_price: number | null;
+  sale_ends_at: string | null;
   stock_quantity: number;
   image_url: string | null;
   is_active: boolean;
