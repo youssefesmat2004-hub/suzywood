@@ -71,6 +71,8 @@ export type ProductFormValue = {
   tagline: string;
   description: string;
   starting_price: number;
+  sale_price?: number | null;
+  sale_ends_at?: string | null;
   stock_quantity: number;
   image_url: string | null;
   gallery: string[];
