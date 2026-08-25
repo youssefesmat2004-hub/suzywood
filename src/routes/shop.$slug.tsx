@@ -488,12 +488,12 @@ function ProductPage() {
                   )}
                 </div>
               )}
-              {variants.length > 0 && variants.some((v) => v.variant_type === "fabric_color") && (
+              {variants.length > 0 && variants.some((v) => v.variant_type === "fabric_color") && (!pompomEnabled || pompomApplied) && (
                 <div className="space-y-3 pt-5">
-                  <Label>{lightsEnabled ? t("shop.pompomColor", "Pompom Color") : t("shop.fabricColor", "Fabric Color")}</Label>
-                  {lightsEnabled && (
+                  <Label>{pompomEnabled ? t("shop.pompomColor", "Pompom Color") : t("shop.fabricColor", "Fabric Color")}</Label>
+                  {pompomEnabled && (
                     <p className="text-xs text-muted-foreground italic">
-                      {t("shop.pompomNote", "Tent fabric is off-white only. Pompom colors are included at no extra cost.")}
+                      {t("shop.pompomNote", "Tent fabric is off-white only. Choose your pompom color below.")}
                     </p>
                   )}
                   <div className="flex flex-wrap gap-3">
@@ -705,7 +705,13 @@ function ProductPage() {
                       type="checkbox"
                       className="mt-1 h-4 w-4 accent-primary"
                       checked={withPompoms}
-                      onChange={(e) => setWithPompoms(e.target.checked)}
+                      onChange={(e) => {
+                        setWithPompoms(e.target.checked);
+                        if (!e.target.checked) {
+                          const isColor = variants.find((v) => v.id === variantId)?.variant_type === "fabric_color";
+                          if (isColor) { setVariantId(""); setActive(0); }
+                        }
+                      }}
                     />
                     <div className="flex-1">
                       <div className="flex items-center justify-between gap-2">
