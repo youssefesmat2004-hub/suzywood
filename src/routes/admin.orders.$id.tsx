@@ -26,6 +26,8 @@ type OrderItem = {
   carpenter_cost?: number | null;
   engraving?: string | null;
   engraving_carpenter_cost?: number | null;
+  lights_carpenter_cost?: number | null;
+  pompom_carpenter_cost?: number | null;
 };
 
 type Order = {
