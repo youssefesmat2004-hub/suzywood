@@ -12,7 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Product } from "@/lib/types";
 import { asOptions, getActiveSalePrice } from "@/lib/types";
 import { resolveImage } from "@/lib/images";
-import { Heart, Plus, ArrowRight, Sparkles, Package } from "lucide-react";
+import { Heart, Plus, ArrowRight, Package } from "lucide-react";
 import { useCart } from "@/lib/cart";
 import { toast } from "sonner";
 import craft from "@/assets/craft-story.jpg";
