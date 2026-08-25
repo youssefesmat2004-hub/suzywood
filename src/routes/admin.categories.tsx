@@ -758,6 +758,18 @@ function CategoryDialog({
                 placeholder="e.g. 300 (leave 0 for 'Price on request')"
               />
             </div>
+            <div className="space-y-1.5 rounded-lg border border-amber-300 bg-amber-50/50 p-3">
+              <Label>Extra carpenter cost for pompoms (EGP) — admin only</Label>
+              <Input
+                type="number"
+                min={0}
+                step="0.01"
+                value={value.pompom_addon_carpenter_cost ?? 0}
+                onChange={(e) => onChange({ ...value, pompom_addon_carpenter_cost: Number(e.target.value) })}
+                placeholder="e.g. 300"
+              />
+              <p className="text-xs text-amber-800/80">What you pay the carpenter extra when pompoms are added. Never shown to customers.</p>
+            </div>
             <div className="space-y-1.5">
               <Label>Note shown to customers (optional)</Label>
               <Textarea
