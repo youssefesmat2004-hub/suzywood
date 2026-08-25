@@ -65,8 +65,13 @@ export function ProductCard({ product }: { product: Product }) {
           height={1024}
           className={`h-full w-full object-cover transition-transform duration-700 group-hover:scale-105 ${soldOut && !isSafetyGate ? "opacity-70" : ""}`}
         />
+        {isOnSale && (
+          <span className="absolute top-3 left-3 rounded-full bg-destructive text-destructive-foreground text-[10px] uppercase tracking-[0.18em] px-3 py-1 shadow-card">
+            Sale — Save 33%
+          </span>
+        )}
         {isSafetyGate && (
-          <span className="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-secondary text-secondary-foreground text-[10px] uppercase tracking-[0.18em] px-3 py-1">
+          <span className={`absolute top-3 ${isOnSale ? "left-[7.5rem]" : "left-3"} inline-flex items-center gap-1.5 rounded-full bg-secondary text-secondary-foreground text-[10px] uppercase tracking-[0.18em] px-3 py-1`}>
             <Ruler className="h-3 w-3" /> Custom Measurement Required
           </span>
         )}
