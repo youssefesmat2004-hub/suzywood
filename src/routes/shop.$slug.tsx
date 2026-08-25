@@ -405,6 +405,8 @@ function ProductPage() {
                     {variants.filter((v) => v.variant_type !== "fabric_color").map((v) => {
                       const isSel = !customMode && v.id === variantId;
                       const out = v.stock_quantity <= 0;
+                      const vSale = getActiveSalePrice(v);
+                      const vDisplay = vSale ?? v.price;
                       return (
                         <button
                           key={v.id}
@@ -413,7 +415,7 @@ function ProductPage() {
                           disabled={out}
                           className={`px-4 py-2 rounded-full border text-sm transition-colors ${isSel ? "border-primary bg-primary text-primary-foreground" : "border-border hover:border-primary"} ${out ? "opacity-50 line-through cursor-not-allowed" : ""}`}
                         >
-                          {v.name} — {Number(v.price) === 0 ? "Price upon measurement" : `EGP ${Number(v.price).toLocaleString()}`}{out ? " (Out of stock)" : ""}
+                          {v.name} — {Number(vDisplay) === 0 ? "Price upon measurement" : `EGP ${Number(vDisplay).toLocaleString()}`}{vSale !== null ? ` (was EGP ${Number(v.price).toLocaleString()})` : ""}{out ? " (Out of stock)" : ""}
                         </button>
                       );
                     })}
