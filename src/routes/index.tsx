@@ -7,6 +7,7 @@ import { InstagramStrip } from "@/components/site/InstagramStrip";
 import { FinalCTA } from "@/components/site/FinalCTA";
 import { CustomerReviews } from "@/components/site/CustomerReviews";
 import { WholeRooms } from "@/components/site/WholeRooms";
+import { ProductCard } from "@/components/site/ProductCard";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import type { Product } from "@/lib/types";
