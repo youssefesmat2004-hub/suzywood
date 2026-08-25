@@ -7,7 +7,7 @@ import { useCart } from "@/lib/cart";
 import { toast } from "sonner";
 import type { ReactNode } from "react";
 
-export function ProductCard({ product, badge }: { product: Product; badge?: React.ReactNode }) {
+export function ProductCard({ product, badge, footer }: { product: Product; badge?: React.ReactNode; footer?: ReactNode }) {
   const cart = useCart();
   const sizes = asOptions(product.sizes);
   const finishes = asOptions(product.finishes);
