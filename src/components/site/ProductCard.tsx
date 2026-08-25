@@ -71,8 +71,13 @@ export function ProductCard({ product, badge }: { product: Product; badge?: Reac
             Sale — Save 33%
           </span>
         )}
+        {badge && (
+          <span className={`absolute top-3 ${isOnSale ? "left-[7.5rem]" : "left-3"} rounded-full bg-primary text-primary-foreground text-[10px] uppercase tracking-[0.18em] px-3 py-1 shadow-card`}>
+            {badge}
+          </span>
+        )}
         {isSafetyGate && (
-          <span className={`absolute top-3 ${isOnSale ? "left-[7.5rem]" : "left-3"} inline-flex items-center gap-1.5 rounded-full bg-secondary text-secondary-foreground text-[10px] uppercase tracking-[0.18em] px-3 py-1`}>
+          <span className={`absolute top-3 ${isOnSale || badge ? "left-[7.5rem]" : "left-3"} inline-flex items-center gap-1.5 rounded-full bg-secondary text-secondary-foreground text-[10px] uppercase tracking-[0.18em] px-3 py-1`}>
             <Ruler className="h-3 w-3" /> Custom Measurement Required
           </span>
         )}
