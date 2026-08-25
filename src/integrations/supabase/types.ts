@@ -72,6 +72,9 @@ export type Database = {
           finish_label: string | null
           id: string
           image_url: string | null
+          lights_addon_enabled: boolean
+          lights_addon_note: string | null
+          lights_addon_price: number
           mattress_addon_enabled: boolean
           mattress_addon_note: string | null
           mattress_big_price: number
@@ -99,6 +102,9 @@ export type Database = {
           finish_label?: string | null
           id?: string
           image_url?: string | null
+          lights_addon_enabled?: boolean
+          lights_addon_note?: string | null
+          lights_addon_price?: number
           mattress_addon_enabled?: boolean
           mattress_addon_note?: string | null
           mattress_big_price?: number
@@ -126,6 +132,9 @@ export type Database = {
           finish_label?: string | null
           id?: string
           image_url?: string | null
+          lights_addon_enabled?: boolean
+          lights_addon_note?: string | null
+          lights_addon_price?: number
           mattress_addon_enabled?: boolean
           mattress_addon_note?: string | null
           mattress_big_price?: number
