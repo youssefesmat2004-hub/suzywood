@@ -48,9 +48,11 @@ type CategoryRow = {
   lights_addon_enabled: boolean;
   lights_addon_price: number;
   lights_addon_note: string | null;
+  lights_addon_carpenter_cost?: number;
   pompom_addon_enabled: boolean;
   pompom_addon_price: number;
   pompom_addon_note: string | null;
+  pompom_addon_carpenter_cost?: number;
   product_count?: number;
 };
 
