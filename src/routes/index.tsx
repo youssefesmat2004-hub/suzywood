@@ -77,7 +77,7 @@ export const Route = createFileRoute("/")({
     ],
   }),
   loader: async () => {
-    const [{ data }, { data: bundleRow }] = await Promise.all([
+    const [{ data }, { data: bundleRow }, { data: tentRow }, { data: swingRow }] = await Promise.all([
       supabase
         .from("products")
         .select(PUBLIC_PRODUCT_COLUMNS)
@@ -86,17 +86,23 @@ export const Route = createFileRoute("/")({
         .order("starting_price")
         .limit(8),
       supabase.from("products").select(PUBLIC_PRODUCT_COLUMNS).eq("slug", "tent-swing-bundle").eq("is_active", true).maybeSingle(),
+      supabase.from("products").select(PUBLIC_PRODUCT_COLUMNS).eq("slug", "teepetent").eq("is_active", true).maybeSingle(),
+      supabase.from("products").select(PUBLIC_PRODUCT_COLUMNS).eq("slug", "theswing").eq("is_active", true).maybeSingle(),
     ]);
     const ids = (data ?? []).map((p) => p.id);
-    const bundleId = bundleRow?.id;
-    if (bundleId && !ids.includes(bundleId)) ids.push(bundleId);
+    [bundleRow, tentRow, swingRow].forEach((p) => { if (p && !ids.includes(p.id)) ids.push(p.id); });
     const { data: vRows } = ids.length
       ? await supabase.from("product_variants").select("product_id").in("product_id", ids).eq("is_active", true)
       : { data: [] as { product_id: string }[] };
     const withVariants = new Set((vRows ?? []).map((r) => r.product_id));
     const featured = (data ?? []).map((p) => ({ ...(p as Product), has_variants: withVariants.has(p.id) }));
-    const bundle = bundleRow ? { ...(bundleRow as Product), has_variants: withVariants.has(bundleRow.id) } : null;
-    return { featured: featured as Product[], bundle: bundle as Product | null };
+    const attach = (p: Product | null) => p ? { ...(p as Product), has_variants: withVariants.has(p.id) } : null;
+    return {
+      featured: featured as Product[],
+      bundle: attach(bundleRow as Product | null) as Product | null,
+      tent: attach(tentRow as Product | null) as Product | null,
+      swing: attach(swingRow as Product | null) as Product | null,
+    };
   },
   component: Index,
 });
