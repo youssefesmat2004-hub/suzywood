@@ -123,6 +123,8 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
       tagline: "",
       description: "",
       starting_price: 0,
+      sale_price: null,
+      sale_ends_at: null,
       stock_quantity: 0,
       image_url: null,
       gallery: [],
