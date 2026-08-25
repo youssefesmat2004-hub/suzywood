@@ -75,20 +75,26 @@ export const Route = createFileRoute("/")({
     ],
   }),
   loader: async () => {
-    const { data } = await supabase
-      .from("products")
-      .select("*")
-      .eq("is_active", true)
-      .order("is_featured", { ascending: false })
-      .order("starting_price")
-      .limit(8);
+    const [{ data }, { data: bundleRow }] = await Promise.all([
+      supabase
+        .from("products")
+        .select("*")
+        .eq("is_active", true)
+        .order("is_featured", { ascending: false })
+        .order("starting_price")
+        .limit(8),
+      supabase.from("products").select("*").eq("slug", "tent-swing-bundle").eq("is_active", true).maybeSingle(),
+    ]);
     const ids = (data ?? []).map((p) => p.id);
+    const bundleId = bundleRow?.id;
+    if (bundleId && !ids.includes(bundleId)) ids.push(bundleId);
     const { data: vRows } = ids.length
       ? await supabase.from("product_variants").select("product_id").in("product_id", ids).eq("is_active", true)
       : { data: [] as { product_id: string }[] };
     const withVariants = new Set((vRows ?? []).map((r) => r.product_id));
     const featured = (data ?? []).map((p) => ({ ...(p as Product), has_variants: withVariants.has(p.id) }));
-    return { featured: featured as Product[] };
+    const bundle = bundleRow ? { ...(bundleRow as Product), has_variants: withVariants.has(bundleRow.id) } : null;
+    return { featured: featured as Product[], bundle: bundle as Product | null };
   },
   component: Index,
 });
