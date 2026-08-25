@@ -7,12 +7,13 @@ import { InstagramStrip } from "@/components/site/InstagramStrip";
 import { FinalCTA } from "@/components/site/FinalCTA";
 import { CustomerReviews } from "@/components/site/CustomerReviews";
 import { WholeRooms } from "@/components/site/WholeRooms";
+import { ProductCard } from "@/components/site/ProductCard";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import type { Product } from "@/lib/types";
 import { asOptions, getActiveSalePrice } from "@/lib/types";
 import { resolveImage } from "@/lib/images";
-import { Heart, Plus, ArrowRight } from "lucide-react";
+import { Heart, Plus, ArrowRight, Package } from "lucide-react";
 import { useCart } from "@/lib/cart";
 import { toast } from "sonner";
 import craft from "@/assets/craft-story.jpg";
@@ -75,26 +76,32 @@ export const Route = createFileRoute("/")({
     ],
   }),
   loader: async () => {
-    const { data } = await supabase
-      .from("products")
-      .select("*")
-      .eq("is_active", true)
-      .order("is_featured", { ascending: false })
-      .order("starting_price")
-      .limit(8);
+    const [{ data }, { data: bundleRow }] = await Promise.all([
+      supabase
+        .from("products")
+        .select("*")
+        .eq("is_active", true)
+        .order("is_featured", { ascending: false })
+        .order("starting_price")
+        .limit(8),
+      supabase.from("products").select("*").eq("slug", "tent-swing-bundle").eq("is_active", true).maybeSingle(),
+    ]);
     const ids = (data ?? []).map((p) => p.id);
+    const bundleId = bundleRow?.id;
+    if (bundleId && !ids.includes(bundleId)) ids.push(bundleId);
     const { data: vRows } = ids.length
       ? await supabase.from("product_variants").select("product_id").in("product_id", ids).eq("is_active", true)
       : { data: [] as { product_id: string }[] };
     const withVariants = new Set((vRows ?? []).map((r) => r.product_id));
     const featured = (data ?? []).map((p) => ({ ...(p as Product), has_variants: withVariants.has(p.id) }));
-    return { featured: featured as Product[] };
+    const bundle = bundleRow ? { ...(bundleRow as Product), has_variants: withVariants.has(bundleRow.id) } : null;
+    return { featured: featured as Product[], bundle: bundle as Product | null };
   },
   component: Index,
 });
 
 function Index() {
-  const { featured } = Route.useLoaderData() as { featured: Product[] };
+  const { featured, bundle } = Route.useLoaderData() as { featured: Product[]; bundle: Product | null };
   const content = useSiteContent();
   const cart = useCart();
   const [wished, setWished] = useState<Set<string>>(new Set());
@@ -146,6 +153,29 @@ function Index() {
       <Hero title={heroTitle || undefined} subtitle={heroSubtitle} />
 
       <TrustBadges />
+
+      {/* Bundle promotion */}
+      {bundle && (
+        <section className="container mx-auto px-6 lg:px-10 py-12 md:py-16">
+          <div className="flex flex-wrap items-end justify-between gap-6 mb-8" data-reveal>
+            <div className="max-w-xl">
+              <p className="text-[11px] uppercase tracking-[0.32em] text-secondary mb-3 flex items-center gap-2">
+                <Package className="h-3.5 w-3.5" /> Bundle & Save
+              </p>
+              <h2 className="font-serif text-4xl md:text-5xl text-balance">Tent + Swing Bundle</h2>
+              <p className="text-muted-foreground mt-3">
+                Get our cozy Teepee Tent and The Swing together for EGP 4,750 — a perfect pair for playtime.
+              </p>
+            </div>
+            <Link to="/shop/$slug" params={{ slug: bundle.slug }} className="group inline-flex items-center gap-2 text-sm font-medium text-primary hover:gap-3 transition-all">
+              View bundle <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+          <div className="max-w-sm">
+            <ProductCard product={bundle} badge={<>Bundle & Save</>} />
+          </div>
+        </section>
+      )}
 
       {/* Featured products */}
       <section className="container mx-auto px-6 lg:px-10 py-20 md:py-28">

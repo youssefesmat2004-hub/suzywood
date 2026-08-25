@@ -5,8 +5,9 @@ import { asOptions, getActiveSalePrice } from "@/lib/types";
 import { resolveImage } from "@/lib/images";
 import { useCart } from "@/lib/cart";
 import { toast } from "sonner";
+import type { ReactNode } from "react";
 
-export function ProductCard({ product }: { product: Product }) {
+export function ProductCard({ product, badge }: { product: Product; badge?: React.ReactNode }) {
   const cart = useCart();
   const sizes = asOptions(product.sizes);
   const finishes = asOptions(product.finishes);
@@ -70,8 +71,13 @@ export function ProductCard({ product }: { product: Product }) {
             Sale — Save 33%
           </span>
         )}
+        {badge && (
+          <span className={`absolute top-3 ${isOnSale ? "left-[7.5rem]" : "left-3"} rounded-full bg-primary text-primary-foreground text-[10px] uppercase tracking-[0.18em] px-3 py-1 shadow-card`}>
+            {badge}
+          </span>
+        )}
         {isSafetyGate && (
-          <span className={`absolute top-3 ${isOnSale ? "left-[7.5rem]" : "left-3"} inline-flex items-center gap-1.5 rounded-full bg-secondary text-secondary-foreground text-[10px] uppercase tracking-[0.18em] px-3 py-1`}>
+          <span className={`absolute top-3 ${isOnSale || badge ? "left-[7.5rem]" : "left-3"} inline-flex items-center gap-1.5 rounded-full bg-secondary text-secondary-foreground text-[10px] uppercase tracking-[0.18em] px-3 py-1`}>
             <Ruler className="h-3 w-3" /> Custom Measurement Required
           </span>
         )}
