@@ -49,10 +49,14 @@ export const Route = createFileRoute("/shop/")({
   head: () => ({
     meta: [
       { title: "Shop the Collection — Suzy Wood" },
-      { name: "description", content: "Browse handcrafted, made-to-order nursery and toddler furniture from Suzy Wood." },
+      { name: "description", content: "Browse handcrafted, made-to-order nursery and toddler furniture from Suzy Wood. سراير أطفال خشبية وأثاث غرف نوم أطفال مصنوع يدويًا في القاهرة مع التوصيل لكل مصر." },
+      { name: "keywords", content: "سرير اطفال خشب, غرف نوم اطفال, اثاث اطفال القاهرة, سرير بيبي مصر, غرف اطفال مودرن, wooden crib Egypt, nursery furniture Cairo" },
       { property: "og:title", content: "Shop the Collection — Suzy Wood" },
-      { property: "og:description", content: "Browse cribs, beds, dressers and changing tables — handcrafted in Cairo and made to order." },
+      { property: "og:description", content: "Browse cribs, beds, dressers and changing tables — handcrafted in Cairo and made to order. تسوق سراير ودواليب وتسريحات أطفال حسب الطلب." },
       { property: "og:url", content: "https://suzywoodofficial.com/shop" },
+      { property: "og:locale", content: "en_US" },
+      { property: "og:locale:alternate", content: "ar_EG" },
+
     ],
     links: [{ rel: "canonical", href: "https://suzywoodofficial.com/shop" }],
     scripts: [{
