@@ -364,6 +364,8 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
         await supabase.from("product_variants").update({
           name: variant.name,
           price: Number(variant.price),
+          sale_price: variant.sale_price != null && variant.sale_price > 0 ? Number(variant.sale_price) : null,
+          sale_ends_at: variant.sale_ends_at ? new Date(variant.sale_ends_at).toISOString() : null,
           stock_quantity: Number(variant.stock_quantity),
           image_url: variant.image_url,
           sort_order: variant.sort_order,
@@ -377,6 +379,8 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
           product_id: pid,
           name: variant.name,
           price: Number(variant.price),
+          sale_price: variant.sale_price != null && variant.sale_price > 0 ? Number(variant.sale_price) : null,
+          sale_ends_at: variant.sale_ends_at ? new Date(variant.sale_ends_at).toISOString() : null,
           stock_quantity: Number(variant.stock_quantity),
           image_url: variant.image_url,
           sort_order: variant.sort_order,
