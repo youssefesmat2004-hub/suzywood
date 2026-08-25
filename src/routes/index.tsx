@@ -77,7 +77,7 @@ export const Route = createFileRoute("/")({
     ],
   }),
   loader: async () => {
-    const [{ data }, { data: bundleRow }] = await Promise.all([
+    const [{ data }, { data: bundleRow }, { data: tentRow }, { data: swingRow }] = await Promise.all([
       supabase
         .from("products")
         .select(PUBLIC_PRODUCT_COLUMNS)
@@ -86,23 +86,29 @@ export const Route = createFileRoute("/")({
         .order("starting_price")
         .limit(8),
       supabase.from("products").select(PUBLIC_PRODUCT_COLUMNS).eq("slug", "tent-swing-bundle").eq("is_active", true).maybeSingle(),
+      supabase.from("products").select(PUBLIC_PRODUCT_COLUMNS).eq("slug", "teepetent").eq("is_active", true).maybeSingle(),
+      supabase.from("products").select(PUBLIC_PRODUCT_COLUMNS).eq("slug", "theswing").eq("is_active", true).maybeSingle(),
     ]);
     const ids = (data ?? []).map((p) => p.id);
-    const bundleId = bundleRow?.id;
-    if (bundleId && !ids.includes(bundleId)) ids.push(bundleId);
+    [bundleRow, tentRow, swingRow].forEach((p) => { if (p && !ids.includes(p.id)) ids.push(p.id); });
     const { data: vRows } = ids.length
       ? await supabase.from("product_variants").select("product_id").in("product_id", ids).eq("is_active", true)
       : { data: [] as { product_id: string }[] };
     const withVariants = new Set((vRows ?? []).map((r) => r.product_id));
     const featured = (data ?? []).map((p) => ({ ...(p as Product), has_variants: withVariants.has(p.id) }));
-    const bundle = bundleRow ? { ...(bundleRow as Product), has_variants: withVariants.has(bundleRow.id) } : null;
-    return { featured: featured as Product[], bundle: bundle as Product | null };
+    const attach = (p: Product | null) => p ? { ...(p as Product), has_variants: withVariants.has(p.id) } : null;
+    return {
+      featured: featured as Product[],
+      bundle: attach(bundleRow as Product | null) as Product | null,
+      tent: attach(tentRow as Product | null) as Product | null,
+      swing: attach(swingRow as Product | null) as Product | null,
+    };
   },
   component: Index,
 });
 
 function Index() {
-  const { featured, bundle } = Route.useLoaderData() as { featured: Product[]; bundle: Product | null };
+  const { featured, bundle, tent, swing } = Route.useLoaderData() as { featured: Product[]; bundle: Product | null; tent: Product | null; swing: Product | null };
   const content = useSiteContent();
   const cart = useCart();
   const [wished, setWished] = useState<Set<string>>(new Set());
@@ -155,8 +161,8 @@ function Index() {
 
       <TrustBadges />
 
-      {/* Bundle promotion */}
-      {bundle && (
+      {/* Tent + Swing promotion — tent first, swing second */}
+      {(tent || swing || bundle) && (
         <section className="container mx-auto px-6 lg:px-10 py-12 md:py-16">
           <div className="flex flex-wrap items-end justify-between gap-6 mb-8" data-reveal>
             <div className="max-w-xl">
@@ -168,12 +174,40 @@ function Index() {
                 Get our cozy Teepee Tent and The Swing together for EGP 4,750 — a perfect pair for playtime.
               </p>
             </div>
-            <Link to="/shop/$slug" params={{ slug: bundle.slug }} className="group inline-flex items-center gap-2 text-sm font-medium text-primary hover:gap-3 transition-all">
-              View bundle <ArrowRight className="h-4 w-4" />
-            </Link>
+            {bundle && (
+              <Link to="/shop/$slug" params={{ slug: bundle.slug }} className="group inline-flex items-center gap-2 text-sm font-medium text-primary hover:gap-3 transition-all">
+                View bundle <ArrowRight className="h-4 w-4" />
+              </Link>
+            )}
           </div>
-          <div className="max-w-sm">
-            <ProductCard product={bundle} badge={<>Bundle & Save</>} />
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {tent && (
+              <ProductCard
+                product={tent}
+                badge={<>Tent</>}
+                footer={
+                  <Link to="/shop/$slug" params={{ slug: tent.slug }} className="mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-primary px-4 py-2.5 text-xs font-medium text-primary-foreground hover:bg-wood transition-colors">
+                    Shop Tent <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                }
+              />
+            )}
+            {swing && (
+              <ProductCard
+                product={swing}
+                badge={<>Swing</>}
+                footer={
+                  <Link to="/shop/$slug" params={{ slug: swing.slug }} className="mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-primary px-4 py-2.5 text-xs font-medium text-primary-foreground hover:bg-wood transition-colors">
+                    Shop Swing <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                }
+              />
+            )}
+            {bundle && (
+              <div className="sm:col-span-2 lg:col-span-1">
+                <ProductCard product={bundle} badge={<>Bundle & Save</>} />
+              </div>
+            )}
           </div>
         </section>
       )}
