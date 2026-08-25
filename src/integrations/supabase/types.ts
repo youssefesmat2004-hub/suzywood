@@ -663,6 +663,8 @@ export type Database = {
           name: string
           price: number
           product_id: string
+          sale_ends_at: string | null
+          sale_price: number | null
           sort_order: number
           stock_quantity: number
           updated_at: string
@@ -678,6 +680,8 @@ export type Database = {
           name: string
           price?: number
           product_id: string
+          sale_ends_at?: string | null
+          sale_price?: number | null
           sort_order?: number
           stock_quantity?: number
           updated_at?: string
@@ -693,6 +697,8 @@ export type Database = {
           name?: string
           price?: number
           product_id?: string
+          sale_ends_at?: string | null
+          sale_price?: number | null
           sort_order?: number
           stock_quantity?: number
           updated_at?: string
@@ -726,6 +732,8 @@ export type Database = {
           name: string
           portable_changing_table_enabled: boolean | null
           safety_info: string | null
+          sale_ends_at: string | null
+          sale_price: number | null
           sizes: Json
           slug: string
           starting_price: number
@@ -750,6 +758,8 @@ export type Database = {
           name: string
           portable_changing_table_enabled?: boolean | null
           safety_info?: string | null
+          sale_ends_at?: string | null
+          sale_price?: number | null
           sizes?: Json
           slug: string
           starting_price: number
@@ -774,6 +784,8 @@ export type Database = {
           name?: string
           portable_changing_table_enabled?: boolean | null
           safety_info?: string | null
+          sale_ends_at?: string | null
+          sale_price?: number | null
           sizes?: Json
           slug?: string
           starting_price?: number
