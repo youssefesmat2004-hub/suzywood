@@ -330,9 +330,11 @@ function CategoryDialog({
       lights_addon_enabled: value.lights_addon_enabled,
       lights_addon_price: Number(value.lights_addon_price) || 0,
       lights_addon_note: value.lights_addon_note || null,
+      lights_addon_carpenter_cost: Number(value.lights_addon_carpenter_cost) || 0,
       pompom_addon_enabled: value.pompom_addon_enabled,
       pompom_addon_price: Number(value.pompom_addon_price) || 0,
       pompom_addon_note: value.pompom_addon_note || null,
+      pompom_addon_carpenter_cost: Number(value.pompom_addon_carpenter_cost) || 0,
     };
     let catId = value.id;
     if (isNew) {
