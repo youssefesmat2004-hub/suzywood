@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import type { Product } from "@/lib/types";
-import { asOptions } from "@/lib/types";
+import { asOptions, getActiveSalePrice } from "@/lib/types";
 import { resolveImage, resolveGallery } from "@/lib/images";
 import { Reviews } from "@/components/site/Reviews";
 import { ProductCard } from "@/components/site/ProductCard";
