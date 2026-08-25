@@ -114,9 +114,16 @@ export function ProductCard({ product }: { product: Product }) {
           ) : (
             <div>
               <p className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">From</p>
-              <p className="font-serif text-xl text-primary">
-                {product.starting_price === 0 ? "Price upon measurement" : `EGP ${product.starting_price.toLocaleString()}`}
-              </p>
+              <div className="flex items-center gap-2">
+                <p className="font-serif text-xl text-primary">
+                  {displayPrice === 0 ? "Price upon measurement" : `EGP ${displayPrice.toLocaleString()}`}
+                </p>
+                {isOnSale && (
+                  <p className="text-sm text-muted-foreground line-through">
+                    EGP {product.starting_price.toLocaleString()}
+                  </p>
+                )}
+              </div>
             </div>
           )}
           <span className="text-xs text-muted-foreground">View details →</span>
