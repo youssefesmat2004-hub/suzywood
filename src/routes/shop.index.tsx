@@ -105,7 +105,7 @@ export const Route = createFileRoute("/shop/")({
 type SortKey = "newest" | "price_asc" | "price_desc";
 
 function Shop() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { categories, products } = Route.useLoaderData() as { categories: Category[]; products: Product[] };
   const [query, setQuery] = useState("");
   const [categoryId, setCategoryId] = useState<string>("all");
