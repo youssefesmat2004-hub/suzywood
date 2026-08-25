@@ -67,31 +67,41 @@ export type Database = {
           created_at: string
           custom_size_enabled: boolean
           custom_size_note: string | null
+          custom_size_note_ar: string | null
           custom_size_surcharge: number
           description: string | null
+          description_ar: string | null
           finish_label: string | null
+          finish_label_ar: string | null
           id: string
           image_url: string | null
           lights_addon_enabled: boolean
           lights_addon_note: string | null
+          lights_addon_note_ar: string | null
           lights_addon_price: number
           mattress_addon_enabled: boolean
           mattress_addon_note: string | null
+          mattress_addon_note_ar: string | null
           mattress_big_price: number
           mattress_small_price: number
           name: string
+          name_ar: string | null
           name_engraving_carpenter_cost: number
           name_engraving_enabled: boolean
           name_engraving_note: string | null
+          name_engraving_note_ar: string | null
           name_engraving_surcharge: number
           ottoman_addon_enabled: boolean
           ottoman_addon_note: string | null
+          ottoman_addon_note_ar: string | null
           ottoman_addon_price: number
           pompom_addon_enabled: boolean
           pompom_addon_note: string | null
+          pompom_addon_note_ar: string | null
           pompom_addon_price: number
           portable_changing_table_enabled: boolean
           portable_changing_table_note: string | null
+          portable_changing_table_note_ar: string | null
           portable_changing_table_price: number
           slug: string
           sort_order: number
@@ -100,31 +110,41 @@ export type Database = {
           created_at?: string
           custom_size_enabled?: boolean
           custom_size_note?: string | null
+          custom_size_note_ar?: string | null
           custom_size_surcharge?: number
           description?: string | null
+          description_ar?: string | null
           finish_label?: string | null
+          finish_label_ar?: string | null
           id?: string
           image_url?: string | null
           lights_addon_enabled?: boolean
           lights_addon_note?: string | null
+          lights_addon_note_ar?: string | null
           lights_addon_price?: number
           mattress_addon_enabled?: boolean
           mattress_addon_note?: string | null
+          mattress_addon_note_ar?: string | null
           mattress_big_price?: number
           mattress_small_price?: number
           name: string
+          name_ar?: string | null
           name_engraving_carpenter_cost?: number
           name_engraving_enabled?: boolean
           name_engraving_note?: string | null
+          name_engraving_note_ar?: string | null
           name_engraving_surcharge?: number
           ottoman_addon_enabled?: boolean
           ottoman_addon_note?: string | null
+          ottoman_addon_note_ar?: string | null
           ottoman_addon_price?: number
           pompom_addon_enabled?: boolean
           pompom_addon_note?: string | null
+          pompom_addon_note_ar?: string | null
           pompom_addon_price?: number
           portable_changing_table_enabled?: boolean
           portable_changing_table_note?: string | null
+          portable_changing_table_note_ar?: string | null
           portable_changing_table_price?: number
           slug: string
           sort_order?: number
@@ -133,31 +153,41 @@ export type Database = {
           created_at?: string
           custom_size_enabled?: boolean
           custom_size_note?: string | null
+          custom_size_note_ar?: string | null
           custom_size_surcharge?: number
           description?: string | null
+          description_ar?: string | null
           finish_label?: string | null
+          finish_label_ar?: string | null
           id?: string
           image_url?: string | null
           lights_addon_enabled?: boolean
           lights_addon_note?: string | null
+          lights_addon_note_ar?: string | null
           lights_addon_price?: number
           mattress_addon_enabled?: boolean
           mattress_addon_note?: string | null
+          mattress_addon_note_ar?: string | null
           mattress_big_price?: number
           mattress_small_price?: number
           name?: string
+          name_ar?: string | null
           name_engraving_carpenter_cost?: number
           name_engraving_enabled?: boolean
           name_engraving_note?: string | null
+          name_engraving_note_ar?: string | null
           name_engraving_surcharge?: number
           ottoman_addon_enabled?: boolean
           ottoman_addon_note?: string | null
+          ottoman_addon_note_ar?: string | null
           ottoman_addon_price?: number
           pompom_addon_enabled?: boolean
           pompom_addon_note?: string | null
+          pompom_addon_note_ar?: string | null
           pompom_addon_price?: number
           portable_changing_table_enabled?: boolean
           portable_changing_table_note?: string | null
+          portable_changing_table_note_ar?: string | null
           portable_changing_table_price?: number
           slug?: string
           sort_order?: number
@@ -171,6 +201,7 @@ export type Database = {
           id: string
           is_active: boolean
           label: string
+          label_ar: string | null
           mattress_tier: string | null
           price: number
           sort_order: number
@@ -182,6 +213,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           label: string
+          label_ar?: string | null
           mattress_tier?: string | null
           price?: number
           sort_order?: number
@@ -193,6 +225,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           label?: string
+          label_ar?: string | null
           mattress_tier?: string | null
           price?: number
           sort_order?: number
@@ -679,6 +712,7 @@ export type Database = {
           image_url: string | null
           is_active: boolean
           name: string
+          name_ar: string | null
           price: number
           product_id: string
           sale_ends_at: string | null
@@ -696,6 +730,7 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean
           name: string
+          name_ar?: string | null
           price?: number
           product_id: string
           sale_ends_at?: string | null
@@ -713,6 +748,7 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean
           name?: string
+          name_ar?: string | null
           price?: number
           product_id?: string
           sale_ends_at?: string | null
@@ -735,11 +771,14 @@ export type Database = {
       products: {
         Row: {
           care_info: string | null
+          care_info_ar: string | null
           carpenter_cost: number | null
           category_id: string
           created_at: string
           description: string | null
+          description_ar: string | null
           finishes: Json
+          finishes_ar: Json | null
           gallery: Json
           id: string
           image_url: string | null
@@ -747,25 +786,33 @@ export type Database = {
           is_featured: boolean
           lead_time_weeks: number
           materials: string | null
+          materials_ar: string | null
           name: string
+          name_ar: string | null
           portable_changing_table_enabled: boolean | null
           safety_info: string | null
+          safety_info_ar: string | null
           sale_ends_at: string | null
           sale_price: number | null
           sizes: Json
+          sizes_ar: Json | null
           slug: string
           starting_price: number
           stock_quantity: number
           tagline: string | null
+          tagline_ar: string | null
           updated_at: string
         }
         Insert: {
           care_info?: string | null
+          care_info_ar?: string | null
           carpenter_cost?: number | null
           category_id: string
           created_at?: string
           description?: string | null
+          description_ar?: string | null
           finishes?: Json
+          finishes_ar?: Json | null
           gallery?: Json
           id?: string
           image_url?: string | null
@@ -773,25 +820,33 @@ export type Database = {
           is_featured?: boolean
           lead_time_weeks?: number
           materials?: string | null
+          materials_ar?: string | null
           name: string
+          name_ar?: string | null
           portable_changing_table_enabled?: boolean | null
           safety_info?: string | null
+          safety_info_ar?: string | null
           sale_ends_at?: string | null
           sale_price?: number | null
           sizes?: Json
+          sizes_ar?: Json | null
           slug: string
           starting_price: number
           stock_quantity?: number
           tagline?: string | null
+          tagline_ar?: string | null
           updated_at?: string
         }
         Update: {
           care_info?: string | null
+          care_info_ar?: string | null
           carpenter_cost?: number | null
           category_id?: string
           created_at?: string
           description?: string | null
+          description_ar?: string | null
           finishes?: Json
+          finishes_ar?: Json | null
           gallery?: Json
           id?: string
           image_url?: string | null
@@ -799,16 +854,21 @@ export type Database = {
           is_featured?: boolean
           lead_time_weeks?: number
           materials?: string | null
+          materials_ar?: string | null
           name?: string
+          name_ar?: string | null
           portable_changing_table_enabled?: boolean | null
           safety_info?: string | null
+          safety_info_ar?: string | null
           sale_ends_at?: string | null
           sale_price?: number | null
           sizes?: Json
+          sizes_ar?: Json | null
           slug?: string
           starting_price?: number
           stock_quantity?: number
           tagline?: string | null
+          tagline_ar?: string | null
           updated_at?: string
         }
         Relationships: [
