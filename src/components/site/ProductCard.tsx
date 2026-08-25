@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Plus, Ruler } from "lucide-react";
 import type { Product } from "@/lib/types";
-import { asOptions, getActiveSalePrice } from "@/lib/types";
+import { asOptions, getActiveSalePrice, localizedProduct } from "@/lib/types";
 import { resolveImage } from "@/lib/images";
 import { useCart } from "@/lib/cart";
 import { toast } from "sonner";
@@ -9,7 +9,8 @@ import type { ReactNode } from "react";
 import { useI18n } from "@/lib/i18n";
 
 export function ProductCard({ product, badge, footer }: { product: Product; badge?: React.ReactNode; footer?: ReactNode }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const displayProduct = localizedProduct(product, lang);
   const cart = useCart();
   const sizes = asOptions(product.sizes);
   const finishes = asOptions(product.finishes);
@@ -40,7 +41,7 @@ export function ProductCard({ product, badge, footer }: { product: Product; badg
     cart.add({
       productId: product.id,
       slug: product.slug,
-      name: product.name,
+      name: displayProduct.name,
       image: resolveImage(product.image_url),
       size: size?.value ?? "",
       sizeLabel: size?.label ?? "",
@@ -50,7 +51,7 @@ export function ProductCard({ product, badge, footer }: { product: Product; badg
       unitPrice: displayPrice,
       quantity: 1,
     });
-    toast.success(t("components.pcAddedToCart", "Added to cart"), { description: product.name });
+    toast.success(t("components.pcAddedToCart", "Added to cart"), { description: displayProduct.name });
   };
 
   return (
@@ -62,7 +63,7 @@ export function ProductCard({ product, badge, footer }: { product: Product; badg
       <div className="relative aspect-[4/5] overflow-hidden bg-muted">
         <img
           src={resolveImage(product.image_url)}
-          alt={product.name}
+          alt={displayProduct.name}
           loading="lazy"
           width={1024}
           height={1024}
@@ -96,7 +97,7 @@ export function ProductCard({ product, badge, footer }: { product: Product; badg
           <button
             type="button"
             onClick={quickAdd}
-            aria-label={hasVariants ? `${t("components.pcChooseSizeAriaPrefix", "Choose size for")} ${product.name}` : `${t("components.pcQuickAddAriaPrefix", "Quick add")} ${product.name} ${t("components.pcQuickAddAriaSuffix", "to cart")}`}
+            aria-label={hasVariants ? `${t("components.pcChooseSizeAriaPrefix", "Choose size for")} ${displayProduct.name}` : `${t("components.pcQuickAddAriaPrefix", "Quick add")} ${displayProduct.name} ${t("components.pcQuickAddAriaSuffix", "to cart")}`}
             className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-2 text-xs font-medium text-primary-foreground shadow-elegant opacity-0 translate-y-1 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0 hover:bg-primary/90 focus:opacity-100 focus:translate-y-0"
           >
             <Plus className="h-3.5 w-3.5" /> {hasVariants ? t("components.pcSelectSize", "Select size") : t("components.pcAddToCart", "Add to cart")}
@@ -104,8 +105,8 @@ export function ProductCard({ product, badge, footer }: { product: Product; badg
         )}
       </div>
       <div className="p-6 flex flex-col gap-2">
-        <h3 className="font-serif text-2xl">{product.name}</h3>
-        <p className="text-sm text-muted-foreground line-clamp-1">{product.tagline}</p>
+        <h3 className="font-serif text-2xl">{displayProduct.name}</h3>
+        <p className="text-sm text-muted-foreground line-clamp-1">{displayProduct.tagline}</p>
         {hasVariants && !isSafetyGate && (
           (sizes.length > 1 || displayFinishes.length > 1) && (
             <p className="text-[11px] uppercase tracking-[0.2em] text-secondary">

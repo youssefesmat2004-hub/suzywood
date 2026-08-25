@@ -10,12 +10,12 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import type { Category, Product } from "@/lib/types";
 import { PUBLIC_PRODUCT_COLUMNS } from "@/lib/types";
-import { getActiveSalePrice } from "@/lib/types";
+import { getActiveSalePrice, localizedProduct, localizedText } from "@/lib/types";
 import { useI18n } from "@/lib/i18n";
 
 function ShopError({ error, reset }: { error: Error; reset: () => void }) {
   const router = useRouter();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
 
   return (
     <Layout>
@@ -113,14 +113,14 @@ function Shop() {
 
   const effectivePrice = (p: Product) => getActiveSalePrice(p) ?? p.starting_price;
   const filtered = useMemo(() => {
-    let list = products;
+    let list = products.map((p) => localizedProduct(p, lang));
     if (categoryId !== "all") list = list.filter((p) => p.category_id === categoryId);
     const q = query.trim().toLowerCase();
     if (q) list = list.filter((p) => p.name.toLowerCase().includes(q) || (p.tagline ?? "").toLowerCase().includes(q));
     if (sort === "price_asc") list = [...list].sort((a, b) => effectivePrice(a) - effectivePrice(b));
     else if (sort === "price_desc") list = [...list].sort((a, b) => effectivePrice(b) - effectivePrice(a));
     return list;
-  }, [products, categoryId, query, sort]);
+  }, [products, categoryId, query, sort, lang]);
 
   return (
     <Layout>
@@ -144,7 +144,7 @@ function Shop() {
               onClick={() => setCategoryId(c.id)}
               className={`px-4 py-2 rounded-full border text-sm transition-colors ${categoryId === c.id ? "bg-primary text-primary-foreground border-primary" : "border-border hover:border-primary"}`}
             >
-              {c.name}
+              {localizedText(lang, c.name, c.name_ar)}
             </button>
           ))}
         </div>
