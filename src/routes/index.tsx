@@ -153,6 +153,29 @@ function Index() {
 
       <TrustBadges />
 
+      {/* Bundle promotion */}
+      {bundle && (
+        <section className="container mx-auto px-6 lg:px-10 py-12 md:py-16">
+          <div className="flex flex-wrap items-end justify-between gap-6 mb-8" data-reveal>
+            <div className="max-w-xl">
+              <p className="text-[11px] uppercase tracking-[0.32em] text-secondary mb-3 flex items-center gap-2">
+                <Package className="h-3.5 w-3.5" /> Bundle & Save
+              </p>
+              <h2 className="font-serif text-4xl md:text-5xl text-balance">Tent + Swing Bundle</h2>
+              <p className="text-muted-foreground mt-3">
+                Get our cozy Teepee Tent and The Swing together for EGP 4,750 — a perfect pair for playtime.
+              </p>
+            </div>
+            <Link to="/shop/$slug" params={{ slug: bundle.slug }} className="group inline-flex items-center gap-2 text-sm font-medium text-primary hover:gap-3 transition-all">
+              View bundle <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+          <div className="max-w-sm">
+            <ProductCard product={bundle} badge={<>Bundle & Save</>} />
+          </div>
+        </section>
+      )}
+
       {/* Featured products */}
       <section className="container mx-auto px-6 lg:px-10 py-20 md:py-28">
         <div className="flex flex-wrap items-end justify-between gap-6 mb-12" data-reveal>
