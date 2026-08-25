@@ -106,13 +106,14 @@ function Shop() {
   const [categoryId, setCategoryId] = useState<string>("all");
   const [sort, setSort] = useState<SortKey>("newest");
 
+  const effectivePrice = (p: Product) => getActiveSalePrice(p) ?? p.starting_price;
   const filtered = useMemo(() => {
     let list = products;
     if (categoryId !== "all") list = list.filter((p) => p.category_id === categoryId);
     const q = query.trim().toLowerCase();
     if (q) list = list.filter((p) => p.name.toLowerCase().includes(q) || (p.tagline ?? "").toLowerCase().includes(q));
-    if (sort === "price_asc") list = [...list].sort((a, b) => a.starting_price - b.starting_price);
-    else if (sort === "price_desc") list = [...list].sort((a, b) => b.starting_price - a.starting_price);
+    if (sort === "price_asc") list = [...list].sort((a, b) => effectivePrice(a) - effectivePrice(b));
+    else if (sort === "price_desc") list = [...list].sort((a, b) => effectivePrice(b) - effectivePrice(a));
     return list;
   }, [products, categoryId, query, sort]);
 
