@@ -10,7 +10,7 @@ import { WholeRooms } from "@/components/site/WholeRooms";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import type { Product } from "@/lib/types";
-import { asOptions } from "@/lib/types";
+import { asOptions, getActiveSalePrice } from "@/lib/types";
 import { resolveImage } from "@/lib/images";
 import { Heart, Plus, ArrowRight } from "lucide-react";
 import { useCart } from "@/lib/cart";
