@@ -161,8 +161,8 @@ function Index() {
 
       <TrustBadges />
 
-      {/* Bundle promotion */}
-      {bundle && (
+      {/* Tent + Swing promotion — tent first, swing second */}
+      {(tent || swing || bundle) && (
         <section className="container mx-auto px-6 lg:px-10 py-12 md:py-16">
           <div className="flex flex-wrap items-end justify-between gap-6 mb-8" data-reveal>
             <div className="max-w-xl">
@@ -174,12 +174,40 @@ function Index() {
                 Get our cozy Teepee Tent and The Swing together for EGP 4,750 — a perfect pair for playtime.
               </p>
             </div>
-            <Link to="/shop/$slug" params={{ slug: bundle.slug }} className="group inline-flex items-center gap-2 text-sm font-medium text-primary hover:gap-3 transition-all">
-              View bundle <ArrowRight className="h-4 w-4" />
-            </Link>
+            {bundle && (
+              <Link to="/shop/$slug" params={{ slug: bundle.slug }} className="group inline-flex items-center gap-2 text-sm font-medium text-primary hover:gap-3 transition-all">
+                View bundle <ArrowRight className="h-4 w-4" />
+              </Link>
+            )}
           </div>
-          <div className="max-w-sm">
-            <ProductCard product={bundle} badge={<>Bundle & Save</>} />
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {tent && (
+              <ProductCard
+                product={tent}
+                badge={<>Tent</>}
+                footer={
+                  <Link to="/shop/$slug" params={{ slug: tent.slug }} className="mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-primary px-4 py-2.5 text-xs font-medium text-primary-foreground hover:bg-wood transition-colors">
+                    Shop Tent <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                }
+              />
+            )}
+            {swing && (
+              <ProductCard
+                product={swing}
+                badge={<>Swing</>}
+                footer={
+                  <Link to="/shop/$slug" params={{ slug: swing.slug }} className="mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-primary px-4 py-2.5 text-xs font-medium text-primary-foreground hover:bg-wood transition-colors">
+                    Shop Swing <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                }
+              />
+            )}
+            {bundle && (
+              <div className="sm:col-span-2 lg:col-span-1">
+                <ProductCard product={bundle} badge={<>Bundle & Save</>} />
+              </div>
+            )}
           </div>
         </section>
       )}
