@@ -263,9 +263,13 @@ function ProductPage() {
   const finishLabel = category?.finish_label?.trim() || "Wood Finish";
   const stock = customMode ? 99 : (selectedVariant ? selectedVariant.stock_quantity : (product.stock_quantity ?? 99));
   const soldOut = !customMode && stock <= 0;
+  const productSalePrice = getActiveSalePrice(product);
+  const variantSalePrice = selectedVariant ? getActiveSalePrice(selectedVariant) : null;
   const basePrice = customMode
     ? product.starting_price + customSurcharge
-    : (selectedVariant ? selectedVariant.price : product.starting_price);
+    : (selectedVariant
+        ? (variantSalePrice ?? selectedVariant.price)
+        : (productSalePrice ?? product.starting_price));
   const unitPrice = basePrice
     + (engravingApplied ? engravingSurcharge : 0)
     + (ottomanApplied ? ottomanPrice : 0)
