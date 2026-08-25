@@ -84,7 +84,7 @@ export const Route = createFileRoute("/shop/$slug")({
         .limit(4),
       supabase
         .from("categories")
-        .select("slug,custom_size_enabled,custom_size_surcharge,custom_size_note,name_engraving_enabled,name_engraving_surcharge,name_engraving_note,finish_label,ottoman_addon_enabled,ottoman_addon_price,ottoman_addon_note,portable_changing_table_enabled,portable_changing_table_price,portable_changing_table_note,mattress_addon_enabled,mattress_small_price,mattress_big_price,mattress_addon_note,lights_addon_enabled,lights_addon_price,lights_addon_note")
+        .select("slug,custom_size_enabled,custom_size_surcharge,custom_size_note,name_engraving_enabled,name_engraving_surcharge,name_engraving_note,finish_label,ottoman_addon_enabled,ottoman_addon_price,ottoman_addon_note,portable_changing_table_enabled,portable_changing_table_price,portable_changing_table_note,mattress_addon_enabled,mattress_small_price,mattress_big_price,mattress_addon_note,lights_addon_enabled,lights_addon_price,lights_addon_note,pompom_addon_enabled,pompom_addon_price,pompom_addon_note")
         .eq("id", product.category_id)
         .maybeSingle(),
     ]);
@@ -118,6 +118,9 @@ export const Route = createFileRoute("/shop/$slug")({
         lights_addon_enabled: boolean;
         lights_addon_price: number;
         lights_addon_note: string | null;
+        pompom_addon_enabled: boolean;
+        pompom_addon_price: number;
+        pompom_addon_note: string | null;
       } | null,
       categorySizes: (catSizes ?? []) as { label: string; mattress_tier: "small" | "big" | null }[],
     };
@@ -209,6 +212,9 @@ function ProductPage() {
       lights_addon_enabled: boolean;
       lights_addon_price: number;
       lights_addon_note: string | null;
+      pompom_addon_enabled: boolean;
+      pompom_addon_price: number;
+      pompom_addon_note: string | null;
     } | null;
     categorySizes: { label: string; mattress_tier: "small" | "big" | null }[];
   };
@@ -235,6 +241,7 @@ function ProductPage() {
   const [withBedRails, setWithBedRails] = useState(false);
   const [withMattress, setWithMattress] = useState(false);
   const [withLights, setWithLights] = useState(false);
+  const [withPompoms, setWithPompoms] = useState(false);
   const customWidthId = useId();
   const customLengthId = useId();
 
@@ -279,6 +286,9 @@ function ProductPage() {
   const lightsEnabled = !!category?.lights_addon_enabled;
   const lightsPrice = Number(category?.lights_addon_price ?? 0);
   const lightsApplied = lightsEnabled && withLights;
+  const pompomEnabled = !!category?.pompom_addon_enabled;
+  const pompomPrice = Number(category?.pompom_addon_price ?? 0);
+  const pompomApplied = pompomEnabled && withPompoms;
   const finishLabel = category?.finish_label?.trim() || t("product.finish", "Wood Finish");
   const stock = customMode ? 99 : (selectedVariant ? selectedVariant.stock_quantity : (product.stock_quantity ?? 99));
   const soldOut = !customMode && stock <= 0;
@@ -295,7 +305,8 @@ function ProductPage() {
     + (portableApplied ? portablePrice : 0)
     + (bedRailsApplied ? BED_RAILS_PRICE : 0)
     + (mattressApplied ? mattressPrice : 0)
-    + (lightsApplied ? lightsPrice : 0);
+    + (lightsApplied ? lightsPrice : 0)
+    + (pompomApplied ? pompomPrice : 0);
 
   const stockBadge = soldOut
     ? { label: t("shop.soldOutBadge", "Sold out"), className: "bg-destructive text-destructive-foreground" }
@@ -340,14 +351,15 @@ function ProductPage() {
     const portableSuffix = portableApplied ? " + Portable Changing Table" : "";
     const bedRailsSuffix = bedRailsApplied ? " + Bed Rails" : "";
     const lightsSuffix = lightsApplied ? " + Fairy Lights" : "";
+    const pompomSuffix = pompomApplied ? " + Pompoms" : "";
     const mattressSuffix = mattressApplied ? ` + ${mattressTier === "small" ? "Small" : "Big"} Mattress` : "";
     cart.add({
       productId: product.id,
       slug: product.slug,
-      name: product.name + variantSuffix + ottomanSuffix + portableSuffix + bedRailsSuffix + mattressSuffix + lightsSuffix,
+      name: product.name + variantSuffix + ottomanSuffix + portableSuffix + bedRailsSuffix + mattressSuffix + lightsSuffix + pompomSuffix,
       image: selectedVariant?.image_url ? resolveImage(selectedVariant.image_url) : resolveImage(product.image_url),
-      size: [size || "std", ottomanApplied ? "ottoman" : null, portableApplied ? "portable" : null, lightsApplied ? "lights" : null].filter(Boolean).join("+"),
-      sizeLabel: [sizeLabel, ottomanApplied ? "Ottoman Leg Rest" : null, portableApplied ? "Portable Changing Table" : null, lightsApplied ? "Fairy Lights" : null].filter(Boolean).join(" · "),
+      size: [size || "std", ottomanApplied ? "ottoman" : null, portableApplied ? "portable" : null, lightsApplied ? "lights" : null, pompomApplied ? "pompoms" : null].filter(Boolean).join("+"),
+      sizeLabel: [sizeLabel, ottomanApplied ? "Ottoman Leg Rest" : null, portableApplied ? "Portable Changing Table" : null, lightsApplied ? "Fairy Lights" : null, pompomApplied ? "Pompoms" : null].filter(Boolean).join(" · "),
       finish, finishLabel,
       engraving: engraving.slice(0, 20),
       unitPrice,
@@ -358,7 +370,7 @@ function ProductPage() {
       mattressPrice: mattressApplied ? mattressPrice : 0,
       categorySlug: category?.slug,
     });
-    toast.success(t("shop.addedToCart", "Added to cart"), { description: `${product.name}${variantSuffix}${ottomanSuffix}${portableSuffix}${bedRailsSuffix}${mattressSuffix}${lightsSuffix} × ${qty}`, action: { label: t("shop.viewCart", "View cart"), onClick: () => navigate({ to: "/cart" }) } });
+    toast.success(t("shop.addedToCart", "Added to cart"), { description: `${product.name}${variantSuffix}${ottomanSuffix}${portableSuffix}${bedRailsSuffix}${mattressSuffix}${lightsSuffix}${pompomSuffix} × ${qty}`, action: { label: t("shop.viewCart", "View cart"), onClick: () => navigate({ to: "/cart" }) } });
   };
 
   return (
@@ -680,6 +692,30 @@ function ProductPage() {
                       </div>
                       <p className="text-xs text-muted-foreground italic mt-1">
                         {category?.lights_addon_note || t("shop.fairyLightsNoteDefault", "Lights and pompoms are not included with the tent.")}
+                      </p>
+                    </div>
+                  </label>
+                </div>
+              )}
+
+              {pompomEnabled && (
+                <div className="space-y-2">
+                  <label className={`flex items-start gap-3 rounded-xl border p-4 cursor-pointer transition-colors ${withPompoms ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"}`}>
+                    <input
+                      type="checkbox"
+                      className="mt-1 h-4 w-4 accent-primary"
+                      checked={withPompoms}
+                      onChange={(e) => setWithPompoms(e.target.checked)}
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-medium text-sm">{t("shop.pompomsTitle", "Add Pompoms")}</span>
+                        <span className="text-sm text-primary font-medium">
+                          {pompomPrice > 0 ? `+${pompomPrice.toLocaleString()} EGP` : t("shop.priceOnRequest", "Price on request")}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground italic mt-1">
+                        {category?.pompom_addon_note || t("shop.pompomsNoteDefault", "Handmade pompom garland in your chosen color. Tent fabric is off-white only.")}
                       </p>
                     </div>
                   </label>

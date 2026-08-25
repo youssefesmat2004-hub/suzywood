@@ -48,6 +48,9 @@ type CategoryRow = {
   lights_addon_enabled: boolean;
   lights_addon_price: number;
   lights_addon_note: string | null;
+  pompom_addon_enabled: boolean;
+  pompom_addon_price: number;
+  pompom_addon_note: string | null;
   product_count?: number;
 };
 
@@ -145,6 +148,9 @@ function CategoriesPage() {
       lights_addon_enabled: false,
       lights_addon_price: 0,
       lights_addon_note: null,
+      pompom_addon_enabled: false,
+      pompom_addon_price: 0,
+      pompom_addon_note: null,
     });
     setOpen(true);
   };
@@ -320,6 +326,9 @@ function CategoryDialog({
       lights_addon_enabled: value.lights_addon_enabled,
       lights_addon_price: Number(value.lights_addon_price) || 0,
       lights_addon_note: value.lights_addon_note || null,
+      pompom_addon_enabled: value.pompom_addon_enabled,
+      pompom_addon_price: Number(value.pompom_addon_price) || 0,
+      pompom_addon_note: value.pompom_addon_note || null,
     };
     let catId = value.id;
     if (isNew) {
@@ -406,6 +415,7 @@ function CategoryDialog({
             <TabsTrigger value="portable" disabled={isNew}>Portable Table</TabsTrigger>
             <TabsTrigger value="mattress" disabled={isNew}>Mattress</TabsTrigger>
             <TabsTrigger value="lights" disabled={isNew}>Lights</TabsTrigger>
+            <TabsTrigger value="pompoms" disabled={isNew}>Pompoms</TabsTrigger>
           </TabsList>
 
           <TabsContent value="details" className="space-y-4 mt-4">
@@ -704,6 +714,39 @@ function CategoryDialog({
                 value={value.lights_addon_note ?? ""}
                 onChange={(e) => onChange({ ...value, lights_addon_note: e.target.value })}
                 placeholder="e.g. Lights and pompoms are not included with the tent."
+              />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="pompoms" className="space-y-4 mt-4">
+            <div className="flex items-center justify-between border rounded-lg p-3">
+              <div>
+                <p className="font-medium text-sm">Offer Pompoms add-on</p>
+                <p className="text-xs text-muted-foreground">Lets customers add pompoms to any product in this category.</p>
+              </div>
+              <Switch
+                checked={value.pompom_addon_enabled}
+                onCheckedChange={(c) => onChange({ ...value, pompom_addon_enabled: c })}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Pompoms price (EGP)</Label>
+              <Input
+                type="number"
+                min={0}
+                step="0.01"
+                value={value.pompom_addon_price}
+                onChange={(e) => onChange({ ...value, pompom_addon_price: Number(e.target.value) })}
+                placeholder="e.g. 300 (leave 0 for 'Price on request')"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Note shown to customers (optional)</Label>
+              <Textarea
+                rows={3}
+                value={value.pompom_addon_note ?? ""}
+                onChange={(e) => onChange({ ...value, pompom_addon_note: e.target.value })}
+                placeholder="e.g. Handmade pompom garland in your chosen color."
               />
             </div>
           </TabsContent>
