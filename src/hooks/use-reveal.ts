@@ -23,9 +23,11 @@ export function useReveal() {
       { rootMargin: "0px 0px -10% 0px", threshold: 0.05 }
     );
     const scan = () => document.querySelectorAll("[data-reveal]:not(.is-visible)").forEach((el) => io.observe(el));
-    scan();
+    // Defer the first scan so it runs after React finishes hydrating; adding
+    // classes mid-hydration causes attribute mismatch warnings.
+    const raf = requestAnimationFrame(scan);
     const mo = new MutationObserver(() => scan());
     mo.observe(document.body, { childList: true, subtree: true });
-    return () => { io.disconnect(); mo.disconnect(); };
+    return () => { cancelAnimationFrame(raf); io.disconnect(); mo.disconnect(); };
   }, []);
 }

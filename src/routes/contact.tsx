@@ -106,7 +106,7 @@ function Contact() {
             </div>
             <div className="space-y-1"><Label htmlFor="email">{t("common.email", "Email")}</Label><Input id="email" type="email" name="email" required maxLength={255} /></div>
             <div className="space-y-1"><Label htmlFor="message">{t("common.message", "Message")}</Label><Textarea id="message" name="message" rows={5} required minLength={5} maxLength={3000} /></div>
-            <Button type="submit" disabled={submitting} size="lg">t(submitting ? "pages.contactSending" : "pages.contactSendMessage", submitting ? "Sending…" : "Send Message")</Button>
+            <Button type="submit" disabled={submitting} size="lg">{t(submitting ? "pages.contactSending" : "pages.contactSendMessage", submitting ? "Sending…" : "Send Message")}</Button>
           </form>
         </div>
       </section>

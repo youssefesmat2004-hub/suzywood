@@ -180,7 +180,7 @@ function OrderDetailPage() {
       const productIds = items.map((i) => i.product_id).filter(Boolean) as string[];
       if (productIds.length) {
         const { data: prods } = await supabase
-          .from("products")
+          .rpc("admin_products")
           .select("id, image_url, carpenter_cost, category_id")
           .in("id", productIds);
         const map = new Map((prods ?? []).map((p: any) => [p.id, p]));
@@ -190,7 +190,7 @@ function OrderDetailPage() {
         const engravingCostByCat = new Map<string, number>();
         if (categoryIds.length) {
           const { data: cats } = await supabase
-            .from("categories")
+            .rpc("admin_categories")
             .select("id, name_engraving_carpenter_cost")
             .in("id", categoryIds);
           (cats ?? []).forEach((c: any) =>
@@ -198,7 +198,7 @@ function OrderDetailPage() {
           );
         }
         const { data: variants } = await supabase
-          .from("product_variants")
+          .rpc("admin_product_variants")
           .select("product_id, name, carpenter_cost")
           .in("product_id", productIds);
         const vmap = new Map<string, number>();

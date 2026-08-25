@@ -1106,6 +1106,128 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_categories: {
+        Args: never
+        Returns: {
+          created_at: string
+          custom_size_enabled: boolean
+          custom_size_note: string | null
+          custom_size_note_ar: string | null
+          custom_size_surcharge: number
+          description: string | null
+          description_ar: string | null
+          finish_label: string | null
+          finish_label_ar: string | null
+          id: string
+          image_url: string | null
+          lights_addon_enabled: boolean
+          lights_addon_note: string | null
+          lights_addon_note_ar: string | null
+          lights_addon_price: number
+          mattress_addon_enabled: boolean
+          mattress_addon_note: string | null
+          mattress_addon_note_ar: string | null
+          mattress_big_price: number
+          mattress_small_price: number
+          name: string
+          name_ar: string | null
+          name_engraving_carpenter_cost: number
+          name_engraving_enabled: boolean
+          name_engraving_note: string | null
+          name_engraving_note_ar: string | null
+          name_engraving_surcharge: number
+          ottoman_addon_enabled: boolean
+          ottoman_addon_note: string | null
+          ottoman_addon_note_ar: string | null
+          ottoman_addon_price: number
+          pompom_addon_enabled: boolean
+          pompom_addon_note: string | null
+          pompom_addon_note_ar: string | null
+          pompom_addon_price: number
+          portable_changing_table_enabled: boolean
+          portable_changing_table_note: string | null
+          portable_changing_table_note_ar: string | null
+          portable_changing_table_price: number
+          slug: string
+          sort_order: number
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "categories"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      admin_product_variants: {
+        Args: never
+        Returns: {
+          carpenter_cost: number | null
+          color_hex: string | null
+          created_at: string
+          id: string
+          image_url: string | null
+          is_active: boolean
+          name: string
+          name_ar: string | null
+          price: number
+          product_id: string
+          sale_ends_at: string | null
+          sale_price: number | null
+          sort_order: number
+          stock_quantity: number
+          updated_at: string
+          variant_type: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "product_variants"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      admin_products: {
+        Args: never
+        Returns: {
+          care_info: string | null
+          care_info_ar: string | null
+          carpenter_cost: number | null
+          category_id: string
+          created_at: string
+          description: string | null
+          description_ar: string | null
+          finishes: Json
+          finishes_ar: Json | null
+          gallery: Json
+          id: string
+          image_url: string | null
+          is_active: boolean
+          is_featured: boolean
+          lead_time_weeks: number
+          materials: string | null
+          materials_ar: string | null
+          name: string
+          name_ar: string | null
+          portable_changing_table_enabled: boolean | null
+          safety_info: string | null
+          safety_info_ar: string | null
+          sale_ends_at: string | null
+          sale_price: number | null
+          sizes: Json
+          sizes_ar: Json | null
+          slug: string
+          starting_price: number
+          stock_quantity: number
+          tagline: string | null
+          tagline_ar: string | null
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "products"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       create_order_with_items:
         | {
             Args: {

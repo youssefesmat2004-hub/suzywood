@@ -15,7 +15,7 @@ function EditProduct() {
 
   useEffect(() => {
     (async () => {
-      const { data: row, error: err } = await supabase.from("products").select("*").eq("id", id).single();
+      const { data: row, error: err } = await supabase.rpc("admin_products").select("*").eq("id", id).single();
       if (err || !row) {
         setError(err?.message ?? "Not found");
         return;

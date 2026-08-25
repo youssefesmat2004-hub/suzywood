@@ -159,7 +159,7 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
     });
     if (productId) {
       supabase
-        .from("product_variants")
+        .rpc("admin_product_variants")
         .select("*")
         .eq("product_id", productId)
         .order("sort_order")
