@@ -112,6 +112,7 @@ function Index() {
     e.stopPropagation();
     const size = sizes[0];
     const finish = finishes[0];
+    const salePrice = getActiveSalePrice(p);
     cart.add({
       productId: p.id,
       slug: p.slug,
@@ -122,7 +123,7 @@ function Index() {
       finish: finish?.value ?? "",
       finishLabel: finish?.label ?? "",
       engraving: "",
-      unitPrice: p.starting_price,
+      unitPrice: salePrice ?? p.starting_price,
       quantity: 1,
     });
     toast.success("Added to cart", {
