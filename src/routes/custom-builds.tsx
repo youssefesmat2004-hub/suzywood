@@ -25,7 +25,7 @@ function CustomBuilds() {
               Designed for your room, built for your child.
             </h1>
             <p className="text-muted-foreground leading-relaxed">
-              Tell us about the piece you've been imagining , A fitted wardrobe, a reading nook, a one of a kind crib.
+              Tell us about the piece you've been imagining: a fitted wardrobe, a reading nook, a one-of-a-kind crib.
             </p>
             <ul className="space-y-3 pt-2 text-sm text-left">
               {[
