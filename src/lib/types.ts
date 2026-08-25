@@ -21,6 +21,8 @@ export type Product = {
   tagline: string | null;
   description: string | null;
   starting_price: number;
+  sale_price: number | null;
+  sale_ends_at: string | null;
   image_url: string | null;
   gallery: Json;
   sizes: Json;
