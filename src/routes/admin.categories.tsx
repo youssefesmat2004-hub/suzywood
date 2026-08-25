@@ -45,6 +45,9 @@ type CategoryRow = {
   mattress_small_price: number;
   mattress_big_price: number;
   mattress_addon_note: string | null;
+  lights_addon_enabled: boolean;
+  lights_addon_price: number;
+  lights_addon_note: string | null;
   product_count?: number;
 };
 
@@ -139,6 +142,9 @@ function CategoriesPage() {
       mattress_small_price: 0,
       mattress_big_price: 0,
       mattress_addon_note: null,
+      lights_addon_enabled: false,
+      lights_addon_price: 0,
+      lights_addon_note: null,
     });
     setOpen(true);
   };
@@ -311,6 +317,9 @@ function CategoryDialog({
       mattress_small_price: Number(value.mattress_small_price) || 0,
       mattress_big_price: Number(value.mattress_big_price) || 0,
       mattress_addon_note: value.mattress_addon_note || null,
+      lights_addon_enabled: value.lights_addon_enabled,
+      lights_addon_price: Number(value.lights_addon_price) || 0,
+      lights_addon_note: value.lights_addon_note || null,
     };
     let catId = value.id;
     if (isNew) {
@@ -388,7 +397,7 @@ function CategoryDialog({
           <DialogTitle>{isNew ? "New Category" : "Edit Category"}</DialogTitle>
         </DialogHeader>
         <Tabs defaultValue="details">
-          <TabsList className="grid grid-cols-7 w-full">
+          <TabsList className="grid grid-cols-8 w-full">
             <TabsTrigger value="details">Details</TabsTrigger>
             <TabsTrigger value="sizes" disabled={isNew}>Sizes & Pricing</TabsTrigger>
             <TabsTrigger value="custom" disabled={isNew}>Custom Size</TabsTrigger>
@@ -396,6 +405,7 @@ function CategoryDialog({
             <TabsTrigger value="ottoman" disabled={isNew}>Ottoman</TabsTrigger>
             <TabsTrigger value="portable" disabled={isNew}>Portable Table</TabsTrigger>
             <TabsTrigger value="mattress" disabled={isNew}>Mattress</TabsTrigger>
+            <TabsTrigger value="lights" disabled={isNew}>Lights</TabsTrigger>
           </TabsList>
 
           <TabsContent value="details" className="space-y-4 mt-4">
@@ -661,6 +671,39 @@ function CategoryDialog({
                 value={value.ottoman_addon_note ?? ""}
                 onChange={(e) => onChange({ ...value, ottoman_addon_note: e.target.value })}
                 placeholder="e.g. Matching fabric. Adds 1 extra week to lead time."
+              />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="lights" className="space-y-4 mt-4">
+            <div className="flex items-center justify-between border rounded-lg p-3">
+              <div>
+                <p className="font-medium text-sm">Offer Fairy Lights add-on</p>
+                <p className="text-xs text-muted-foreground">Lets customers add fairy lights to any product in this category.</p>
+              </div>
+              <Switch
+                checked={value.lights_addon_enabled}
+                onCheckedChange={(c) => onChange({ ...value, lights_addon_enabled: c })}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Fairy lights price (EGP)</Label>
+              <Input
+                type="number"
+                min={0}
+                step="0.01"
+                value={value.lights_addon_price}
+                onChange={(e) => onChange({ ...value, lights_addon_price: Number(e.target.value) })}
+                placeholder="e.g. 300"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Note shown to customers (optional)</Label>
+              <Textarea
+                rows={3}
+                value={value.lights_addon_note ?? ""}
+                onChange={(e) => onChange({ ...value, lights_addon_note: e.target.value })}
+                placeholder="e.g. Lights and pompoms are not included with the tent."
               />
             </div>
           </TabsContent>
