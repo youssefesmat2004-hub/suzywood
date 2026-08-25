@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import type { Category, Product } from "@/lib/types";
-import { PUBLIC_PRODUCT_COLUMNS } from "@/lib/types";
+import { PUBLIC_CATEGORY_COLUMNS, PUBLIC_PRODUCT_COLUMNS } from "@/lib/types";
 import { getActiveSalePrice, localizedProduct, localizedText } from "@/lib/types";
 import { useI18n } from "@/lib/i18n";
 
@@ -78,7 +78,7 @@ export const Route = createFileRoute("/shop/")({
   }),
   loader: async () => {
     const [{ data: categories }, { data: products }] = await Promise.all([
-      supabase.from("categories").select("*").order("sort_order"),
+      supabase.from("categories").select(PUBLIC_CATEGORY_COLUMNS).order("sort_order"),
       supabase.from("products").select(PUBLIC_PRODUCT_COLUMNS).eq("is_active", true).order("created_at", { ascending: false }),
     ]);
     const { data: vRows } = await supabase
