@@ -432,6 +432,18 @@ export function ProductForm({ initial, productId }: { initial?: ProductFormValue
             <Input type="number" min={0} step="0.01" value={v.starting_price} onChange={(e) => setV({ ...v, starting_price: Number(e.target.value) })} required />
           </div>
           <div className="space-y-1.5">
+            <Label>Sale Price (EGP)</Label>
+            <Input type="number" min={0} step="0.01" value={v.sale_price ?? ""} onChange={(e) => setV({ ...v, sale_price: e.target.value ? Number(e.target.value) : null })} placeholder="Leave empty for no sale" />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Sale Ends At</Label>
+            <Input
+              type="datetime-local"
+              value={v.sale_ends_at ? new Date(v.sale_ends_at).toISOString().slice(0, 16) : ""}
+              onChange={(e) => setV({ ...v, sale_ends_at: e.target.value ? new Date(e.target.value).toISOString() : null })}
+            />
+          </div>
+          <div className="space-y-1.5">
             <Label>Stock Quantity</Label>
             <Input type="number" min={0} value={v.stock_quantity} onChange={(e) => setV({ ...v, stock_quantity: Number(e.target.value) })} />
           </div>
