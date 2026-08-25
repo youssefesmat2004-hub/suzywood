@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Plus, Ruler } from "lucide-react";
 import type { Product } from "@/lib/types";
-import { asOptions } from "@/lib/types";
+import { asOptions, getActiveSalePrice } from "@/lib/types";
 import { resolveImage } from "@/lib/images";
 import { useCart } from "@/lib/cart";
 import { toast } from "sonner";
