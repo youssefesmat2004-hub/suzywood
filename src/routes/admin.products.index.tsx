@@ -36,7 +36,7 @@ function ProductsPage() {
   const load = async () => {
     const { data, error } = await supabase
       .from("products")
-      .select("id,name,slug,starting_price,stock_quantity,image_url,is_active,is_featured,category_id")
+      .select("id,name,slug,starting_price,sale_price,sale_ends_at,stock_quantity,image_url,is_active,is_featured,category_id")
       .order("created_at", { ascending: false });
     if (error) toast.error(error.message);
     setProducts((data ?? []) as ProductRow[]);
