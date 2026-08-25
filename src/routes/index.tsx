@@ -164,6 +164,9 @@ function Index() {
           {featured.map((p, i) => {
             const isWished = wished.has(p.id);
             const hasVariants = !!p.has_variants || asOptions(p.sizes).length > 1 || asOptions(p.finishes).length > 1;
+            const salePrice = getActiveSalePrice(p);
+            const displayPrice = salePrice ?? p.starting_price;
+            const isOnSale = salePrice !== null;
             return (
               <Link
                 key={p.id}
@@ -180,6 +183,11 @@ function Index() {
                     loading="lazy"
                     className="h-full w-full object-cover"
                   />
+                  {isOnSale && (
+                    <span className="absolute top-3 left-3 rounded-full bg-destructive text-destructive-foreground text-[10px] uppercase tracking-[0.18em] px-3 py-1 shadow-card">
+                      Sale — Save 33%
+                    </span>
+                  )}
                   <button
                     type="button"
                     onClick={(e) => toggleWish(e, p)}
@@ -199,7 +207,12 @@ function Index() {
                 </div>
                 <div className="p-5">
                   <h3 className="font-serif text-lg leading-tight">{p.name}</h3>
-                  <p className="text-sm text-primary mt-1.5 font-medium">EGP {p.starting_price.toLocaleString()}</p>
+                  <div className="flex items-center gap-2 mt-1.5">
+                    <p className="text-sm text-primary font-medium">EGP {displayPrice.toLocaleString()}</p>
+                    {isOnSale && (
+                      <p className="text-xs text-muted-foreground line-through">EGP {p.starting_price.toLocaleString()}</p>
+                    )}
+                  </div>
                 </div>
               </Link>
             );
