@@ -123,6 +123,8 @@ export const Route = createFileRoute("/shop/$slug")({
     const url = `https://suzywoodofficial.com/shop/${p.slug}`;
     const fallbackDesc = `${p.name} — handcrafted in Egypt by Suzy Wood. Solid wood, made-to-order in ${p.lead_time_weeks} weeks. Safe, heirloom-quality furniture for kids' rooms.`;
     const desc = (p.tagline && p.tagline.trim().length >= 50) ? p.tagline : fallbackDesc;
+    const salePrice = getActiveSalePrice(p);
+    const offerPrice = salePrice ?? p.starting_price;
     return {
       meta: [
         { title: `${p.name} — Suzy Wood` },
@@ -150,8 +152,9 @@ export const Route = createFileRoute("/shop/$slug")({
               "@type": "Offer",
               url,
               priceCurrency: "EGP",
-              price: p.starting_price,
+              price: offerPrice,
               availability: "https://schema.org/InStock",
+              ...(salePrice !== null ? { priceValidUntil: p.sale_ends_at ?? undefined } : {}),
             },
           }),
         },
