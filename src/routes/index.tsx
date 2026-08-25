@@ -100,7 +100,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  const { featured } = Route.useLoaderData() as { featured: Product[] };
+  const { featured, bundle } = Route.useLoaderData() as { featured: Product[]; bundle: Product | null };
   const content = useSiteContent();
   const cart = useCart();
   const [wished, setWished] = useState<Set<string>>(new Set());
