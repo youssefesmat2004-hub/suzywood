@@ -3,6 +3,7 @@ import { Layout } from "@/components/site/Layout";
 import { ProductCard } from "@/components/site/ProductCard";
 import { supabase } from "@/integrations/supabase/client";
 import type { Category, Product } from "@/lib/types";
+import { PUBLIC_PRODUCT_COLUMNS } from "@/lib/types";
 
 export const Route = createFileRoute("/shop/category/$slug")({
   loader: async ({ params }) => {
@@ -10,7 +11,7 @@ export const Route = createFileRoute("/shop/category/$slug")({
     if (!cat) throw notFound();
     const { data: products } = await supabase
       .from("products")
-      .select("*")
+      .select(PUBLIC_PRODUCT_COLUMNS)
       .eq("category_id", cat.id)
       .eq("is_active", true)
       .order("created_at", { ascending: false });
