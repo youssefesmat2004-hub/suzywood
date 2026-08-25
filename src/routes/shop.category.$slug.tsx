@@ -3,12 +3,12 @@ import { Layout } from "@/components/site/Layout";
 import { ProductCard } from "@/components/site/ProductCard";
 import { supabase } from "@/integrations/supabase/client";
 import type { Category, Product } from "@/lib/types";
-import { PUBLIC_PRODUCT_COLUMNS, localizedProduct, localizedText } from "@/lib/types";
+import { PUBLIC_CATEGORY_COLUMNS, PUBLIC_PRODUCT_COLUMNS, localizedProduct, localizedText } from "@/lib/types";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/shop/category/$slug")({
   loader: async ({ params }) => {
-    const { data: cat } = await supabase.from("categories").select("*").eq("slug", params.slug).maybeSingle();
+    const { data: cat } = await supabase.from("categories").select(PUBLIC_CATEGORY_COLUMNS).eq("slug", params.slug).maybeSingle();
     if (!cat) throw notFound();
     const { data: products } = await supabase
       .from("products")
