@@ -98,7 +98,7 @@ function CategoriesPage() {
   const load = async () => {
     setLoading(true);
     const [{ data: cats, error }, { data: prods }] = await Promise.all([
-      supabase.from("categories").select("*").order("sort_order"),
+      supabase.rpc("admin_categories").select("*").order("sort_order"),
       supabase.from("products").select("category_id"),
     ]);
     if (error) toast.error(error.message);
