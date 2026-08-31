@@ -140,26 +140,39 @@ function Checkout() {
 
     let proofPath: string | null = null;
     if (proofFile) {
-      if (!user?.id) {
+      if (proofFile.size > 10 * 1024 * 1024) {
         setSubmitting(false);
-        toast.error(t("checkout.signInToUpload", "Please sign in to upload a payment screenshot"), {
-          description: t("checkout.signInToUploadDesc", "Payment proof uploads require a signed-in account."),
+        toast.error(t("checkout.uploadFailed", "Couldn't upload screenshot"), {
+          description: "Max file size is 10MB.",
         });
         return;
       }
-      const ext = proofFile.name.split(".").pop()?.toLowerCase() ?? "jpg";
-      const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
-      const up = await supabase.storage.from("payment-proofs").upload(path, proofFile, {
-        contentType: proofFile.type || "image/jpeg",
-        upsert: false,
-      });
-      if (up.error) {
+      try {
+        const buf = new Uint8Array(await proofFile.arrayBuffer());
+        let bin = "";
+        for (let i = 0; i < buf.length; i += 8192) {
+          bin += String.fromCharCode(...buf.subarray(i, i + 8192));
+        }
+        const res = await uploadProof({
+          data: {
+            filename: proofFile.name,
+            mime: proofFile.type || "image/jpeg",
+            base64: btoa(bin),
+          },
+        });
+        if (!res.ok) {
+          setSubmitting(false);
+          toast.error(t("checkout.uploadFailed", "Couldn't upload screenshot"), { description: res.error });
+          return;
+        }
+        proofPath = res.path;
+      } catch (e: any) {
         setSubmitting(false);
-        toast.error(t("checkout.uploadFailed", "Couldn't upload screenshot"), { description: up.error.message });
+        toast.error(t("checkout.uploadFailed", "Couldn't upload screenshot"), { description: e?.message });
         return;
       }
-      proofPath = path;
     }
+
 
     const { data: rpc, error } = await supabase.rpc("create_order_with_items", {
       _details: {
