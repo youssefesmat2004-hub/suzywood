@@ -4,8 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
+import { uploadInspirationImage } from "@/lib/inspiration-upload.functions";
 import { notifyOwnerNewCustomBuild } from "@/lib/owner-notifications.functions";
 import { sendCustomBuildReceivedEmail } from "@/lib/customer-received-emails.functions";
 import { submitCustomBuildRequest } from "@/lib/public-submissions.functions";
@@ -20,6 +20,7 @@ export function CustomBuildForm() {
   const notifyOwner = useServerFn(notifyOwnerNewCustomBuild);
   const sendReceived = useServerFn(sendCustomBuildReceivedEmail);
   const submit = useServerFn(submitCustomBuildRequest);
+  const uploadInspiration = useServerFn(uploadInspirationImage);
   const [room, setRoom] = useState("nursery");
   const [file, setFile] = useState<File | Blob | null>(null);
   const [fileName, setFileName] = useState<string>("inspo.jpg");
@@ -60,17 +61,30 @@ export function CustomBuildForm() {
 
     let inspiration_image_url: string | null = null;
     if (file) {
-      const ext = (fileName.split(".").pop() || file.type.split("/")[1] || "jpg").toLowerCase();
-      const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-      const { error: upErr } = await supabase.storage
-        .from("inspiration-images")
-        .upload(path, file, { contentType: file.type || "image/jpeg", upsert: false });
-      if (upErr) {
+      try {
+        const buf = new Uint8Array(await file.arrayBuffer());
+        let bin = "";
+        for (let i = 0; i < buf.length; i += 8192) {
+          bin += String.fromCharCode(...buf.subarray(i, i + 8192));
+        }
+        const up = await uploadInspiration({
+          data: {
+            filename: fileName || "inspo.jpg",
+            mime: file.type || "image/jpeg",
+            base64: btoa(bin),
+          },
+        });
+        if (!up.ok) {
+          setSubmitting(false);
+          toast.error(t("components.cbfUploadFailed", "Couldn't upload image"), { description: up.error });
+          return;
+        }
+        inspiration_image_url = up.url;
+      } catch (err) {
         setSubmitting(false);
-        toast.error(t("components.cbfUploadFailed", "Couldn't upload image"), { description: upErr.message });
+        toast.error(t("components.cbfUploadFailed", "Couldn't upload image"), { description: String((err as Error)?.message ?? err) });
         return;
       }
-      inspiration_image_url = supabase.storage.from("inspiration-images").getPublicUrl(path).data.publicUrl;
     }
 
     const payload = {

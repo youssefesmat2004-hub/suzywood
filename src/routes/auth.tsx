@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
 
@@ -40,6 +41,18 @@ function Auth() {
     else { toast.success(t("checkout.welcomeBack", "Welcome back")); navigate({ to: "/account" }); }
   };
 
+  const onForgot = async () => {
+    const email = (document.getElementById("si-email") as HTMLInputElement | null)?.value?.trim() ?? "";
+    if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      toast.error(t("checkout.enterEmailFirst", "Enter your email above first"));
+      return;
+    }
+    setLoading(true);
+    await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/reset-password` });
+    setLoading(false);
+    toast.success(t("checkout.resetSent", "If that email has an account, a reset link is on its way."));
+  };
+
   const onSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
@@ -69,6 +82,9 @@ function Auth() {
               <div className="space-y-1"><Label htmlFor="si-email">{t("checkout.email", "Email")}</Label><Input id="si-email" type="email" name="email" required /></div>
               <div className="space-y-1"><Label htmlFor="si-pw">{t("checkout.password", "Password")}</Label><Input id="si-pw" type="password" name="password" required minLength={6} /></div>
               <Button type="submit" disabled={loading} className="w-full">{loading ? t("checkout.signingIn", "Signing in…") : t("checkout.signIn", "Sign In")}</Button>
+              <button type="button" onClick={onForgot} className="text-sm text-primary border-b border-primary">
+                {t("checkout.forgotPassword", "Forgot password?")}
+              </button>
             </form>
           </TabsContent>
           <TabsContent value="signup">

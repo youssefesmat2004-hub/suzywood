@@ -5,7 +5,7 @@ import { useI18n } from "@/lib/i18n";
 import { ProductCard } from "@/components/site/ProductCard";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
-import type { Product } from "@/lib/types";
+import { PUBLIC_PRODUCT_COLUMNS, type Product } from "@/lib/types";
 
 export const Route = createFileRoute("/wishlist")({
   head: () => ({
@@ -32,7 +32,7 @@ function Wishlist() {
 
   useEffect(() => {
     if (!user) return;
-    supabase.from("wishlist_items").select("product_id, products(*)").eq("user_id", user.id)
+    supabase.from("wishlist_items").select(`product_id, products(${PUBLIC_PRODUCT_COLUMNS})`).eq("user_id", user.id)
       .then(({ data }) => setProducts(((data ?? []).map((r: { products: Product | null }) => r.products).filter(Boolean)) as Product[]));
   }, [user]);
 
