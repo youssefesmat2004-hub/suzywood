@@ -40,6 +40,18 @@ function Auth() {
     else { toast.success(t("checkout.welcomeBack", "Welcome back")); navigate({ to: "/account" }); }
   };
 
+  const onForgot = async () => {
+    const email = (document.getElementById("si-email") as HTMLInputElement | null)?.value?.trim() ?? "";
+    if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      toast.error(t("checkout.enterEmailFirst", "Enter your email above first"));
+      return;
+    }
+    setLoading(true);
+    await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/reset-password` });
+    setLoading(false);
+    toast.success(t("checkout.resetSent", "If that email has an account, a reset link is on its way."));
+  };
+
   const onSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
