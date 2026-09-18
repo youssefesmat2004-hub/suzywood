@@ -308,6 +308,14 @@ function OrderDetailPage() {
     }
     toast.success("Status updated — customer not notified yet");
     setSaving(false);
+    if (status === "delivered" && prevStatus !== "delivered") {
+      try {
+        await sendReviewRequest({ data: { orderId: order.id } });
+        toast.success("Review invitation email sent to the customer");
+      } catch (err: any) {
+        toast.error(err?.message ?? "Couldn't send the review invitation");
+      }
+    }
   };
 
   const notifyCustomer = async () => {
