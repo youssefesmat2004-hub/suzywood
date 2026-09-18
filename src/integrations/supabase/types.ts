@@ -553,6 +553,69 @@ export type Database = {
           },
         ]
       }
+      order_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          experience_rating: number | null
+          id: string
+          is_published: boolean
+          kind: string
+          order_id: string
+          product_id: string | null
+          product_rating: number | null
+          reviewer_name: string
+          service_rating: number | null
+          submitted_at: string
+          updated_at: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          experience_rating?: number | null
+          id?: string
+          is_published?: boolean
+          kind?: string
+          order_id: string
+          product_id?: string | null
+          product_rating?: number | null
+          reviewer_name: string
+          service_rating?: number | null
+          submitted_at?: string
+          updated_at?: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          experience_rating?: number | null
+          id?: string
+          is_published?: boolean
+          kind?: string
+          order_id?: string
+          product_id?: string | null
+          product_rating?: number | null
+          reviewer_name?: string
+          service_rating?: number | null
+          submitted_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_reviews_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           actual_carpenter_cost: number | null
@@ -589,6 +652,8 @@ export type Database = {
           product_description: string | null
           promo_code: string | null
           remaining_amount: number | null
+          review_email_sent_at: string | null
+          review_token: string | null
           shipping_address: string
           shipping_city: string
           shipping_fee: number
@@ -640,6 +705,8 @@ export type Database = {
           product_description?: string | null
           promo_code?: string | null
           remaining_amount?: number | null
+          review_email_sent_at?: string | null
+          review_token?: string | null
           shipping_address: string
           shipping_city: string
           shipping_fee?: number
@@ -691,6 +758,8 @@ export type Database = {
           product_description?: string | null
           promo_code?: string | null
           remaining_amount?: number | null
+          review_email_sent_at?: string | null
+          review_token?: string | null
           shipping_address?: string
           shipping_city?: string
           shipping_fee?: number

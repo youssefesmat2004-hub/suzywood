@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Pencil, Paperclip } from "lucide-react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
-import { sendOrderStatusEmail } from "@/lib/order-emails.functions";
+import { sendOrderStatusEmail, sendReviewRequestEmail } from "@/lib/order-emails.functions";
 import { sendOrderUpdatedEmail } from "@/lib/order-emails.functions";
 import { signManualAttachmentUrls } from "@/lib/manual-orders.functions";
 import { useIsAdmin } from "@/lib/admin";
@@ -154,6 +154,7 @@ function OrderDetailPage() {
   const [attachUrls, setAttachUrls] = useState<Record<string, string>>({});
   const sendEmail = useServerFn(sendOrderStatusEmail);
   const sendUpdated = useServerFn(sendOrderUpdatedEmail);
+  const sendReviewRequest = useServerFn(sendReviewRequestEmail);
   const [notifying, setNotifying] = useState(false);
   const [notifyingUpdate, setNotifyingUpdate] = useState(false);
   const signFn = useServerFn(signManualAttachmentUrls);
@@ -307,6 +308,14 @@ function OrderDetailPage() {
     }
     toast.success("Status updated — customer not notified yet");
     setSaving(false);
+    if (status === "delivered" && prevStatus !== "delivered") {
+      try {
+        await sendReviewRequest({ data: { orderId: order.id } });
+        toast.success("Review invitation email sent to the customer");
+      } catch (err: any) {
+        toast.error(err?.message ?? "Couldn't send the review invitation");
+      }
+    }
   };
 
   const notifyCustomer = async () => {

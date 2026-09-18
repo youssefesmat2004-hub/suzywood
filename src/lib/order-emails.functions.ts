@@ -406,3 +406,117 @@ export const sendOrderUpdatedEmail = createServerFn({ method: "POST" })
     } catch (e) { console.error("update_notified_at update failed", e); }
     return { ok: true };
   });
+
+const SITE_URL = "https://suzywoodofficial.com";
+
+function renderReviewRequestEmail(o: { customerName: string; orderNumber: string; reviewUrl: string }) {
+  return `<!doctype html>
+<html><body style="margin:0;padding:0;background:#f6f4ef;font-family:Georgia,'Times New Roman',serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f6f4ef;padding:32px 12px;">
+    <tr><td align="center">
+      <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;max-width:560px;width:100%;">
+        <tr><td style="padding:28px 32px 8px;">
+          <h1 style="margin:0;font-size:22px;color:#1a1a1a;font-weight:normal;">Suzy Wood</h1>
+        </td></tr>
+        <tr><td style="padding:8px 32px 0;">
+          <h2 style="margin:0 0 8px;font-size:20px;color:#1a1a1a;font-weight:normal;">How did we do? 🪵</h2>
+          <p style="margin:0 0 4px;color:#555;font-size:14px;font-family:Arial,sans-serif;">Hi ${escapeHtml(o.customerName)},</p>
+          <p style="margin:8px 0 16px;color:#555;font-size:14px;line-height:1.6;font-family:Arial,sans-serif;">
+            Now that your order <strong>${escapeHtml(o.orderNumber)}</strong> has arrived, we'd love to hear what you think —
+            about the quality of the piece and about our service. It takes less than a minute, and your words help other
+            families choose with confidence.
+          </p>
+        </td></tr>
+        <tr><td style="padding:8px 32px 0;" align="center">
+          <a href="${o.reviewUrl}" style="display:inline-block;margin:8px 0 4px;background:#1a1a1a;color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:8px;font-family:Arial,sans-serif;font-size:15px;font-weight:600;">⭐ Leave a review</a>
+          <p style="margin:10px 0 0;color:#999;font-size:12px;font-family:Arial,sans-serif;">This private link works once and is just for you.</p>
+        </td></tr>
+        <tr><td style="padding:16px 32px 0;" align="center">
+          <a href="${WHATSAPP_URL}" style="display:inline-block;margin:8px 0 4px;background:#25D366;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:999px;font-family:Arial,sans-serif;font-size:14px;font-weight:600;">💬 Something wrong? Talk to us first</a>
+        </td></tr>
+        <tr><td style="padding:24px 32px 32px;">
+          <p style="margin:16px 0 0;color:#888;font-size:12px;font-family:Arial,sans-serif;">With love,<br/>The Suzy Wood team</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>`;
+}
+
+/** Sends the "leave a review" invitation after an order is delivered. Sent once per order. */
+export const sendReviewRequestEmail = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z.object({ orderId: z.string().uuid(), force: z.boolean().optional() }).parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
+    const RESEND_API_KEY = process.env.RESEND_API_KEY;
+    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    if (!RESEND_API_KEY) throw new Error("RESEND_API_KEY is not configured");
+
+    const { supabase, userId } = context;
+    const { data: roles } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .in("role", ["admin", "carpenter"]);
+    if (!roles?.length) throw new Response("Forbidden", { status: 403 });
+
+    const { data: order, error } = await supabase
+      .from("orders")
+      .select("id, order_number, customer_name, customer_email, review_token, review_email_sent_at")
+      .eq("id", data.orderId)
+      .single();
+    if (error || !order) return { ok: false, error: "Order not found" };
+    if (!order.customer_email) return { ok: false, error: "No customer email" };
+    if ((order as any).review_email_sent_at && !data.force) {
+      return { ok: false, error: "already_sent" };
+    }
+
+    let token = (order as any).review_token as string | null;
+    if (!token) {
+      token = crypto.randomUUID().replace(/-/g, "");
+      const { error: tokErr } = await supabase
+        .from("orders")
+        .update({ review_token: token } as never)
+        .eq("id", order.id);
+      if (tokErr) {
+        console.error("review token save failed", tokErr);
+        return { ok: false, error: "Could not create review link" };
+      }
+    }
+
+    const html = renderReviewRequestEmail({
+      customerName: order.customer_name,
+      orderNumber: order.order_number,
+      reviewUrl: `${SITE_URL}/review?token=${token}`,
+    });
+
+    const res = await fetch("https://connector-gateway.lovable.dev/resend/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "X-Connection-Api-Key": RESEND_API_KEY,
+      },
+      body: JSON.stringify({
+        from: "Suzy Wood <orders@suzywoodofficial.com>",
+        to: [order.customer_email],
+        subject: "How did we do? Share your Suzy Wood experience ⭐",
+        html,
+      }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      console.error("Resend review request failed", res.status, body);
+      return { ok: false, error: `Resend error ${res.status}` };
+    }
+
+    await supabase
+      .from("orders")
+      .update({ review_email_sent_at: new Date().toISOString() } as never)
+      .eq("id", order.id);
+
+    return { ok: true };
+  });

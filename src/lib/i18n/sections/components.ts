@@ -155,6 +155,9 @@ export const components = {
     wbToggleAria: "Toggle wishlist",
     // Logo
     logoAlt: "Suzy Wood — Premium Baby & Toddlers Furniture",
+    crVerifiedBuyer: "Verified buyer",
+    crVerifiedOrder: "Verified Suzy Wood order",
+    rvVerifiedBuyer: "Verified buyer",
   } as Record<string, string>,
   ar: {
     annBadge: "خصم 33%",
@@ -293,5 +296,8 @@ export const components = {
     wbSaved: "تمت الإضافة إلى المفضلة",
     wbToggleAria: "تبديل حالة المفضلة",
     logoAlt: "Suzy Wood — أثاث فاخر للأطفال والرضع",
+    crVerifiedBuyer: "مشترية موثقة",
+    crVerifiedOrder: "طلب موثق من Suzy Wood",
+    rvVerifiedBuyer: "مشترية موثقة",
   } as Record<string, string>,
 };

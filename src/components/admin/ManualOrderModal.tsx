@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { createManualOrder, updateManualOrder, signManualAttachmentUrls } from "@/lib/manual-orders.functions";
+import { sendReviewRequestEmail } from "@/lib/order-emails.functions";
 import { X, Paperclip, Loader2 } from "lucide-react";
 
 const WHATSAPP_ORDER_DEPOSIT_RATE = 0.75;
@@ -62,6 +63,7 @@ export function ManualOrderModal({
   const createFn = useServerFn(createManualOrder);
   const updateFn = useServerFn(updateManualOrder);
   const signFn = useServerFn(signManualAttachmentUrls);
+  const sendReviewRequest = useServerFn(sendReviewRequestEmail);
 
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -194,6 +196,14 @@ export function ManualOrderModal({
         });
         toast.success("Order updated");
         onUpdated?.(existing.id);
+        if (form.status === "delivered" && existing.status !== "delivered") {
+          try {
+            await sendReviewRequest({ data: { orderId: existing.id } });
+            toast.success("Review invitation email sent to the customer");
+          } catch (err: any) {
+            toast.error(err?.message ?? "Couldn't send the review invitation");
+          }
+        }
       } else {
         const res = await createFn({
           data: {

@@ -5,6 +5,7 @@ import { Layout } from "@/components/site/Layout";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { ExperienceReview } from "@/components/site/ExperienceReview";
 import { useI18n } from "@/lib/i18n";
 
 const searchSchema = z.object({
@@ -65,6 +66,7 @@ function ThankYou() {
         <p className="mt-6 text-muted-foreground leading-relaxed">
           {t("checkout.thankYouNote", "Our team will contact you shortly to arrange delivery. Please have the remaining amount ready upon delivery. A confirmation email with your order details has been sent to your inbox.")}
         </p>
+        {order ? <ExperienceReview orderNumber={order} /> : null}
         <div className="mt-10 flex gap-3 justify-center">
           <Button asChild><Link to="/shop">{t("checkout.continueShopping", "Continue shopping")}</Link></Button>
           <Button asChild variant="outline"><Link to="/account">{t("checkout.myOrders", "My orders")}</Link></Button>
