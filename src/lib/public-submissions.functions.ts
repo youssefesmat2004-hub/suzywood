@@ -1,6 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const bookingSchema = z.object({
   full_name: z.string().trim().min(1).max(100),
@@ -15,6 +14,7 @@ const bookingSchema = z.object({
 export const submitBooking = createServerFn({ method: "POST" })
   .inputValidator((data) => bookingSchema.parse(data))
   .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: row, error } = await supabaseAdmin
       .from("bookings")
       .insert([{
@@ -44,6 +44,7 @@ const customBuildSchema = z.object({
 export const submitCustomBuildRequest = createServerFn({ method: "POST" })
   .inputValidator((data) => customBuildSchema.parse(data))
   .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: row, error } = await supabaseAdmin
       .from("custom_build_requests")
       .insert([{
@@ -61,6 +62,49 @@ export const submitCustomBuildRequest = createServerFn({ method: "POST" })
       }] as never)
       .select("id")
       .single();
+    if (error || !row) return { ok: false as const, error: error?.message ?? "insert_failed" };
+    return { ok: true as const, id: row.id };
+  });
+
+const measurementBookingSchema = z.object({
+  product_id: z.string().uuid().nullable(),
+  product_name: z.string().trim().min(1).max(200),
+  full_name: z.string().trim().min(1).max(100),
+  customer_email: z.string().trim().email().max(255),
+  phone: z.string().trim().regex(/^01[0-9]{9}$/),
+  area: z.string().trim().min(1).max(50),
+  address: z.string().trim().min(3).max(500),
+  preferred_day: z.enum(["saturday", "sunday", "monday", "tuesday", "wednesday", "thursday"]),
+  time_slot: z.enum(["morning", "afternoon", "evening"]),
+  notes: z.string().trim().max(2000).nullable(),
+});
+
+/** Public guest submission. Admin access is limited to this validated insert. */
+export const submitMeasurementBooking = createServerFn({ method: "POST" })
+  .inputValidator((data) => measurementBookingSchema.parse(data))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: row, error } = await supabaseAdmin
+      .from("measurement_bookings")
+      .insert({
+        product_id: data.product_id,
+        product_name: data.product_name,
+        full_name: data.full_name,
+        customer_email: data.customer_email,
+        phone: data.phone,
+        area: data.area,
+        address: data.address,
+        preferred_day: data.preferred_day,
+        time_slot: data.time_slot,
+        notes: data.notes,
+        status: "new",
+        booking_status: "received",
+        quoted_price: null,
+        user_id: null,
+      })
+      .select("id")
+      .single();
+
     if (error || !row) return { ok: false as const, error: error?.message ?? "insert_failed" };
     return { ok: true as const, id: row.id };
   });
