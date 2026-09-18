@@ -105,7 +105,7 @@ function TestimonialCard({ t: testimonial }: { t: Testimonial }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
             <p className="font-semibold text-sm text-foreground truncate">{testimonial.name}</p>
-            <FacebookBadge />
+            {testimonial.source === "site" ? <VerifiedBuyerBadge /> : <FacebookBadge />}
           </div>
           <p className="text-xs text-muted-foreground mt-0.5">{testimonial.date}</p>
         </div>
@@ -121,10 +121,19 @@ function TestimonialCard({ t: testimonial }: { t: Testimonial }) {
         “{testimonial.text}”
       </p>
 
-      {/* Facebook footer */}
+      {/* Footer */}
       <div className="mt-4 pt-3 border-t border-border/40 flex items-center gap-1.5">
-        <Facebook className="h-3.5 w-3.5 text-facebook" />
-        <span className="text-[11px] text-muted-foreground">{t("components.crRecommendedFb", "Recommended on Facebook")}</span>
+        {testimonial.source === "site" ? (
+          <>
+            <ShieldCheck className="h-3.5 w-3.5 text-primary" />
+            <span className="text-[11px] text-muted-foreground">{t("components.crVerifiedOrder", "Verified Suzy Wood order")}</span>
+          </>
+        ) : (
+          <>
+            <Facebook className="h-3.5 w-3.5 text-facebook" />
+            <span className="text-[11px] text-muted-foreground">{t("components.crRecommendedFb", "Recommended on Facebook")}</span>
+          </>
+        )}
       </div>
     </div>
   );
