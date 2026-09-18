@@ -91,6 +91,17 @@ function FacebookBadge() {
   );
 }
 
+function VerifiedBuyerBadge() {
+  const { t } = useI18n();
+  return (
+    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-primary">
+      <BadgeCheck className="h-3.5 w-3.5 fill-primary text-white" />
+      {t("components.crVerifiedBuyer", "Verified buyer")}
+    </span>
+  );
+}
+
+
 function TestimonialCard({ t: testimonial }: { t: Testimonial }) {
   const { t } = useI18n();
   return (
