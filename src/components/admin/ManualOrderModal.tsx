@@ -196,6 +196,14 @@ export function ManualOrderModal({
         });
         toast.success("Order updated");
         onUpdated?.(existing.id);
+        if (form.status === "delivered" && existing.status !== "delivered") {
+          try {
+            await sendReviewRequest({ data: { orderId: existing.id } });
+            toast.success("Review invitation email sent to the customer");
+          } catch (err: any) {
+            toast.error(err?.message ?? "Couldn't send the review invitation");
+          }
+        }
       } else {
         const res = await createFn({
           data: {
