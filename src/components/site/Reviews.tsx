@@ -133,15 +133,23 @@ export function Reviews({ productId }: { productId: string }) {
       <div className="space-y-6">
         {loading ? (
           <p className="text-sm text-muted-foreground">{t("components.rvLoading", "Loading reviews…")}</p>
-        ) : reviews.length === 0 ? (
+        ) : allReviews.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t("components.rvBeFirst", "Be the first to share your experience.")}</p>
         ) : (
-          reviews.map((r) => (
+          allReviews.map((r) => (
             <div key={r.id} className="border-t border-border pt-6">
               <div className="flex items-center justify-between gap-3">
                 <StarRating value={r.rating} />
                 <span className="text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString()}</span>
               </div>
+              {r.reviewer_name ? (
+                <p className="text-sm font-medium mt-2">
+                  {r.reviewer_name}
+                  {r.verified ? (
+                    <span className="ml-2 text-[11px] text-primary">{t("components.rvVerifiedBuyer", "Verified buyer")}</span>
+                  ) : null}
+                </p>
+              ) : null}
               {r.title && <p className="font-serif text-lg mt-2">{r.title}</p>}
               {r.body && <p className="text-sm text-foreground mt-1 leading-relaxed">{r.body}</p>}
             </div>
