@@ -32,7 +32,7 @@ function Wishlist() {
 
   useEffect(() => {
     if (!user) return;
-    supabase.from("wishlist_items").select("product_id, products(*)").eq("user_id", user.id)
+    supabase.from("wishlist_items").select(`product_id, products(${PUBLIC_PRODUCT_COLUMNS})`).eq("user_id", user.id)
       .then(({ data }) => setProducts(((data ?? []).map((r: { products: Product | null }) => r.products).filter(Boolean)) as Product[]));
   }, [user]);
 
