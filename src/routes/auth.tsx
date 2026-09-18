@@ -69,6 +69,9 @@ function Auth() {
               <div className="space-y-1"><Label htmlFor="si-email">{t("checkout.email", "Email")}</Label><Input id="si-email" type="email" name="email" required /></div>
               <div className="space-y-1"><Label htmlFor="si-pw">{t("checkout.password", "Password")}</Label><Input id="si-pw" type="password" name="password" required minLength={6} /></div>
               <Button type="submit" disabled={loading} className="w-full">{loading ? t("checkout.signingIn", "Signing in…") : t("checkout.signIn", "Sign In")}</Button>
+              <button type="button" onClick={onForgot} className="text-sm text-primary border-b border-primary">
+                {t("checkout.forgotPassword", "Forgot password?")}
+              </button>
             </form>
           </TabsContent>
           <TabsContent value="signup">
