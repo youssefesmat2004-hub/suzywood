@@ -5,14 +5,15 @@ import { shop } from "./i18n/sections/shop";
 import { checkout } from "./i18n/sections/checkout";
 import { pages } from "./i18n/sections/pages";
 import { components } from "./i18n/sections/components";
+import { review } from "./i18n/sections/review";
 
 export type Lang = "en" | "ar";
 
-const sections = { shop, checkout, pages, components };
+const sections = { shop, checkout, pages, components, review };
 
 const dicts: Record<Lang, Record<string, unknown>> = {
-  en: { ...en, shop: sections.shop.en, checkout: sections.checkout.en, pages: sections.pages.en, components: sections.components.en },
-  ar: { ...ar, shop: sections.shop.ar, checkout: sections.checkout.ar, pages: sections.pages.ar, components: sections.components.ar },
+  en: { ...en, shop: sections.shop.en, checkout: sections.checkout.en, pages: sections.pages.en, components: sections.components.en, review: sections.review.en },
+  ar: { ...ar, shop: sections.shop.ar, checkout: sections.checkout.ar, pages: sections.pages.ar, components: sections.components.ar, review: sections.review.ar },
 };
 
 const STORAGE_KEY = "sw-lang";
