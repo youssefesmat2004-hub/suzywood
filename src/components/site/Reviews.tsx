@@ -98,9 +98,9 @@ export function Reviews({ productId }: { productId: string }) {
       <div className="flex items-center gap-4">
         <StarRating value={avg} size="md" />
         <span className="text-sm text-muted-foreground">
-          {reviews.length === 0
+          {allReviews.length === 0
             ? t("components.rvNoReviews", "No reviews yet")
-            : `${avg.toFixed(1)} · ${reviews.length} ${reviews.length === 1 ? t("components.rvReviewSingular", "review") : t("components.rvReviewPlural", "reviews")}`}
+            : `${avg.toFixed(1)} · ${allReviews.length} ${allReviews.length === 1 ? t("components.rvReviewSingular", "review") : t("components.rvReviewPlural", "reviews")}`}
         </span>
       </div>
 
