@@ -1,0 +1,1 @@
+UPDATE public.categories SET lights_addon_price = 300 WHERE lights_addon_enabled = true AND lights_addon_price <> 300;
