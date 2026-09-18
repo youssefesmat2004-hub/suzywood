@@ -1,17 +1,36 @@
 import { useCallback, useEffect, useState } from "react";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { StarRating } from "./StarRating";
-import { BadgeCheck, Facebook } from "lucide-react";
+import { BadgeCheck, Facebook, ShieldCheck } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 
 interface Testimonial {
-  id: number;
+  id: number | string;
   name: string;
   initials: string;
   avatarBg: string;
   date: string;
   rating: number;
   text: string;
+  source?: "facebook" | "site";
+}
+
+const AVATAR_COLORS = [
+  "bg-emerald-100 text-emerald-700",
+  "bg-sky-100 text-sky-700",
+  "bg-rose-100 text-rose-700",
+  "bg-amber-100 text-amber-700",
+  "bg-violet-100 text-violet-700",
+];
+
+function initialsOf(name: string) {
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase() ?? "")
+    .join("");
 }
 
 const testimonials: Testimonial[] = [
