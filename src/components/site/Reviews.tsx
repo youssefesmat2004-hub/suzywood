@@ -11,10 +11,21 @@ import { toast } from "sonner";
 import type { Review } from "@/lib/types";
 import { useI18n } from "@/lib/i18n";
 
+type BuyerReview = {
+  id: string;
+  rating: number;
+  title: string | null;
+  body: string | null;
+  created_at: string;
+  reviewer_name?: string;
+  verified?: boolean;
+};
+
 export function Reviews({ productId }: { productId: string }) {
   const { t } = useI18n();
   const { user } = useAuth();
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [buyerReviews, setBuyerReviews] = useState<BuyerReview[]>([]);
   const [loading, setLoading] = useState(true);
   const [rating, setRating] = useState(5);
   const [title, setTitle] = useState("");
@@ -23,19 +34,45 @@ export function Reviews({ productId }: { productId: string }) {
 
   const load = async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from("reviews")
-      .select("*")
-      .eq("product_id", productId)
-      .eq("is_published", true)
-      .order("created_at", { ascending: false });
+    const [{ data }, { data: ordered }] = await Promise.all([
+      supabase
+        .from("reviews")
+        .select("*")
+        .eq("product_id", productId)
+        .eq("is_published", true)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("order_reviews")
+        .select("id, reviewer_name, comment, product_rating, service_rating, submitted_at")
+        .eq("product_id", productId)
+        .eq("is_published", true)
+        .order("submitted_at", { ascending: false }),
+    ]);
     setReviews((data ?? []) as Review[]);
+    setBuyerReviews(
+      ((ordered ?? []) as any[]).map((r) => {
+        const ratings = [r.product_rating, r.service_rating].filter((v) => typeof v === "number") as number[];
+        return {
+          id: r.id as string,
+          rating: Math.round(ratings.length ? ratings.reduce((s, v) => s + v, 0) / ratings.length : 5),
+          title: null,
+          body: (r.comment as string | null) ?? null,
+          created_at: r.submitted_at as string,
+          reviewer_name: (r.reviewer_name as string | null) ?? undefined,
+          verified: true,
+        };
+      }),
+    );
     setLoading(false);
   };
 
   useEffect(() => { load(); }, [productId]);
 
-  const avg = reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
+  const allReviews: BuyerReview[] = [
+    ...buyerReviews,
+    ...reviews.map((r) => ({ id: r.id, rating: r.rating, title: r.title, body: r.body, created_at: r.created_at })),
+  ];
+  const avg = allReviews.length ? allReviews.reduce((s, r) => s + r.rating, 0) / allReviews.length : 0;
   const myReview = user ? reviews.find((r) => r.user_id === user.id) : undefined;
 
   const submit = async (e: React.FormEvent) => {
