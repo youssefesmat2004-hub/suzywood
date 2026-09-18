@@ -155,13 +155,50 @@ export function CustomerReviews() {
   const [api, setApi] = useState<any>(null);
   const [current, setCurrent] = useState(0);
   const [count, setCount] = useState(0);
+  const [siteReviews, setSiteReviews] = useState<Testimonial[]>([]);
+
+  useEffect(() => {
+    supabase
+      .from("order_reviews")
+      .select("id, reviewer_name, comment, product_rating, service_rating, experience_rating, submitted_at")
+      .eq("is_published", true)
+      .not("comment", "is", null)
+      .order("submitted_at", { ascending: false })
+      .limit(12)
+      .then(({ data }) => {
+        if (!data) return;
+        setSiteReviews(
+          (data as any[])
+            .filter((r) => (r.comment ?? "").trim().length > 0)
+            .map((r, idx) => {
+              const ratings = [r.product_rating, r.service_rating, r.experience_rating].filter(
+                (v: number | null) => typeof v === "number",
+              ) as number[];
+              const avg = ratings.length ? ratings.reduce((s, v) => s + v, 0) / ratings.length : 5;
+              const name = (r.reviewer_name ?? "Customer").trim();
+              return {
+                id: r.id as string,
+                name,
+                initials: initialsOf(name) || "SW",
+                avatarBg: AVATAR_COLORS[idx % AVATAR_COLORS.length]!,
+                date: new Date(r.submitted_at).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }),
+                rating: Math.round(avg),
+                text: (r.comment as string).trim(),
+                source: "site" as const,
+              };
+            }),
+        );
+      });
+  }, []);
+
+  const allReviews: Testimonial[] = [...siteReviews, ...testimonials];
 
   useEffect(() => {
     if (!api) return;
     setCount(api.scrollSnapList().length);
     setCurrent(api.selectedScrollSnap());
     api.on("select", () => setCurrent(api.selectedScrollSnap()));
-  }, [api]);
+  }, [api, siteReviews.length]);
 
   const scrollTo = useCallback(
     (index: number) => api?.scrollTo(index),
