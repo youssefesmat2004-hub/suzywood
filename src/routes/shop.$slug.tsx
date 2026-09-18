@@ -1,4 +1,5 @@
 import { createFileRoute, Link, notFound, useNavigate, useRouter } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useId, useMemo, useState } from "react";
 import { Layout } from "@/components/site/Layout";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,9 @@ import { useCart } from "@/lib/cart";
 import { Check, ShoppingBag, Minus, Plus, Ruler, CalendarCheck, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
+import { submitMeasurementBooking } from "@/lib/public-submissions.functions";
+import { sendBookingReceivedEmail } from "@/lib/measurement-booking-emails.functions";
+import { notifyOwnerNewMeasurementBooking } from "@/lib/owner-notifications.functions";
 
 type Variant = {
   id: string;
@@ -910,6 +914,9 @@ function MeasurementBookingDialog({
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const submitMeasurement = useServerFn(submitMeasurementBooking);
+  const sendReceivedEmail = useServerFn(sendBookingReceivedEmail);
+  const notifyOwner = useServerFn(notifyOwnerNewMeasurementBooking);
 
   const reset = () => {
     setFullName(""); setEmail(""); setPhone(""); setArea("Cairo"); setAddress("");
@@ -923,7 +930,7 @@ function MeasurementBookingDialog({
     if (!/^01[0-9]{9}$/.test(phone)) return toast.error(t("shop.enterValidPhone", "Phone must be an 11-digit Egyptian number (01XXXXXXXXX)"));
     if (address.trim().length < 3) return toast.error(t("shop.enterFullAddress", "Please enter your full address"));
     setSubmitting(true);
-    const { data: inserted, error } = await supabase.from("measurement_bookings").insert({
+    const result = await submitMeasurement({ data: {
       product_id: productId,
       product_name: productName,
       full_name: fullName.trim(),
@@ -931,21 +938,21 @@ function MeasurementBookingDialog({
       phone: phone.trim(),
       area,
       address: address.trim(),
-      preferred_day: day,
-      time_slot: slot,
+      preferred_day: day as "saturday" | "sunday" | "monday" | "tuesday" | "wednesday" | "thursday",
+      time_slot: slot as "morning" | "afternoon" | "evening",
       notes: notes.trim() || null,
-    }).select("id").single();
+    } }).catch(() => null);
     setSubmitting(false);
-    if (error) {
-      toast.error(t("shop.couldNotSubmitBooking", "Couldn't submit booking"), { description: error.message });
+    if (!result?.ok) {
+      toast.error(t("shop.couldNotSubmitBooking", "Couldn't submit booking"), {
+        description: t("shop.tryAgainMoment", "Please try again in a moment."),
+      });
       return;
     }
-    if (inserted?.id) {
+    if (result.id) {
       // Fire-and-forget confirmation email — don't block the success screen.
-      const { sendBookingReceivedEmail } = await import("@/lib/measurement-booking-emails.functions");
-      sendBookingReceivedEmail({ data: { bookingId: inserted.id } }).catch(() => {});
-      const { notifyOwnerNewMeasurementBooking } = await import("@/lib/owner-notifications.functions");
-      notifyOwnerNewMeasurementBooking({ data: { bookingId: inserted.id } }).catch(() => {});
+      sendReceivedEmail({ data: { bookingId: result.id } }).catch(() => {});
+      notifyOwner({ data: { bookingId: result.id } }).catch(() => {});
     }
     setDone(true);
   };
