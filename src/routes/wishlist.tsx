@@ -5,7 +5,7 @@ import { useI18n } from "@/lib/i18n";
 import { ProductCard } from "@/components/site/ProductCard";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
-import type { Product } from "@/lib/types";
+import { PUBLIC_PRODUCT_COLUMNS, type Product } from "@/lib/types";
 
 export const Route = createFileRoute("/wishlist")({
   head: () => ({
