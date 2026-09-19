@@ -47,7 +47,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
     };
     load();
     const ch = supabase
-      .channel("admin-badges")
+      .channel(`admin-badges-${Math.random().toString(36).slice(2)}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "contact_messages" }, load)
       .on("postgres_changes", { event: "*", schema: "public", table: "custom_build_requests" }, load)
       .subscribe();
