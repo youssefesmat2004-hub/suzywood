@@ -174,7 +174,8 @@ async function runCheck(request: Request) {
 
   const active = activeProducts.data ?? [];
   add("Store data", "At least one product on sale", active.length > 0, `${active.length} active`);
-  const noPrice = active.filter((p: any) => !p.starting_price || Number(p.starting_price) <= 0);
+  // price 0 is intentional for "price upon measurement" products, so only flag missing prices
+  const noPrice = active.filter((p: any) => p.starting_price === null || p.starting_price === undefined);
   add("Store data", "All products have a price", noPrice.length === 0, noPrice.map((p: any) => p.name).slice(0, 5).join(", "));
   const noImage = active.filter((p: any) => !p.image_url);
   add("Store data", "All products have a photo", noImage.length === 0, noImage.map((p: any) => p.name).slice(0, 5).join(", "));
