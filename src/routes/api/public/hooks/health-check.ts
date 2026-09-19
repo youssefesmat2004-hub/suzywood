@@ -277,10 +277,10 @@ async function runCheck(request: Request) {
   {
     const path = `healthcheck/${stamp}.txt`;
     const { error } = await supabaseAdmin.storage
-      .from("inspiration")
+      .from("inspiration-images")
       .upload(path, new Blob([MARKER], { type: "text/plain" }), { upsert: true });
     add("Customer forms", "Photo upload (custom builds)", !error, error?.message);
-    if (!error) cleanup.push(async () => { await supabaseAdmin.storage.from("inspiration").remove([path]); });
+    if (!error) cleanup.push(async () => { await supabaseAdmin.storage.from("inspiration-images").remove([path]); });
   }
 
   // Promo code validation
