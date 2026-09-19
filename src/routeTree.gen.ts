@@ -59,6 +59,7 @@ import { Route as ShopCategorySlugRouteImport } from './routes/shop.category.$sl
 import { Route as AdminProductsNewRouteImport } from './routes/admin.products.new'
 import { Route as AdminProductsIdRouteImport } from './routes/admin.products.$id'
 import { Route as AdminOrdersIdRouteImport } from './routes/admin.orders.$id'
+import { Route as ApiPublicHooksHealthCheckRouteImport } from './routes/api/public/hooks/health-check'
 
 const WishlistRoute = WishlistRouteImport.update({
   id: '/wishlist',
@@ -311,6 +312,12 @@ const AdminOrdersIdRoute = AdminOrdersIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AdminOrdersRoute,
 } as any)
+const ApiPublicHooksHealthCheckRoute =
+  ApiPublicHooksHealthCheckRouteImport.update({
+    id: '/api/public/hooks/health-check',
+    path: '/api/public/hooks/health-check',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -363,6 +370,7 @@ export interface FileRoutesByFullPath {
   '/shop/category/$slug': typeof ShopCategorySlugRoute
   '/admin/orders/': typeof AdminOrdersIndexRoute
   '/admin/products/': typeof AdminProductsIndexRoute
+  '/api/public/hooks/health-check': typeof ApiPublicHooksHealthCheckRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -412,6 +420,7 @@ export interface FileRoutesByTo {
   '/shop/category/$slug': typeof ShopCategorySlugRoute
   '/admin/orders': typeof AdminOrdersIndexRoute
   '/admin/products': typeof AdminProductsIndexRoute
+  '/api/public/hooks/health-check': typeof ApiPublicHooksHealthCheckRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -465,6 +474,7 @@ export interface FileRoutesById {
   '/shop/category/$slug': typeof ShopCategorySlugRoute
   '/admin/orders/': typeof AdminOrdersIndexRoute
   '/admin/products/': typeof AdminProductsIndexRoute
+  '/api/public/hooks/health-check': typeof ApiPublicHooksHealthCheckRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -519,6 +529,7 @@ export interface FileRouteTypes {
     | '/shop/category/$slug'
     | '/admin/orders/'
     | '/admin/products/'
+    | '/api/public/hooks/health-check'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -568,6 +579,7 @@ export interface FileRouteTypes {
     | '/shop/category/$slug'
     | '/admin/orders'
     | '/admin/products'
+    | '/api/public/hooks/health-check'
   id:
     | '__root__'
     | '/'
@@ -620,6 +632,7 @@ export interface FileRouteTypes {
     | '/shop/category/$slug'
     | '/admin/orders/'
     | '/admin/products/'
+    | '/api/public/hooks/health-check'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -648,6 +661,7 @@ export interface RootRouteChildren {
   TrackOrderRoute: typeof TrackOrderRoute
   WishlistRoute: typeof WishlistRoute
   RoomsSlugRoute: typeof RoomsSlugRoute
+  ApiPublicHooksHealthCheckRoute: typeof ApiPublicHooksHealthCheckRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1002,6 +1016,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminOrdersIdRouteImport
       parentRoute: typeof AdminOrdersRoute
     }
+    '/api/public/hooks/health-check': {
+      id: '/api/public/hooks/health-check'
+      path: '/api/public/hooks/health-check'
+      fullPath: '/api/public/hooks/health-check'
+      preLoaderRoute: typeof ApiPublicHooksHealthCheckRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -1107,6 +1128,7 @@ const rootRouteChildren: RootRouteChildren = {
   TrackOrderRoute: TrackOrderRoute,
   WishlistRoute: WishlistRoute,
   RoomsSlugRoute: RoomsSlugRoute,
+  ApiPublicHooksHealthCheckRoute: ApiPublicHooksHealthCheckRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
