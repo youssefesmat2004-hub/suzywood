@@ -20,6 +20,7 @@ type Order = {
   created_at: string;
   actual_carpenter_cost: number | null;
   carpenter_cost_override: number | null;
+  payment_status: string | null;
 };
 type Item = { product_name: string; line_total: number; order_id: string };
 type Booking = { status: string; created_at: string };
