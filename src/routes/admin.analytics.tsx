@@ -20,6 +20,7 @@ type Order = {
   created_at: string;
   actual_carpenter_cost: number | null;
   carpenter_cost_override: number | null;
+  payment_status: string | null;
 };
 type Item = { product_name: string; line_total: number; order_id: string };
 type Booking = { status: string; created_at: string };
@@ -44,7 +45,7 @@ function AdminAnalytics() {
     (async () => {
       const since = new Date(Date.now() - days * 86400000).toISOString();
       const [ordersRes, bookingsRes] = await Promise.all([
-        supabase.from("orders").select("id,total,status,created_at,actual_carpenter_cost,carpenter_cost_override").gte("created_at", since),
+        supabase.from("orders").select("id,total,status,created_at,actual_carpenter_cost,carpenter_cost_override,payment_status").gte("created_at", since),
         supabase.from("bookings").select("status,created_at").gte("created_at", since),
       ]);
       const ords = (ordersRes.data ?? []) as Order[];
@@ -111,29 +112,34 @@ function AdminAnalytics() {
     ];
   }, [bookings]);
 
-  const totalRevenue = orders.filter((o) => o.status !== "cancelled").reduce((s, o) => s + Number(o.total), 0);
-  const totalCarpenterCost = orders
-    .filter((o) => o.status !== "cancelled")
+  const activeOrders = orders.filter((o) => o.status !== "cancelled");
+  const paidOrders = activeOrders.filter((o) => o.payment_status === "paid");
+  const totalRevenue = paidOrders.reduce((s, o) => s + Number(o.total), 0);
+  const totalCarpenterCost = paidOrders
     .reduce((s, o) => s + Number(o.carpenter_cost_override ?? o.actual_carpenter_cost ?? 0), 0);
   const realProfit = totalRevenue - totalCarpenterCost;
   const profitMargin = totalRevenue > 0 ? (realProfit / totalRevenue) * 100 : 0;
-  const aov = orders.length ? totalRevenue / orders.length : 0;
-  const conversion = bookings.length ? (orders.length / bookings.length) * 100 : 0;
+  const outstanding = activeOrders
+    .filter((o) => o.payment_status !== "paid")
+    .reduce((s, o) => s + Number(o.total), 0);
+  const aov = activeOrders.length ? totalRevenue / Math.max(paidOrders.length, 1) : 0;
+  const conversion = bookings.length ? (activeOrders.length / bookings.length) * 100 : 0;
 
   const kpis = [
-    { label: "Revenue (EGP)", value: totalRevenue.toLocaleString() },
+    { label: "Realized Revenue (EGP)", value: Math.round(totalRevenue).toLocaleString() },
     { label: "Carpenter Costs (EGP)", value: Math.round(totalCarpenterCost).toLocaleString() },
-    { label: "Real Profit (EGP)", value: Math.round(realProfit).toLocaleString() },
+    { label: "Realized Profit (EGP)", value: Math.round(realProfit).toLocaleString() },
     { label: "Profit Margin", value: `${profitMargin.toFixed(0)}%` },
-    { label: "Orders", value: orders.length },
-    { label: "Avg Order Value", value: `EGP ${Math.round(aov).toLocaleString()}` },
+    { label: "Outstanding (unpaid orders)", value: `EGP ${Math.round(outstanding).toLocaleString()}` },
+    { label: "Orders", value: activeOrders.length },
+    { label: "Avg Order Value (paid)", value: `EGP ${Math.round(aov).toLocaleString()}` },
     { label: "Bookings → Orders", value: `${conversion.toFixed(0)}%` },
   ];
 
   const monthly = useMemo(() => {
     const map = new Map<string, { revenue: number; cost: number }>();
     for (const o of orders) {
-      if (o.status === "cancelled") continue;
+      if (o.status === "cancelled" || o.payment_status !== "paid") continue;
       const key = o.created_at.slice(0, 7);
       const cur = map.get(key) ?? { revenue: 0, cost: 0 };
       cur.revenue += Number(o.total);
@@ -155,7 +161,7 @@ function AdminAnalytics() {
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h1 className="font-serif text-3xl">Analytics</h1>
-          <p className="text-sm text-muted-foreground mt-1">Sales performance over time.</p>
+          <p className="text-sm text-muted-foreground mt-1">Sales performance over time. Profit figures count customer-paid orders only.</p>
         </div>
         <div className="flex gap-1 rounded-lg border p-1 bg-background">
           {RANGES.map((r) => (
@@ -239,7 +245,8 @@ function AdminAnalytics() {
       </div>
 
       <div className="bg-background border rounded-xl p-5">
-        <h3 className="font-serif text-lg mb-3">Monthly Real Profit Breakdown</h3>
+        <h3 className="font-serif text-lg mb-1">Monthly Realized Profit Breakdown</h3>
+        <p className="text-xs text-muted-foreground mb-3">Only orders the customer has paid for are counted.</p>
         {monthly.length === 0 ? <EmptyChart /> : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
