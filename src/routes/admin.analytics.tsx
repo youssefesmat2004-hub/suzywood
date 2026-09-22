@@ -45,7 +45,7 @@ function AdminAnalytics() {
     (async () => {
       const since = new Date(Date.now() - days * 86400000).toISOString();
       const [ordersRes, bookingsRes] = await Promise.all([
-        supabase.from("orders").select("id,total,status,created_at,actual_carpenter_cost,carpenter_cost_override").gte("created_at", since),
+        supabase.from("orders").select("id,total,status,created_at,actual_carpenter_cost,carpenter_cost_override,payment_status").gte("created_at", since),
         supabase.from("bookings").select("status,created_at").gte("created_at", since),
       ]);
       const ords = (ordersRes.data ?? []) as Order[];
@@ -112,22 +112,27 @@ function AdminAnalytics() {
     ];
   }, [bookings]);
 
-  const totalRevenue = orders.filter((o) => o.status !== "cancelled").reduce((s, o) => s + Number(o.total), 0);
-  const totalCarpenterCost = orders
-    .filter((o) => o.status !== "cancelled")
+  const activeOrders = orders.filter((o) => o.status !== "cancelled");
+  const paidOrders = activeOrders.filter((o) => o.payment_status === "paid");
+  const totalRevenue = paidOrders.reduce((s, o) => s + Number(o.total), 0);
+  const totalCarpenterCost = paidOrders
     .reduce((s, o) => s + Number(o.carpenter_cost_override ?? o.actual_carpenter_cost ?? 0), 0);
   const realProfit = totalRevenue - totalCarpenterCost;
   const profitMargin = totalRevenue > 0 ? (realProfit / totalRevenue) * 100 : 0;
-  const aov = orders.length ? totalRevenue / orders.length : 0;
-  const conversion = bookings.length ? (orders.length / bookings.length) * 100 : 0;
+  const outstanding = activeOrders
+    .filter((o) => o.payment_status !== "paid")
+    .reduce((s, o) => s + Number(o.total), 0);
+  const aov = activeOrders.length ? totalRevenue / Math.max(paidOrders.length, 1) : 0;
+  const conversion = bookings.length ? (activeOrders.length / bookings.length) * 100 : 0;
 
   const kpis = [
-    { label: "Revenue (EGP)", value: totalRevenue.toLocaleString() },
+    { label: "Realized Revenue (EGP)", value: Math.round(totalRevenue).toLocaleString() },
     { label: "Carpenter Costs (EGP)", value: Math.round(totalCarpenterCost).toLocaleString() },
-    { label: "Real Profit (EGP)", value: Math.round(realProfit).toLocaleString() },
+    { label: "Realized Profit (EGP)", value: Math.round(realProfit).toLocaleString() },
     { label: "Profit Margin", value: `${profitMargin.toFixed(0)}%` },
-    { label: "Orders", value: orders.length },
-    { label: "Avg Order Value", value: `EGP ${Math.round(aov).toLocaleString()}` },
+    { label: "Outstanding (unpaid orders)", value: `EGP ${Math.round(outstanding).toLocaleString()}` },
+    { label: "Orders", value: activeOrders.length },
+    { label: "Avg Order Value (paid)", value: `EGP ${Math.round(aov).toLocaleString()}` },
     { label: "Bookings → Orders", value: `${conversion.toFixed(0)}%` },
   ];
 
