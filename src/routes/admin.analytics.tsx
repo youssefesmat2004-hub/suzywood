@@ -139,7 +139,7 @@ function AdminAnalytics() {
   const monthly = useMemo(() => {
     const map = new Map<string, { revenue: number; cost: number }>();
     for (const o of orders) {
-      if (o.status === "cancelled") continue;
+      if (o.status === "cancelled" || o.payment_status !== "paid") continue;
       const key = o.created_at.slice(0, 7);
       const cur = map.get(key) ?? { revenue: 0, cost: 0 };
       cur.revenue += Number(o.total);
