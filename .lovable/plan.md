@@ -1,22 +1,23 @@
-# Fix WhatsApp manual order email validation error
+# Run the website check-up now
 
-## Problem
-The "Add WhatsApp Order" form rejects submissions with an `Invalid email` error because `customer_email` is required to be a valid email. WhatsApp customers frequently do not provide email addresses, blocking order creation.
+Run the automatic 5-day check-up immediately, outside its schedule, and report the results.
 
-## What we'll change
-1. **Backend schema**: Make `customer_email` optional in `createManualOrder` and `updateManualOrder` validation in `src/lib/manual-orders.functions.ts`. Store it as an empty string or `null` when missing.
-2. **Frontend form**: Remove the `required` attribute and email-type validation from the `Customer email` input in `src/components/admin/ManualOrderModal.tsx`, and update the local form type.
-3. **Admin order list**: Handle blank emails in `src/routes/admin.orders.index.tsx` so the row still renders.
-4. **Email notifications**: Ensure status/update notification emails are only sent when a valid email exists; skip silently otherwise (no crash).
-5. **Type definitions**: Update `ManualOrderExisting` and related types to allow empty/optional email.
+## What happens
 
-## Files affected
-- `src/lib/manual-orders.functions.ts`
-- `src/components/admin/ManualOrderModal.tsx`
-- `src/routes/admin.orders.index.tsx`
-- `src/lib/order-emails.functions.ts` (guard for missing email)
+1. Call the protected check-up hook on the live site (`/api/public/hooks/health-check`) using the stored secret key.
+2. The check runs the full sweep already built:
+   - Key pages load (home, shop, product, cart, checkout, contact, track order, FAQ, custom builds, book, our craft)
+   - Store data sanity (products, categories, prices, photos, stock, email sending configured)
+   - Every customer input (newsletter, contact, session booking, measurement booking, custom build + photo upload, promo code, order tracking, reviews, wishlist, orders)
+   - SEO and AI search (sitemap, robots, llms.txt, titles, descriptions, social tags, structured data, Arabic pages)
+3. Test records created during the run are deleted automatically.
+4. A branded report email goes to both owner addresses.
+5. I report in chat what passed and anything that failed.
 
-## Verification
-- Create a WhatsApp order with only a name and phone number — no email.
-- Create a WhatsApp order with a valid email — still works.
-- Confirm the order list shows the new order and no console errors.
+## If anything fails
+
+I'll show the failing items here and, with your go-ahead, fix them in a follow-up.
+
+## Note
+
+This does not change the 5-day schedule — it's an extra on-demand run.
