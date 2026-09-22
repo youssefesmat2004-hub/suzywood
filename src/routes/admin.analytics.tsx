@@ -161,7 +161,7 @@ function AdminAnalytics() {
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h1 className="font-serif text-3xl">Analytics</h1>
-          <p className="text-sm text-muted-foreground mt-1">Sales performance over time.</p>
+          <p className="text-sm text-muted-foreground mt-1">Sales performance over time. Profit figures count customer-paid orders only.</p>
         </div>
         <div className="flex gap-1 rounded-lg border p-1 bg-background">
           {RANGES.map((r) => (
@@ -245,7 +245,8 @@ function AdminAnalytics() {
       </div>
 
       <div className="bg-background border rounded-xl p-5">
-        <h3 className="font-serif text-lg mb-3">Monthly Real Profit Breakdown</h3>
+        <h3 className="font-serif text-lg mb-1">Monthly Realized Profit Breakdown</h3>
+        <p className="text-xs text-muted-foreground mb-3">Only orders the customer has paid for are counted.</p>
         {monthly.length === 0 ? <EmptyChart /> : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
