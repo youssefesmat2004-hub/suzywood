@@ -319,6 +319,131 @@ async function runCheck(request: Request) {
     add("Customer forms", "Checkout / orders", !error, error?.message);
   }
 
+  // ---------- 3b. Real test order for every product, with every extra ----------
+  {
+    const [cats, prods, csizes, variants] = await Promise.all([
+      supabaseAdmin.rpc("admin_categories"),
+      supabaseAdmin.from("products").select("id, name, category_id, starting_price, sale_price, portable_changing_table_enabled").eq("is_active", true),
+      supabaseAdmin.from("category_sizes").select("category_id, label, mattress_tier").eq("is_active", true),
+      supabaseAdmin.from("product_variants").select("product_id, name, price, variant_type").eq("is_active", true),
+    ]);
+
+    const catMap = new Map<string, any>(((cats.data as any[]) ?? []).map((c: any) => [c.id, c]));
+    const sizesByCat = new Map<string, any[]>();
+    for (const s of ((csizes.data as any[]) ?? [])) {
+      const list = sizesByCat.get(s.category_id) ?? [];
+      list.push(s);
+      sizesByCat.set(s.category_id, list);
+    }
+    const variantsByProduct = new Map<string, any[]>();
+    for (const v of ((variants.data as any[]) ?? [])) {
+      const list = variantsByProduct.get(v.product_id) ?? [];
+      list.push(v);
+      variantsByProduct.set(v.product_id, list);
+    }
+
+    const orderIds: string[] = [];
+    const failedOrders: string[] = [];
+    const productList = ((prods.data as any[]) ?? []);
+
+    for (const p of productList) {
+      const c = catMap.get(p.category_id);
+      if (!c) continue;
+      let price = Number(p.sale_price ?? p.starting_price ?? 0);
+      const all = variantsByProduct.get(p.id) ?? [];
+      const sizeVariants = all.filter((v) => v.variant_type === "size").sort((a, b) => Number(b.price) - Number(a.price));
+      let sizeLabel = "";
+      if (sizeVariants[0]) {
+        sizeLabel = sizeVariants[0].name;
+        price = Number(sizeVariants[0].price);
+      }
+
+      const tier = (sizesByCat.get(c.id) ?? []).find((s) => s.label === sizeLabel)?.mattress_tier ?? "big";
+      let mattress = false;
+      let mattressPrice = 0;
+      if (c.mattress_addon_enabled) {
+        mattress = true;
+        mattressPrice = Number(tier === "small" ? c.mattress_small_price : c.mattress_big_price);
+        price += mattressPrice;
+      }
+      let engraving = "";
+      if (c.name_engraving_enabled) {
+        engraving = "TEST";
+        price += Number(c.name_engraving_surcharge ?? 0);
+      }
+      if (c.ottoman_addon_enabled) price += Number(c.ottoman_addon_price ?? 0);
+      if (p.portable_changing_table_enabled || c.portable_changing_table_enabled) price += Number(c.portable_changing_table_price ?? 0);
+      if (c.lights_addon_enabled) price += Number(c.lights_addon_price ?? 0);
+      if (c.pompom_addon_enabled) price += Number(c.pompom_addon_price ?? 0);
+      let customW = 0;
+      let customL = 0;
+      let customS = 0;
+      if (c.custom_size_enabled) {
+        customW = 100;
+        customL = 200;
+        customS = Number(c.custom_size_surcharge ?? 0);
+        price += customS;
+      }
+      const finish = all.find((v) => v.variant_type !== "size")?.name ?? "";
+
+      const { data, error } = await supabaseAdmin.rpc("create_order_with_items", {
+        _details: {
+          name: `${MARKER} order test`,
+          email: "healthcheck@suzywoodofficial.com",
+          phone: "01000000000",
+          address: MARKER,
+          city: "Cairo",
+          governorate: "Cairo",
+          notes: `${MARKER} automatic order test`,
+        },
+        _items: [
+          {
+            product_id: p.id,
+            product_name: p.name,
+            size: sizeLabel,
+            finish,
+            engraving,
+            unit_price: price,
+            quantity: 2,
+            custom_width_cm: customW,
+            custom_length_cm: customL,
+            custom_surcharge: customS,
+            bed_rails: false,
+            bed_rails_price: 0,
+            mattress,
+            mattress_price: mattressPrice,
+          },
+        ],
+        _upfront_rate: 0.75,
+        _promo_code: "",
+        _instapay_reference: MARKER,
+        _payment_proof_path: "",
+        _delivery_area: "Maadi",
+        _order_size_type: "big",
+      } as never);
+
+      const row = Array.isArray(data) ? (data as any[])[0] : null;
+      if (error || !row?.id) failedOrders.push(`${p.name}: ${error?.message ?? "no order created"}`);
+      else orderIds.push(row.id);
+    }
+
+    add(
+      "Real orders",
+      "Every product can be ordered with all extras",
+      failedOrders.length === 0 && productList.length > 0,
+      failedOrders.length ? failedOrders.slice(0, 5).join(" | ") : `${orderIds.length}/${productList.length} products ordered`,
+    );
+
+    if (orderIds.length) {
+      cleanup.push(async () => {
+        await supabaseAdmin.from("order_items").delete().in("order_id", orderIds);
+        await supabaseAdmin.from("orders").delete().in("id", orderIds);
+      });
+    }
+  }
+
+
+
   for (const fn of cleanup) {
     try { await fn(); } catch (e) { console.error("health-check cleanup failed", e); }
   }
