@@ -1,5 +1,5 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Package, ShoppingBag, FileEdit, LogOut, Menu, X, Tags, Settings, CalendarCheck, Ticket, Mail, MessageSquare, Hammer, Users, BarChart3, Ruler, Wallet, Star } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingBag, FileEdit, LogOut, Menu, X, Tags, Settings, CalendarCheck, Ticket, Mail, MessageSquare, Hammer, Users, BarChart3, Ruler, Wallet, Star, ShoppingCart } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { useAuth } from "@/lib/auth";
 import { useIsAdmin } from "@/lib/admin";
@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 const nav = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { to: "/admin/orders", label: "Orders", icon: ShoppingBag },
+  { to: "/admin/abandoned-checkouts", label: "Abandoned Carts", icon: ShoppingCart },
   { to: "/admin/carpenters", label: "Carpenters", icon: Hammer },
   { to: "/admin/bookings", label: "Bookings", icon: CalendarCheck },
   { to: "/admin/measurement-bookings", label: "Measurement Bookings", icon: Ruler },
