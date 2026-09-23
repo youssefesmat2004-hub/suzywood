@@ -12,6 +12,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { sendCheckoutPendingEmail } from "@/lib/checkout-emails.functions";
 import { notifyOwnerNewOrder } from "@/lib/owner-notifications.functions";
 import { uploadPaymentProof } from "@/lib/payment-proof.functions";
+import { saveAbandonedCheckout, clearAbandonedCheckout } from "@/lib/abandoned-checkouts.functions";
 import { toast } from "sonner";
 import qrImageFallback from "@/assets/instapay-qr.jpeg";
 import { Upload, Check, Tag, MessageCircle } from "lucide-react";
@@ -59,6 +60,8 @@ function Checkout() {
   const sendPendingEmail = useServerFn(sendCheckoutPendingEmail);
   const notifyOwner = useServerFn(notifyOwnerNewOrder);
   const uploadProof = useServerFn(uploadPaymentProof);
+  const saveAbandoned = useServerFn(saveAbandonedCheckout);
+  const clearAbandoned = useServerFn(clearAbandonedCheckout);
 
   const [step, setStep] = useState<"details" | "pay">("details");
   const [details, setDetails] = useState<Details | null>(null);
