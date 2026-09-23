@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      abandoned_checkouts: {
+        Row: {
+          cart_total: number
+          created_at: string
+          customer_name: string
+          email: string
+          id: string
+          items: Json
+          phone: string
+          reminder_sent_at: string | null
+          stage: string
+          updated_at: string
+        }
+        Insert: {
+          cart_total?: number
+          created_at?: string
+          customer_name?: string
+          email: string
+          id?: string
+          items?: Json
+          phone?: string
+          reminder_sent_at?: string | null
+          stage?: string
+          updated_at?: string
+        }
+        Update: {
+          cart_total?: number
+          created_at?: string
+          customer_name?: string
+          email?: string
+          id?: string
+          items?: Json
+          phone?: string
+          reminder_sent_at?: string | null
+          stage?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           contact_method: Database["public"]["Enums"]["booking_contact_method"]
