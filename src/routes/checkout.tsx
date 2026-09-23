@@ -240,6 +240,8 @@ function Checkout() {
       return;
     }
     clear();
+    // Successful order — remove any abandoned-checkout record.
+    clearAbandoned({ data: { email: details.email, phone: details.phone } }).catch(() => {});
     // Fire-and-forget confirmation email
     sendPendingEmail({
       data: { orderId: order.id, instapayReference: reference.trim() },
