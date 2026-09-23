@@ -122,7 +122,7 @@ function Checkout() {
       return;
     }
     const fd = new FormData(e.currentTarget);
-    setDetails({
+    const d = {
       name: String(fd.get("name") ?? ""),
       email: String(fd.get("email") ?? ""),
       phone: String(fd.get("phone") ?? ""),
@@ -131,7 +131,19 @@ function Checkout() {
       governorate: getAreaLabel(deliveryArea),
       notes: String(fd.get("notes") ?? ""),
       deliveryArea,
-    });
+    };
+    setDetails(d);
+    // Record the abandoned checkout in case they never finish payment.
+    saveAbandoned({
+      data: {
+        name: d.name,
+        email: d.email,
+        phone: d.phone,
+        items: items.map((it) => ({ name: it.name, quantity: it.quantity, unitPrice: it.unitPrice })),
+        cartTotal: total,
+        stage: "checkout_started",
+      },
+    }).catch((e) => console.error("Abandoned capture failed", e));
     setStep("pay");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -213,6 +225,17 @@ function Checkout() {
     setSubmitting(false);
     const order = Array.isArray(rpc) ? rpc[0] : rpc;
     if (error || !order) {
+      // Mark the abandoned checkout as a failed payment attempt.
+      saveAbandoned({
+        data: {
+          name: details.name,
+          email: details.email,
+          phone: details.phone,
+          items: items.map((it) => ({ name: it.name, quantity: it.quantity, unitPrice: it.unitPrice })),
+          cartTotal: total,
+          stage: "payment_failed",
+        },
+      }).catch((e) => console.error("Abandoned capture failed", e));
       toast.error(t("checkout.orderPlaceFailed", "Couldn't place your order"), { description: error?.message });
       return;
     }
