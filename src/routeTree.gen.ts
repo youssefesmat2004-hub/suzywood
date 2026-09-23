@@ -53,6 +53,7 @@ import { Route as AdminCarpentersRouteImport } from './routes/admin.carpenters'
 import { Route as AdminCarpenterPaymentsRouteImport } from './routes/admin.carpenter-payments'
 import { Route as AdminBookingsRouteImport } from './routes/admin.bookings'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
+import { Route as AdminAbandonedCheckoutsRouteImport } from './routes/admin.abandoned-checkouts'
 import { Route as AdminProductsIndexRouteImport } from './routes/admin.products.index'
 import { Route as AdminOrdersIndexRouteImport } from './routes/admin.orders.index'
 import { Route as ShopCategorySlugRouteImport } from './routes/shop.category.$slug'
@@ -282,6 +283,11 @@ const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
   path: '/analytics',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminAbandonedCheckoutsRoute = AdminAbandonedCheckoutsRouteImport.update({
+  id: '/abandoned-checkouts',
+  path: '/abandoned-checkouts',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminProductsIndexRoute = AdminProductsIndexRouteImport.update({
   id: '/products/',
   path: '/products/',
@@ -344,6 +350,7 @@ export interface FileRoutesByFullPath {
   '/thank-you': typeof ThankYouRoute
   '/track-order': typeof TrackOrderRoute
   '/wishlist': typeof WishlistRoute
+  '/admin/abandoned-checkouts': typeof AdminAbandonedCheckoutsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/bookings': typeof AdminBookingsRoute
   '/admin/carpenter-payments': typeof AdminCarpenterPaymentsRoute
@@ -395,6 +402,7 @@ export interface FileRoutesByTo {
   '/thank-you': typeof ThankYouRoute
   '/track-order': typeof TrackOrderRoute
   '/wishlist': typeof WishlistRoute
+  '/admin/abandoned-checkouts': typeof AdminAbandonedCheckoutsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/bookings': typeof AdminBookingsRoute
   '/admin/carpenter-payments': typeof AdminCarpenterPaymentsRoute
@@ -448,6 +456,7 @@ export interface FileRoutesById {
   '/thank-you': typeof ThankYouRoute
   '/track-order': typeof TrackOrderRoute
   '/wishlist': typeof WishlistRoute
+  '/admin/abandoned-checkouts': typeof AdminAbandonedCheckoutsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/bookings': typeof AdminBookingsRoute
   '/admin/carpenter-payments': typeof AdminCarpenterPaymentsRoute
@@ -503,6 +512,7 @@ export interface FileRouteTypes {
     | '/thank-you'
     | '/track-order'
     | '/wishlist'
+    | '/admin/abandoned-checkouts'
     | '/admin/analytics'
     | '/admin/bookings'
     | '/admin/carpenter-payments'
@@ -554,6 +564,7 @@ export interface FileRouteTypes {
     | '/thank-you'
     | '/track-order'
     | '/wishlist'
+    | '/admin/abandoned-checkouts'
     | '/admin/analytics'
     | '/admin/bookings'
     | '/admin/carpenter-payments'
@@ -606,6 +617,7 @@ export interface FileRouteTypes {
     | '/thank-you'
     | '/track-order'
     | '/wishlist'
+    | '/admin/abandoned-checkouts'
     | '/admin/analytics'
     | '/admin/bookings'
     | '/admin/carpenter-payments'
@@ -974,6 +986,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAnalyticsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/abandoned-checkouts': {
+      id: '/admin/abandoned-checkouts'
+      path: '/abandoned-checkouts'
+      fullPath: '/admin/abandoned-checkouts'
+      preLoaderRoute: typeof AdminAbandonedCheckoutsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/products/': {
       id: '/admin/products/'
       path: '/products'
@@ -1041,6 +1060,7 @@ const AdminOrdersRouteWithChildren = AdminOrdersRoute._addFileChildren(
 )
 
 interface AdminRouteChildren {
+  AdminAbandonedCheckoutsRoute: typeof AdminAbandonedCheckoutsRoute
   AdminAnalyticsRoute: typeof AdminAnalyticsRoute
   AdminBookingsRoute: typeof AdminBookingsRoute
   AdminCarpenterPaymentsRoute: typeof AdminCarpenterPaymentsRoute
@@ -1064,6 +1084,7 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminAbandonedCheckoutsRoute: AdminAbandonedCheckoutsRoute,
   AdminAnalyticsRoute: AdminAnalyticsRoute,
   AdminBookingsRoute: AdminBookingsRoute,
   AdminCarpenterPaymentsRoute: AdminCarpenterPaymentsRoute,

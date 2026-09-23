@@ -1,5 +1,5 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Package, ShoppingBag, FileEdit, LogOut, Menu, X, Tags, Settings, CalendarCheck, Ticket, Mail, MessageSquare, Hammer, Users, BarChart3, Ruler, Wallet, Star } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingBag, FileEdit, LogOut, Menu, X, Tags, Settings, CalendarCheck, Ticket, Mail, MessageSquare, Hammer, Users, BarChart3, Ruler, Wallet, Star, ShoppingCart } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { useAuth } from "@/lib/auth";
 import { useIsAdmin } from "@/lib/admin";
