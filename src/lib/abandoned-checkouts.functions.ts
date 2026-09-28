@@ -40,10 +40,12 @@ export const saveAbandonedCheckout = createServerFn({ method: "POST" })
       stage: data.stage,
       updated_at: new Date().toISOString(),
     };
-    if (existing?.id) {
-      await supabaseAdmin.from("abandoned_checkouts").update(payload).eq("id", existing.id);
-    } else {
-      await supabaseAdmin.from("abandoned_checkouts").insert(payload);
+    const { error } = existing?.id
+      ? await supabaseAdmin.from("abandoned_checkouts").update(payload).eq("id", existing.id)
+      : await supabaseAdmin.from("abandoned_checkouts").insert(payload);
+    if (error) {
+      console.error("saveAbandonedCheckout failed", error);
+      throw new Error(error.message);
     }
     return { ok: true };
   });
