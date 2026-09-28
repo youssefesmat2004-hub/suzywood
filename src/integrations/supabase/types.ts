@@ -600,7 +600,7 @@ export type Database = {
           id: string
           is_published: boolean
           kind: string
-          order_id: string
+          order_id: string | null
           product_id: string | null
           product_rating: number | null
           reviewer_name: string
@@ -615,7 +615,7 @@ export type Database = {
           id?: string
           is_published?: boolean
           kind?: string
-          order_id: string
+          order_id?: string | null
           product_id?: string | null
           product_rating?: number | null
           reviewer_name: string
@@ -630,7 +630,7 @@ export type Database = {
           id?: string
           is_published?: boolean
           kind?: string
-          order_id?: string
+          order_id?: string | null
           product_id?: string | null
           product_rating?: number | null
           reviewer_name?: string

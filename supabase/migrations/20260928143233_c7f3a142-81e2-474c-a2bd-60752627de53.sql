@@ -1,0 +1,2 @@
+ALTER TABLE public.order_reviews DROP CONSTRAINT order_reviews_kind_check;
+ALTER TABLE public.order_reviews ADD CONSTRAINT order_reviews_kind_check CHECK (kind = ANY (ARRAY['experience'::text, 'delivery'::text, 'story'::text]));
