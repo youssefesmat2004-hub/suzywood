@@ -43,5 +43,10 @@ export const review = {
     thanks: "شكرًا لك! تم استلام تقييمك.",
     failed: "تعذر إرسال التقييم",
     backToShop: "العودة إلى المتجر",
+    storyTitle: "كيف كانت تجربتك مع Suzy Wood؟",
+    storySubtitle: "كلمات قليلة منك تساعد أسرًا أخرى على الاختيار بثقة.",
+    storyThanksTitle: "شكرًا لتقييمك!",
+    storyThanksBody: "نشكرك على وقتك. كلماتك تساعد أسرًا أخرى على الاختيار بثقة.",
+    storyRateLimited: "عدد كبير من التقييمات حاليًا — حاول مرة أخرى لاحقًا.",
   } as Record<string, string>,
 };

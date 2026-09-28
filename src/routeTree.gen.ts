@@ -13,6 +13,7 @@ import { Route as WishlistRouteImport } from './routes/wishlist'
 import { Route as TrackOrderRouteImport } from './routes/track-order'
 import { Route as ThankYouRouteImport } from './routes/thank-you'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as StoryReviewsRouteImport } from './routes/story-reviews'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ShopRouteImport } from './routes/shop'
 import { Route as ReviewRouteImport } from './routes/review'
@@ -80,6 +81,11 @@ const ThankYouRoute = ThankYouRouteImport.update({
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StoryReviewsRoute = StoryReviewsRouteImport.update({
+  id: '/story-reviews',
+  path: '/story-reviews',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -346,6 +352,7 @@ export interface FileRoutesByFullPath {
   '/review': typeof ReviewRoute
   '/shop': typeof ShopRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/story-reviews': typeof StoryReviewsRoute
   '/terms': typeof TermsRoute
   '/thank-you': typeof ThankYouRoute
   '/track-order': typeof TrackOrderRoute
@@ -398,6 +405,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/review': typeof ReviewRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/story-reviews': typeof StoryReviewsRoute
   '/terms': typeof TermsRoute
   '/thank-you': typeof ThankYouRoute
   '/track-order': typeof TrackOrderRoute
@@ -452,6 +460,7 @@ export interface FileRoutesById {
   '/review': typeof ReviewRoute
   '/shop': typeof ShopRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/story-reviews': typeof StoryReviewsRoute
   '/terms': typeof TermsRoute
   '/thank-you': typeof ThankYouRoute
   '/track-order': typeof TrackOrderRoute
@@ -508,6 +517,7 @@ export interface FileRouteTypes {
     | '/review'
     | '/shop'
     | '/sitemap.xml'
+    | '/story-reviews'
     | '/terms'
     | '/thank-you'
     | '/track-order'
@@ -560,6 +570,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/review'
     | '/sitemap.xml'
+    | '/story-reviews'
     | '/terms'
     | '/thank-you'
     | '/track-order'
@@ -613,6 +624,7 @@ export interface FileRouteTypes {
     | '/review'
     | '/shop'
     | '/sitemap.xml'
+    | '/story-reviews'
     | '/terms'
     | '/thank-you'
     | '/track-order'
@@ -668,6 +680,7 @@ export interface RootRouteChildren {
   ReviewRoute: typeof ReviewRoute
   ShopRoute: typeof ShopRouteWithChildren
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  StoryReviewsRoute: typeof StoryReviewsRoute
   TermsRoute: typeof TermsRoute
   ThankYouRoute: typeof ThankYouRoute
   TrackOrderRoute: typeof TrackOrderRoute
@@ -704,6 +717,13 @@ declare module '@tanstack/react-router' {
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/story-reviews': {
+      id: '/story-reviews'
+      path: '/story-reviews'
+      fullPath: '/story-reviews'
+      preLoaderRoute: typeof StoryReviewsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -1144,6 +1164,7 @@ const rootRouteChildren: RootRouteChildren = {
   ReviewRoute: ReviewRoute,
   ShopRoute: ShopRouteWithChildren,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  StoryReviewsRoute: StoryReviewsRoute,
   TermsRoute: TermsRoute,
   ThankYouRoute: ThankYouRoute,
   TrackOrderRoute: TrackOrderRoute,
