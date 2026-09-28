@@ -3,6 +3,45 @@ import { z } from "zod";
 
 const clean = (s: string) => s.trim().slice(0, 1000);
 
+/** Open review link (e.g. shared on Instagram stories) — anyone can rate the whole business. */
+export const submitStoryReview = createServerFn({ method: "POST" })
+  .inputValidator((data) =>
+    z
+      .object({
+        name: z.string().min(1).max(80),
+        rating: z.number().int().min(1).max(5),
+        comment: z.string().max(1000).optional(),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // Simple flood guard: at most 15 story reviews per hour across the whole site.
+    const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const { count } = await supabaseAdmin
+      .from("order_reviews")
+      .select("id", { count: "exact", head: true })
+      .eq("kind", "story")
+      .gte("submitted_at", since);
+    if ((count ?? 0) >= 15) return { ok: false as const, error: "rate_limited" };
+
+    const { error } = await supabaseAdmin.from("order_reviews").insert({
+      order_id: null,
+      kind: "story",
+      reviewer_name: data.name.trim().slice(0, 80),
+      experience_rating: data.rating,
+      comment: data.comment ? clean(data.comment) : null,
+      is_published: data.rating >= 4,
+    } as never);
+
+    if (error) {
+      console.error("submitStoryReview failed", error);
+      return { ok: false as const, error: "Could not save review" };
+    }
+    return { ok: true as const, published: data.rating >= 4 };
+  });
+
 /** Website-experience review, submitted right after checkout from the thank-you page. */
 export const submitExperienceReview = createServerFn({ method: "POST" })
   .inputValidator((data) =>

@@ -18,6 +18,11 @@ export const review = {
     thanks: "Thank you! Your review has been received.",
     failed: "Couldn't submit your review",
     backToShop: "Back to the shop",
+    storyTitle: "How was your experience with Suzy Wood?",
+    storySubtitle: "A few words from you helps other families choose with confidence.",
+    storyThanksTitle: "Thank you for your review!",
+    storyThanksBody: "We're so grateful you took the time. Your words help other families choose with confidence.",
+    storyRateLimited: "Too many reviews right now — please try again later.",
   } as Record<string, string>,
   ar: {
     title: "كيف كانت قطعتك من Suzy Wood؟",
