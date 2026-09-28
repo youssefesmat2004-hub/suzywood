@@ -97,7 +97,7 @@ function AdminReviews() {
                     <div>
                       <p className="font-medium">{r.reviewer_name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {r.orders?.order_number ?? "—"} · {r.kind === "experience" ? "Website experience" : "After delivery"} ·{" "}
+                        {r.orders?.order_number ?? "—"} · {r.kind === "experience" ? "Website experience" : r.kind === "story" ? "Public story link" : "After delivery"} ·{" "}
                         {new Date(r.submitted_at).toLocaleDateString()}
                       </p>
                     </div>
