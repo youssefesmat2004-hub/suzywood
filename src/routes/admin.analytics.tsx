@@ -114,9 +114,13 @@ function AdminAnalytics() {
 
   const activeOrders = orders.filter((o) => o.status !== "cancelled");
   const paidOrders = activeOrders.filter((o) => o.payment_status === "paid");
+  const costOf = (o: Order) => Number(o.carpenter_cost_override ?? o.actual_carpenter_cost ?? 0);
+  const profitOf = (list: Order[]) => ({
+    revenue: list.reduce((s, o) => s + Number(o.total), 0),
+    cost: list.reduce((s, o) => s + costOf(o), 0),
+  });
   const totalRevenue = paidOrders.reduce((s, o) => s + Number(o.total), 0);
-  const totalCarpenterCost = paidOrders
-    .reduce((s, o) => s + Number(o.carpenter_cost_override ?? o.actual_carpenter_cost ?? 0), 0);
+  const totalCarpenterCost = paidOrders.reduce((s, o) => s + costOf(o), 0);
   const realProfit = totalRevenue - totalCarpenterCost;
   const profitMargin = totalRevenue > 0 ? (realProfit / totalRevenue) * 100 : 0;
   const outstanding = activeOrders
@@ -125,11 +129,20 @@ function AdminAnalytics() {
   const aov = activeOrders.length ? totalRevenue / Math.max(paidOrders.length, 1) : 0;
   const conversion = bookings.length ? (activeOrders.length / bookings.length) * 100 : 0;
 
+  const deliveredPaid = paidOrders.filter((o) => o.status === "delivered");
+  const deliveredStats = profitOf(deliveredPaid);
+  const deliveredProfit = deliveredStats.revenue - deliveredStats.cost;
+  const openPaid = paidOrders.filter((o) => o.status !== "delivered");
+  const openStats = profitOf(openPaid);
+  const openProfit = openStats.revenue - openStats.cost;
+
   const kpis = [
     { label: "Realized Revenue (EGP)", value: Math.round(totalRevenue).toLocaleString() },
     { label: "Carpenter Costs (EGP)", value: Math.round(totalCarpenterCost).toLocaleString() },
     { label: "Realized Profit (EGP)", value: Math.round(realProfit).toLocaleString() },
     { label: "Profit Margin", value: `${profitMargin.toFixed(0)}%` },
+    { label: "Profit — Delivered & Paid", value: `EGP ${Math.round(deliveredProfit).toLocaleString()}` },
+    { label: "Profit — Paid, Not Yet Delivered", value: `EGP ${Math.round(openProfit).toLocaleString()}` },
     { label: "Outstanding (unpaid orders)", value: `EGP ${Math.round(outstanding).toLocaleString()}` },
     { label: "Orders", value: activeOrders.length },
     { label: "Avg Order Value (paid)", value: `EGP ${Math.round(aov).toLocaleString()}` },
@@ -184,6 +197,49 @@ function AdminAnalytics() {
             {loading ? <Skeleton className="h-8 w-24 mt-2" /> : <p className="font-serif text-2xl mt-1">{k.value}</p>}
           </div>
         ))}
+      </div>
+
+      <div className="bg-background border rounded-xl p-5">
+        <h3 className="font-serif text-lg mb-1">Profit by Order Stage (payment confirmed only)</h3>
+        <p className="text-xs text-muted-foreground mb-3">Splits realized profit between delivered orders and paid orders still in progress.</p>
+        {loading ? <Skeleton className="h-24 w-full" /> : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-xs uppercase tracking-wider text-muted-foreground">
+                  <th className="py-2 pr-4">Stage</th>
+                  <th className="py-2 pr-4 text-right">Orders</th>
+                  <th className="py-2 pr-4 text-right">Revenue</th>
+                  <th className="py-2 pr-4 text-right">Carpenter Cost</th>
+                  <th className="py-2 pr-4 text-right">Real Profit</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                <tr>
+                  <td className="py-2 pr-4 font-medium">Delivered &amp; completed</td>
+                  <td className="py-2 pr-4 text-right">{deliveredPaid.length}</td>
+                  <td className="py-2 pr-4 text-right">EGP {Math.round(deliveredStats.revenue).toLocaleString()}</td>
+                  <td className="py-2 pr-4 text-right text-amber-700">EGP {Math.round(deliveredStats.cost).toLocaleString()}</td>
+                  <td className="py-2 pr-4 text-right text-emerald-700 font-semibold">EGP {Math.round(deliveredProfit).toLocaleString()}</td>
+                </tr>
+                <tr>
+                  <td className="py-2 pr-4 font-medium">Paid, not yet delivered</td>
+                  <td className="py-2 pr-4 text-right">{openPaid.length}</td>
+                  <td className="py-2 pr-4 text-right">EGP {Math.round(openStats.revenue).toLocaleString()}</td>
+                  <td className="py-2 pr-4 text-right text-amber-700">EGP {Math.round(openStats.cost).toLocaleString()}</td>
+                  <td className="py-2 pr-4 text-right text-emerald-700 font-semibold">EGP {Math.round(openProfit).toLocaleString()}</td>
+                </tr>
+                <tr className="border-t-2">
+                  <td className="py-2 pr-4 font-semibold">Total (confirmed payments)</td>
+                  <td className="py-2 pr-4 text-right font-semibold">{paidOrders.length}</td>
+                  <td className="py-2 pr-4 text-right font-semibold">EGP {Math.round(totalRevenue).toLocaleString()}</td>
+                  <td className="py-2 pr-4 text-right font-semibold text-amber-700">EGP {Math.round(totalCarpenterCost).toLocaleString()}</td>
+                  <td className="py-2 pr-4 text-right font-semibold text-emerald-700">EGP {Math.round(realProfit).toLocaleString()}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
