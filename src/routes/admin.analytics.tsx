@@ -114,9 +114,13 @@ function AdminAnalytics() {
 
   const activeOrders = orders.filter((o) => o.status !== "cancelled");
   const paidOrders = activeOrders.filter((o) => o.payment_status === "paid");
+  const costOf = (o: Order) => Number(o.carpenter_cost_override ?? o.actual_carpenter_cost ?? 0);
+  const profitOf = (list: Order[]) => ({
+    revenue: list.reduce((s, o) => s + Number(o.total), 0),
+    cost: list.reduce((s, o) => s + costOf(o), 0),
+  });
   const totalRevenue = paidOrders.reduce((s, o) => s + Number(o.total), 0);
-  const totalCarpenterCost = paidOrders
-    .reduce((s, o) => s + Number(o.carpenter_cost_override ?? o.actual_carpenter_cost ?? 0), 0);
+  const totalCarpenterCost = paidOrders.reduce((s, o) => s + costOf(o), 0);
   const realProfit = totalRevenue - totalCarpenterCost;
   const profitMargin = totalRevenue > 0 ? (realProfit / totalRevenue) * 100 : 0;
   const outstanding = activeOrders
@@ -125,11 +129,20 @@ function AdminAnalytics() {
   const aov = activeOrders.length ? totalRevenue / Math.max(paidOrders.length, 1) : 0;
   const conversion = bookings.length ? (activeOrders.length / bookings.length) * 100 : 0;
 
+  const deliveredPaid = paidOrders.filter((o) => o.status === "delivered");
+  const deliveredStats = profitOf(deliveredPaid);
+  const deliveredProfit = deliveredStats.revenue - deliveredStats.cost;
+  const openPaid = paidOrders.filter((o) => o.status !== "delivered");
+  const openStats = profitOf(openPaid);
+  const openProfit = openStats.revenue - openStats.cost;
+
   const kpis = [
     { label: "Realized Revenue (EGP)", value: Math.round(totalRevenue).toLocaleString() },
     { label: "Carpenter Costs (EGP)", value: Math.round(totalCarpenterCost).toLocaleString() },
     { label: "Realized Profit (EGP)", value: Math.round(realProfit).toLocaleString() },
     { label: "Profit Margin", value: `${profitMargin.toFixed(0)}%` },
+    { label: "Profit — Delivered & Paid", value: `EGP ${Math.round(deliveredProfit).toLocaleString()}` },
+    { label: "Profit — Paid, Not Yet Delivered", value: `EGP ${Math.round(openProfit).toLocaleString()}` },
     { label: "Outstanding (unpaid orders)", value: `EGP ${Math.round(outstanding).toLocaleString()}` },
     { label: "Orders", value: activeOrders.length },
     { label: "Avg Order Value (paid)", value: `EGP ${Math.round(aov).toLocaleString()}` },
