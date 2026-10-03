@@ -199,6 +199,49 @@ function AdminAnalytics() {
         ))}
       </div>
 
+      <div className="bg-background border rounded-xl p-5">
+        <h3 className="font-serif text-lg mb-1">Profit by Order Stage (payment confirmed only)</h3>
+        <p className="text-xs text-muted-foreground mb-3">Splits realized profit between delivered orders and paid orders still in progress.</p>
+        {loading ? <Skeleton className="h-24 w-full" /> : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-xs uppercase tracking-wider text-muted-foreground">
+                  <th className="py-2 pr-4">Stage</th>
+                  <th className="py-2 pr-4 text-right">Orders</th>
+                  <th className="py-2 pr-4 text-right">Revenue</th>
+                  <th className="py-2 pr-4 text-right">Carpenter Cost</th>
+                  <th className="py-2 pr-4 text-right">Real Profit</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                <tr>
+                  <td className="py-2 pr-4 font-medium">Delivered &amp; completed</td>
+                  <td className="py-2 pr-4 text-right">{deliveredPaid.length}</td>
+                  <td className="py-2 pr-4 text-right">EGP {Math.round(deliveredStats.revenue).toLocaleString()}</td>
+                  <td className="py-2 pr-4 text-right text-amber-700">EGP {Math.round(deliveredStats.cost).toLocaleString()}</td>
+                  <td className="py-2 pr-4 text-right text-emerald-700 font-semibold">EGP {Math.round(deliveredProfit).toLocaleString()}</td>
+                </tr>
+                <tr>
+                  <td className="py-2 pr-4 font-medium">Paid, not yet delivered</td>
+                  <td className="py-2 pr-4 text-right">{openPaid.length}</td>
+                  <td className="py-2 pr-4 text-right">EGP {Math.round(openStats.revenue).toLocaleString()}</td>
+                  <td className="py-2 pr-4 text-right text-amber-700">EGP {Math.round(openStats.cost).toLocaleString()}</td>
+                  <td className="py-2 pr-4 text-right text-emerald-700 font-semibold">EGP {Math.round(openProfit).toLocaleString()}</td>
+                </tr>
+                <tr className="border-t-2">
+                  <td className="py-2 pr-4 font-semibold">Total (confirmed payments)</td>
+                  <td className="py-2 pr-4 text-right font-semibold">{paidOrders.length}</td>
+                  <td className="py-2 pr-4 text-right font-semibold">EGP {Math.round(totalRevenue).toLocaleString()}</td>
+                  <td className="py-2 pr-4 text-right font-semibold text-amber-700">EGP {Math.round(totalCarpenterCost).toLocaleString()}</td>
+                  <td className="py-2 pr-4 text-right font-semibold text-emerald-700">EGP {Math.round(realProfit).toLocaleString()}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
       <div className="grid gap-6 lg:grid-cols-2">
         <ChartCard title="Revenue Over Time" loading={loading}>
           <ResponsiveContainer width="100%" height={260}>
