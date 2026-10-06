@@ -2,7 +2,7 @@
 export const components = {
   en: {
     // AnnouncementBar
-    annBadge: "47% Off",
+    annBadge: "50% Off",
     annText: "Teepee Tent EGP 2,000 (was EGP 3,750) · Tent + Swing Bundle EGP 4,250 (was EGP 4,750) — Shop now",
     // BrandLoader
     loaderTagline: "Handcrafted with love",
@@ -160,7 +160,7 @@ export const components = {
     rvVerifiedBuyer: "Verified buyer",
   } as Record<string, string>,
   ar: {
-    annBadge: "خصم 47%",
+    annBadge: "خصم 50%",
     annText: "خيمة التيبي بـ 2,000 ج.م (بدلاً من 3,750 ج.م) · باقة الخيمة والأرجوحة بـ 4,250 ج.م (بدلاً من 4,750 ج.م) — تسوقي الآن",
     loaderTagline: "صناعة يدوية بحب",
     cbfChooseImageFile: "من فضلك اختاري ملف صورة",

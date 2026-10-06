@@ -12,7 +12,7 @@ export function AnnouncementBar() {
           className="inline-flex flex-wrap justify-center items-center gap-2 hover:underline underline-offset-2 font-medium"
         >
           <span className="inline-flex items-center rounded-full bg-primary text-primary-foreground px-2 py-0.5 text-[10px] uppercase tracking-wider">
-            {t("components.annBadge", "47% Off")}
+            {t("components.annBadge", "50% Off")}
           </span>
           {t("components.annText", "Teepee Tent EGP 2,000 (was EGP 3,750) · Tent + Swing Bundle EGP 4,250 (was EGP 4,750) — Shop now")}
         </Link>
