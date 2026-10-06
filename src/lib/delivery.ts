@@ -10,6 +10,7 @@ export type DeliveryAreaKey =
   | "shorouk-madinty"
   | "obour"
   | "sheikh-zayed"
+  | "pickup-maadi"
   | "other";
 
 export type OrderSizeType = "small" | "big";
@@ -26,6 +27,7 @@ export const DELIVERY_AREAS: { value: DeliveryAreaKey; label: string; fees: Fees
   { value: "shorouk-madinty", label: "Shorouk / Madinty",    fees: { small: 700, big: 1200 } },
   { value: "obour",           label: "Obour",                fees: { small: 800, big: 1500 } },
   { value: "sheikh-zayed",    label: "Sheikh Zayed",         fees: { small: 700, big: 1000 } },
+  { value: "pickup-maadi",    label: "Pickup from Maadi (Free)", fees: { small: 0, big: 0 } },
   { value: "other",           label: "Other (contact via WhatsApp)", fees: { small: 0,   big: 0 } },
 ];
 
@@ -34,6 +36,14 @@ const SMALL_CATEGORY_SLUGS = new Set(["swings", "play-safety", "learning-tower"]
 export function isSmallOrder(items: Pick<CartItem, "categorySlug">[]): boolean {
   if (items.length === 0) return false;
   return items.every((i) => i.categorySlug ? SMALL_CATEGORY_SLUGS.has(i.categorySlug) : false);
+}
+
+const PICKUP_CATEGORY_SLUGS = new Set(["swings", "play-safety"]);
+
+/** Free Maadi pickup is only offered when every item is a tent or swing. */
+export function isPickupEligible(items: Pick<CartItem, "categorySlug">[]): boolean {
+  if (items.length === 0) return false;
+  return items.every((i) => (i.categorySlug ? PICKUP_CATEGORY_SLUGS.has(i.categorySlug) : false));
 }
 
 export function getDeliveryFee(area: DeliveryAreaKey | "" | null | undefined, size: OrderSizeType): number {
