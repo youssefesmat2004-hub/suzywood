@@ -2,8 +2,8 @@
 export const components = {
   en: {
     // AnnouncementBar
-    annBadge: "33% Off",
-    annText: "The Teepee Tent now EGP 2,500 (was EGP 3,750) — Shop now",
+    annBadge: "47% Off",
+    annText: "Teepee Tent EGP 2,000 (was EGP 3,750) · Tent + Swing Bundle EGP 4,250 (was EGP 4,750) — Shop now",
     // BrandLoader
     loaderTagline: "Handcrafted with love",
     // CustomBuildForm
@@ -160,8 +160,8 @@ export const components = {
     rvVerifiedBuyer: "Verified buyer",
   } as Record<string, string>,
   ar: {
-    annBadge: "خصم 33%",
-    annText: "خيمة التيبي الآن بـ 2,500 ج.م (بدلاً من 3,750 ج.م) — تسوقي الآن",
+    annBadge: "خصم 47%",
+    annText: "خيمة التيبي بـ 2,000 ج.م (بدلاً من 3,750 ج.م) · باقة الخيمة والأرجوحة بـ 4,250 ج.م (بدلاً من 4,750 ج.م) — تسوقي الآن",
     loaderTagline: "صناعة يدوية بحب",
     cbfChooseImageFile: "من فضلك اختاري ملف صورة",
     cbfImageUnder5mb: "يجب ألا يتجاوز حجم الصورة 5 ميجابايت",

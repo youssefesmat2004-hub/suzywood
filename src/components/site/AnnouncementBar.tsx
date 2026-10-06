@@ -9,12 +9,12 @@ export function AnnouncementBar() {
         <Link
           to="/shop/$slug"
           params={{ slug: "teepetent" }}
-          className="inline-flex items-center gap-2 hover:underline underline-offset-2 font-medium"
+          className="inline-flex flex-wrap justify-center items-center gap-2 hover:underline underline-offset-2 font-medium"
         >
           <span className="inline-flex items-center rounded-full bg-primary text-primary-foreground px-2 py-0.5 text-[10px] uppercase tracking-wider">
-            {t("components.annBadge", "33% Off")}
+            {t("components.annBadge", "47% Off")}
           </span>
-          {t("components.annText", "The Teepee Tent now EGP 2,500 (was EGP 3,750) — Shop now")}
+          {t("components.annText", "Teepee Tent EGP 2,000 (was EGP 3,750) · Tent + Swing Bundle EGP 4,250 (was EGP 4,750) — Shop now")}
         </Link>
       </div>
       <div className="pointer-events-none absolute inset-0 animate-shimmer opacity-60" />
