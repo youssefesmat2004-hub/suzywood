@@ -418,7 +418,8 @@ async function runCheck(request: Request) {
         _promo_code: "",
         _instapay_reference: MARKER,
         _payment_proof_path: "",
-        _delivery_area: "Maadi",
+        // Tents & swings exercise the free Maadi pickup path; everything else uses paid delivery.
+        _delivery_area: ["swings", "play-safety"].includes(c.slug) ? "pickup-maadi" : "Maadi",
         _order_size_type: "big",
       } as never);
 
