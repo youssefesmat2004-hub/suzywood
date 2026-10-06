@@ -17,7 +17,7 @@ import { toast } from "sonner";
 import qrImageFallback from "@/assets/instapay-qr.jpeg";
 import { Upload, Check, Tag, MessageCircle } from "lucide-react";
 import { resolveImage } from "@/lib/images";
-import { DELIVERY_AREAS, getAreaLabel, getDeliveryFee, isSmallOrder, type DeliveryAreaKey } from "@/lib/delivery";
+import { DELIVERY_AREAS, getAreaLabel, getDeliveryFee, isSmallOrder, isPickupEligible, type DeliveryAreaKey } from "@/lib/delivery";
 import { useI18n } from "@/lib/i18n";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -91,6 +91,11 @@ function Checkout() {
     return () => { cancelled = true; };
   }, []);
   const sizeType = isSmallOrder(items) ? "small" : "big";
+  const pickupEligible = isPickupEligible(items);
+  const isPickup = deliveryArea === "pickup-maadi";
+  useEffect(() => {
+    if (isPickup && !pickupEligible) setDeliveryArea("");
+  }, [isPickup, pickupEligible]);
   const isOther = deliveryArea === "other";
   const shipping = deliveryArea ? getDeliveryFee(deliveryArea, sizeType) : 0;
   const discount = promo?.discount ?? 0;
@@ -291,10 +296,10 @@ function Checkout() {
                 <Select value={deliveryArea} onValueChange={(v) => setDeliveryArea(v as DeliveryAreaKey)}>
                   <SelectTrigger id="delivery-area"><SelectValue placeholder={t("checkout.selectYourArea", "Select your area")} /></SelectTrigger>
                   <SelectContent>
-                    {DELIVERY_AREAS.map((a) => (
+                    {DELIVERY_AREAS.filter((a) => a.value !== "pickup-maadi" || pickupEligible).map((a) => (
                       <SelectItem key={a.value} value={a.value}>
-                        {a.label}
-                        {a.value !== "other" && (
+                        {a.value === "pickup-maadi" ? t("checkout.pickupMaadi", "Pickup from Maadi (Free)") : a.label}
+                        {a.value !== "other" && a.value !== "pickup-maadi" && (
                           <span className="text-muted-foreground"> — EGP {a.fees[sizeType].toLocaleString()}</span>
                         )}
                       </SelectItem>
@@ -307,6 +312,11 @@ function Checkout() {
               </div>
               <div className="space-y-1"><Label htmlFor="city">{t("checkout.neighborhoodStreet", "Neighborhood / street")}</Label><Input id="city" name="city" required maxLength={100} placeholder={t("checkout.neighborhoodPlaceholder", "e.g. Street 9, Building 12")} defaultValue={details?.city ?? ""} /></div>
             </div>
+            {isPickup && (
+              <div className="rounded-xl bg-muted/50 border border-border p-3 text-sm">
+                {t("checkout.pickupNote", "Free pickup from our Maadi workshop. We'll contact you on WhatsApp to arrange the pickup time. The remaining balance is paid at pickup.")}
+              </div>
+            )}
             {isOther && (
               <div className="rounded-xl bg-amber-50 border border-amber-200 text-amber-900 p-3 text-sm">
                 {t("checkout.otherAreaNote", "Delivery fee will be confirmed via WhatsApp after your order is placed.")}
