@@ -31,6 +31,11 @@ const RANGES = [
   { label: "1 year", value: 365 },
 ] as const;
 
+// An order counts as customer-paid if explicitly marked paid (manual orders)
+// or if the admin moved it past payment (website orders keep payment_status "pending").
+const PAID_STATUSES = new Set(["confirmed", "in_production", "shipped", "delivered"]);
+const isPaidOrder = (o: Order) => o.payment_status === "paid" || PAID_STATUSES.has(o.status);
+
 const COLORS = ["hsl(var(--primary))", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4", "#ec4899"];
 
 function AdminAnalytics() {
@@ -113,7 +118,7 @@ function AdminAnalytics() {
   }, [bookings]);
 
   const activeOrders = orders.filter((o) => o.status !== "cancelled");
-  const paidOrders = activeOrders.filter((o) => o.payment_status === "paid");
+  const paidOrders = activeOrders.filter(isPaidOrder);
   const costOf = (o: Order) => Number(o.carpenter_cost_override ?? o.actual_carpenter_cost ?? 0);
   const profitOf = (list: Order[]) => ({
     revenue: list.reduce((s, o) => s + Number(o.total), 0),
@@ -124,7 +129,7 @@ function AdminAnalytics() {
   const realProfit = totalRevenue - totalCarpenterCost;
   const profitMargin = totalRevenue > 0 ? (realProfit / totalRevenue) * 100 : 0;
   const outstanding = activeOrders
-    .filter((o) => o.payment_status !== "paid")
+    .filter((o) => !isPaidOrder(o))
     .reduce((s, o) => s + Number(o.total), 0);
   const aov = activeOrders.length ? totalRevenue / Math.max(paidOrders.length, 1) : 0;
   const conversion = bookings.length ? (activeOrders.length / bookings.length) * 100 : 0;
@@ -152,7 +157,7 @@ function AdminAnalytics() {
   const monthly = useMemo(() => {
     const map = new Map<string, { revenue: number; cost: number }>();
     for (const o of orders) {
-      if (o.status === "cancelled" || o.payment_status !== "paid") continue;
+      if (o.status === "cancelled" || !isPaidOrder(o)) continue;
       const key = o.created_at.slice(0, 7);
       const cur = map.get(key) ?? { revenue: 0, cost: 0 };
       cur.revenue += Number(o.total);
