@@ -15,7 +15,16 @@ const attachmentSchema = z.object({
   size: z.number().nonnegative().max(50_000_000).optional().default(0),
 });
 
+const orderDate = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/)
+  .refine((d) => d >= "2024-01-01" && d <= new Date(Date.now() + 2 * 3600_000).toISOString().slice(0, 10), "Invalid order date")
+  .optional();
+// Noon Cairo time (UTC+2) so the date never shifts to the previous/next day.
+const toCreatedAt = (d: string) => `${d}T10:00:00.000Z`;
+
 const schema = z.object({
+  order_date: orderDate,
   customer_name: z.string().trim().min(1).max(120),
   customer_email: z.string().trim().email().max(255),
   customer_phone: z.string().trim().min(4).max(40),
@@ -73,6 +82,7 @@ export const createManualOrder = createServerFn({ method: "POST" })
         attachments: data.attachments ?? [],
         actual_carpenter_cost: data.carpenter_cost ?? 0,
         carpenter_cost_override: data.carpenter_cost ?? null,
+        ...(data.order_date ? { created_at: toCreatedAt(data.order_date) } : {}),
       } as never)
       .select("id, order_number")
       .single();
@@ -97,6 +107,7 @@ export const createManualOrder = createServerFn({ method: "POST" })
 
 const updateSchema = z.object({
   id: z.string().uuid(),
+  order_date: orderDate,
   product_description: z.string().trim().min(1).max(2000),
   total: z.number().nonnegative().max(10_000_000),
   upfront_amount: z.number().nonnegative().max(10_000_000),
@@ -153,6 +164,7 @@ export const updateManualOrder = createServerFn({ method: "POST" })
         last_updated_at: new Date().toISOString(),
         actual_carpenter_cost: data.carpenter_cost ?? 0,
         carpenter_cost_override: data.carpenter_cost ?? null,
+        ...(data.order_date ? { created_at: toCreatedAt(data.order_date) } : {}),
       } as never)
       .eq("id", data.id);
     if (error) throw new Error(error.message);

@@ -46,6 +46,7 @@ export type ManualOrderExisting = {
   status: "pending_payment" | "confirmed" | "shipped" | "delivered" | string;
   actual_carpenter_cost?: number | null;
   carpenter_cost_override?: number | null;
+  created_at?: string | null;
 };
 
 export function ManualOrderModal({
@@ -86,6 +87,9 @@ export function ManualOrderModal({
       ? String(Number(existing.carpenter_cost_override ?? existing.actual_carpenter_cost ?? 0))
       : "0",
     notes: existing?.notes ?? "",
+    order_date: (existing?.created_at
+      ? new Date(new Date(existing.created_at).getTime() + 2 * 3600_000)
+      : new Date(Date.now() + 2 * 3600_000)).toISOString().slice(0, 10),
     status: (existing?.status ?? "pending_payment") as
       | "pending_payment"
       | "confirmed"
@@ -192,6 +196,7 @@ export function ManualOrderModal({
             attachments,
             removed_paths: removedPaths,
             carpenter_cost: carpenterCostNum,
+            order_date: form.order_date || undefined,
           },
         });
         toast.success("Order updated");
@@ -220,6 +225,7 @@ export function ManualOrderModal({
             status: form.status,
             attachments,
             carpenter_cost: carpenterCostNum,
+            order_date: form.order_date || undefined,
           },
         });
         toast.success(`Manual order ${res.order_number} created`);
@@ -257,6 +263,16 @@ export function ManualOrderModal({
               value={form.shipping_address}
               onChange={(e) => setForm({ ...form, shipping_address: e.target.value })}
               className="w-full rounded-md border bg-background px-3 py-2 text-sm disabled:opacity-60"
+            />
+          </Field>
+          <Field label="Order date (counts in this month's profit)" required>
+            <Input
+              type="date"
+              required
+              min="2024-01-01"
+              max={new Date(Date.now() + 2 * 3600_000).toISOString().slice(0, 10)}
+              value={form.order_date}
+              onChange={(e) => setForm({ ...form, order_date: e.target.value })}
             />
           </Field>
           <Field label="Product description" required>

@@ -61,7 +61,7 @@ export const Route = createFileRoute("/rooms/$slug")({
       <Layout>
         <div className="container mx-auto px-6 lg:px-10 py-24 text-center">
           <h1 className="font-serif text-4xl mb-3">{t("shop.somethingWentWrong", "Something went wrong")}</h1>
-          <p className="text-muted-foreground mb-6">{error.message}</p>
+          <p className="text-muted-foreground mb-6">{error instanceof Error ? error.message : String(error)}</p>
           <Button onClick={() => reset()}>{t("shop.tryAgain", "Try again")}</Button>
         </div>
       </Layout>

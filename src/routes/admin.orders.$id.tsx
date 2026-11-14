@@ -512,6 +512,7 @@ function OrderDetailPage() {
             status: order.status,
             actual_carpenter_cost: order.actual_carpenter_cost ?? null,
             carpenter_cost_override: order.carpenter_cost_override ?? null,
+            created_at: order.created_at,
           }}
           onClose={() => setEditing(false)}
           onUpdated={async () => {

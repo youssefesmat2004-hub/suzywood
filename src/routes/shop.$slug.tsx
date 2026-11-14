@@ -39,7 +39,8 @@ type Variant = {
   color_hex?: string | null;
 };
 
-function ProductError({ error, reset }: { error: Error; reset: () => void }) {
+function ProductError({ error: rawError, reset }: { error: unknown; reset: () => void }) {
+  const error = rawError instanceof Error ? rawError : new Error(String(rawError));
   const router = useRouter();
   const { t } = useI18n();
 

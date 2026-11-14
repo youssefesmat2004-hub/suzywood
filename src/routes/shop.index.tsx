@@ -13,7 +13,8 @@ import { PUBLIC_CATEGORY_COLUMNS, PUBLIC_PRODUCT_COLUMNS } from "@/lib/types";
 import { getActiveSalePrice, localizedProduct, localizedText } from "@/lib/types";
 import { useI18n } from "@/lib/i18n";
 
-function ShopError({ error, reset }: { error: Error; reset: () => void }) {
+function ShopError({ error: rawError, reset }: { error: unknown; reset: () => void }) {
+  const error = rawError instanceof Error ? rawError : new Error(String(rawError));
   const router = useRouter();
   const { t, lang } = useI18n();
 
