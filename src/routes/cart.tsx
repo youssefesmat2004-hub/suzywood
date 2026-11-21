@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useCart } from "@/lib/cart";
 import { Trash2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { areAllItemsOrderable, isOrderingAllowed } from "@/lib/store-hold";
 
 export const Route = createFileRoute("/cart")({
   head: () => ({
@@ -21,8 +22,9 @@ export const Route = createFileRoute("/cart")({
 });
 
 function Cart() {
-  const { items, remove, setQuantity, subtotal } = useCart();
+  const { items, remove, setQuantity } = useCart();
   const { t } = useI18n();
+  const allItemsOrderable = areAllItemsOrderable(items);
 
   return (
     <Layout>
@@ -36,31 +38,43 @@ function Cart() {
         ) : (
           <div className="grid lg:grid-cols-3 gap-10">
             <div className="lg:col-span-2 space-y-4">
-              {items.map((it, idx) => (
-                <div key={idx} className="flex gap-4 border border-border rounded-2xl p-4 bg-card">
-                  <img src={it.image} alt={it.name} className="h-24 w-24 rounded-xl object-cover" />
-                  <div className="flex-1">
-                    <p className="font-serif text-lg">{it.name}</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {it.sizeLabel}
-                      {it.finishLabel && ` · ${it.finishLabel}`}
-                      {it.engraving && ` · "${it.engraving}"`}
-                      {it.customSize && ` (+EGP ${it.customSize.surcharge.toLocaleString()} custom)`}
-                    </p>
-                    <div className="mt-3 flex items-center gap-3">
-                      <input type="number" min={1} value={it.quantity} onChange={(e) => setQuantity(idx, Number(e.target.value) || 1)} className="w-16 h-8 rounded-md border border-input px-2 text-sm" />
-                      <button onClick={() => remove(idx)} aria-label={t("checkout.removeAria", "Remove")} className="text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></button>
+              {items.map((it, idx) => {
+                const orderable = isOrderingAllowed(it.slug);
+                return (
+                  <div key={idx} className="flex gap-4 border border-border rounded-2xl p-4 bg-card">
+                    <img src={it.image} alt={it.name} className="h-24 w-24 rounded-xl object-cover" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-serif text-lg">{it.name}</p>
+                      {!orderable && (
+                        <p className="mt-1 text-xs font-medium text-destructive">{t("checkout.orderingPaused", "Price update in progress")}</p>
+                      )}
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {it.sizeLabel}
+                        {it.finishLabel && ` · ${it.finishLabel}`}
+                        {it.engraving && ` · "${it.engraving}"`}
+                        {it.customSize && ` · ${t("checkout.customSize", "Custom size")}`}
+                      </p>
+                      <div className="mt-3 flex items-center gap-3">
+                        <input aria-label={t("checkout.quantityAria", "Quantity")} type="number" min={1} value={it.quantity} onChange={(e) => setQuantity(idx, Number(e.target.value) || 1)} className="w-16 h-8 rounded-md border border-input px-2 text-sm" />
+                        <button onClick={() => remove(idx)} aria-label={t("checkout.removeAria", "Remove")} className="text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></button>
+                      </div>
                     </div>
                   </div>
-                  <p className="font-serif text-lg text-primary">EGP {(it.unitPrice * it.quantity).toLocaleString()}</p>
-                </div>
-              ))}
+                );
+              })}
             </div>
             <aside className="bg-muted/40 border border-border rounded-2xl p-6 h-fit space-y-4">
-              <div className="flex justify-between text-sm"><span>{t("common.subtotal", "Subtotal")}</span><span>EGP {subtotal.toLocaleString()}</span></div>
+              <h2 className="font-serif text-xl">{t("checkout.orderSummary", "Order summary")}</h2>
+              <p className="text-sm text-muted-foreground">{t("checkout.pricesHiddenNotice", "Prices are hidden while we update our catalog. The payment amount for available items is shown at checkout.")}</p>
               <p className="text-xs text-muted-foreground">{t("checkout.deliveryNote", "Delivery fee calculated at checkout based on your area.")}</p>
-              <div className="border-t border-border pt-4 flex justify-between"><span className="font-serif text-lg">{t("common.total", "Total")}</span><span className="font-serif text-xl text-primary">EGP {subtotal.toLocaleString()}</span></div>
-              <Button asChild size="lg" className="w-full"><Link to="/checkout">{t("checkout.proceedToCheckout", "Proceed to Checkout")}</Link></Button>
+              {allItemsOrderable ? (
+                <Button asChild size="lg" className="w-full"><Link to="/checkout">{t("checkout.proceedToCheckout", "Proceed to Checkout")}</Link></Button>
+              ) : (
+                <div className="space-y-3 border-t border-border pt-4">
+                  <p className="text-sm text-muted-foreground">{t("checkout.removePausedItems", "Remove paused items to check out with the tent, bundle, swing, or rocking chair.")}</p>
+                  <Button size="lg" className="w-full" disabled>{t("checkout.checkoutUnavailable", "Checkout unavailable")}</Button>
+                </div>
+              )}
             </aside>
           </div>
         )}

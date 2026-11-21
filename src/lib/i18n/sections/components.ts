@@ -2,8 +2,8 @@
 export const components = {
   en: {
     // AnnouncementBar
-    annBadge: "50% Off",
-    annText: "Teepee Tent EGP 2,000 (was EGP 3,750) · Tent + Swing Bundle EGP 4,250 (was EGP 4,750) — Shop now",
+    annBadge: "Price update",
+    annText: "We’re updating our prices. Tents, the Tent + Swing Bundle, swings and rocking chairs remain available. Measurement bookings are open.",
     // BrandLoader
     loaderTagline: "Handcrafted with love",
     // CustomBuildForm
@@ -101,6 +101,11 @@ export const components = {
     pcFinishes: "finishes",
     pcPricing: "Pricing",
     pcPriceUponMeasurement: "Price upon measurement",
+    pcOrderingPaused: "Price update in progress — ordering temporarily unavailable.",
+    pcOrderingPausedShort: "Price update in progress",
+    pcCatalogUpdate: "Catalog update",
+    pcPriceHidden: "Price hidden",
+    pcMeasurementBookingsOpen: "Measurement bookings open",
     pcFrom: "From",
     pcViewDetails: "View details →",
     // Reviews
@@ -160,8 +165,8 @@ export const components = {
     rvVerifiedBuyer: "Verified buyer",
   } as Record<string, string>,
   ar: {
-    annBadge: "خصم 50%",
-    annText: "خيمة التيبي بـ 2,000 ج.م (بدلاً من 3,750 ج.م) · باقة الخيمة والأرجوحة بـ 4,250 ج.م (بدلاً من 4,750 ج.م) — تسوقي الآن",
+    annBadge: "تحديث الأسعار",
+    annText: "نحدّث أسعارنا حاليًا. الخيمة وباقة الخيمة مع الأرجوحة والأرجوحة المنفردة والكرسي الهزاز متاحة للطلب، وحجز المعاينة متاح أيضًا.",
     loaderTagline: "صناعة يدوية بحب",
     cbfChooseImageFile: "من فضلك اختاري ملف صورة",
     cbfImageUnder5mb: "يجب ألا يتجاوز حجم الصورة 5 ميجابايت",
@@ -249,6 +254,11 @@ export const components = {
     pcFinishes: "تشطيبات",
     pcPricing: "السعر",
     pcPriceUponMeasurement: "السعر بعد القياس",
+    pcOrderingPaused: "جاري تحديث السعر — الطلب غير متاح مؤقتًا.",
+    pcOrderingPausedShort: "جاري تحديث السعر",
+    pcCatalogUpdate: "تحديث الكتالوج",
+    pcPriceHidden: "السعر مخفي",
+    pcMeasurementBookingsOpen: "حجز المعاينة متاح",
     pcFrom: "يبدأ من",
     pcViewDetails: "عرض التفاصيل ←",
     rvNoReviews: "لا توجد تقييمات بعد",

@@ -7,6 +7,7 @@ import { useCart } from "@/lib/cart";
 import { toast } from "sonner";
 import type { ReactNode } from "react";
 import { useI18n } from "@/lib/i18n";
+import { isOrderingAllowed, PUBLIC_PRICES_HIDDEN } from "@/lib/store-hold";
 
 export function ProductCard({ product, badge, footer }: { product: Product; badge?: React.ReactNode; footer?: ReactNode }) {
   const { t, lang } = useI18n();
@@ -16,7 +17,8 @@ export function ProductCard({ product, badge, footer }: { product: Product; badg
   const finishes = asOptions(product.finishes);
   const hasVariants = !!product.has_variants || sizes.length > 1 || finishes.length > 1;
   const soldOut = (product.stock_quantity ?? 1) <= 0;
-  const isSafetyGate = product.category_slug === "safety-gates";
+  const isSafetyGate = product.category_slug === "safety-gates" || product.slug === "safetygate";
+  const orderingAvailable = isOrderingAllowed(product.slug);
   const HIDE_FINISHES_LABEL = new Set([
     "cribs",
     "kids-beds",
@@ -28,8 +30,15 @@ export function ProductCard({ product, badge, footer }: { product: Product; badg
   const salePrice = getActiveSalePrice(product);
   const displayPrice = salePrice ?? product.starting_price;
   const isOnSale = salePrice !== null;
+  const showSaleBadge = !PUBLIC_PRICES_HIDDEN && isOnSale;
 
   const quickAdd = (e: React.MouseEvent) => {
+    if (!orderingAvailable) {
+      e.preventDefault();
+      e.stopPropagation();
+      toast.error(t("components.pcOrderingPaused", "Price update in progress — ordering temporarily unavailable."));
+      return;
+    }
     if (soldOut) return;
     // If the product has size variants, let the parent <Link> navigate to the
     // product page so the customer can pick a size first.
@@ -69,18 +78,18 @@ export function ProductCard({ product, badge, footer }: { product: Product; badg
           height={1024}
           className={`h-full w-full object-cover transition-transform duration-700 group-hover:scale-105 ${soldOut && !isSafetyGate ? "opacity-70" : ""}`}
         />
-        {isOnSale && (
+        {showSaleBadge && (
           <span className="absolute top-3 left-3 rounded-full bg-destructive text-destructive-foreground text-[10px] uppercase tracking-[0.18em] px-3 py-1 shadow-card">
             {t("components.pcSaleBadge", "Sale — Save 33%")}
           </span>
         )}
         {badge && (
-          <span className={`absolute top-3 ${isOnSale ? "left-[7.5rem]" : "left-3"} rounded-full bg-primary text-primary-foreground text-[10px] uppercase tracking-[0.18em] px-3 py-1 shadow-card`}>
+          <span className={`absolute top-3 ${showSaleBadge ? "left-[7.5rem]" : "left-3"} rounded-full bg-primary text-primary-foreground text-[10px] uppercase tracking-[0.18em] px-3 py-1 shadow-card`}>
             {badge}
           </span>
         )}
         {isSafetyGate && (
-          <span className={`absolute top-3 ${isOnSale || badge ? "left-[7.5rem]" : "left-3"} inline-flex items-center gap-1.5 rounded-full bg-secondary text-secondary-foreground text-[10px] uppercase tracking-[0.18em] px-3 py-1`}>
+          <span className={`absolute top-3 ${showSaleBadge || badge ? "left-[7.5rem]" : "left-3"} inline-flex items-center gap-1.5 rounded-full bg-secondary text-secondary-foreground text-[10px] uppercase tracking-[0.18em] px-3 py-1`}>
             <Ruler className="h-3 w-3" /> {t("components.pcCustomMeasurement", "Custom Measurement Required")}
           </span>
         )}
@@ -92,6 +101,10 @@ export function ProductCard({ product, badge, footer }: { product: Product; badg
         {isSafetyGate ? (
           <span className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-2 text-xs font-medium text-primary-foreground shadow-elegant opacity-0 translate-y-1 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0">
             <Ruler className="h-3.5 w-3.5" /> {t("components.pcBookMeasurement", "Book measurement")}
+          </span>
+        ) : !orderingAvailable ? (
+          <span className="absolute bottom-3 right-3 rounded-full bg-muted px-3.5 py-2 text-xs font-medium text-muted-foreground shadow-elegant">
+            {t("components.pcOrderingPausedShort", "Price update in progress")}
           </span>
         ) : !soldOut && (
           <button
@@ -114,8 +127,17 @@ export function ProductCard({ product, badge, footer }: { product: Product; badg
             </p>
           )
         )}
-        <div className="mt-4 flex items-end justify-between">
-          {isSafetyGate ? (
+        <div className="mt-4 flex items-end justify-between gap-3">
+          {PUBLIC_PRICES_HIDDEN ? (
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+                {isSafetyGate ? t("components.pcMeasurementBookingsOpen", "Measurement bookings open") : t("components.pcCatalogUpdate", "Catalog update")}
+              </p>
+              <p className="font-serif text-lg text-primary">
+                {isSafetyGate ? t("components.pcBookMeasurement", "Book measurement") : t("components.pcPriceHidden", "Price hidden")}
+              </p>
+            </div>
+          ) : isSafetyGate ? (
             <div>
               <p className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">{t("components.pcPricing", "Pricing")}</p>
               <p className="font-serif text-lg text-primary">{t("components.pcPriceUponMeasurement", "Price upon measurement")}</p>

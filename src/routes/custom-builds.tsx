@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Layout } from "@/components/site/Layout";
-import { CustomBuildForm } from "@/components/site/CustomBuildForm";
+import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/custom-builds")({
@@ -41,8 +41,12 @@ function CustomBuilds() {
               ))}
             </ul>
           </div>
-          <div className="bg-card border border-border rounded-3xl p-8 lg:p-10 shadow-card">
-            <CustomBuildForm />
+          <div className="bg-card border border-border rounded-3xl p-8 lg:p-10 shadow-card text-center self-start">
+            <h2 className="font-serif text-3xl">{t("shop.customBuildsPausedTitle", "Custom-build requests are temporarily paused")}</h2>
+            <p className="mt-4 text-muted-foreground leading-relaxed">
+              {t("shop.customBuildsPausedBody", "We’re updating our prices. You can still order the teepee tent, Tent + Swing Bundle, swing, or rocking chair, and measurement bookings remain open.")}
+            </p>
+            <Button asChild className="mt-6"><Link to="/shop">{t("checkout.browseCollection", "Browse the Collection")}</Link></Button>
           </div>
         </div>
       </section>

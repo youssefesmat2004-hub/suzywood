@@ -22,6 +22,7 @@ import { useI18n } from "@/lib/i18n";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { areAllItemsOrderable, PUBLIC_PRICES_HIDDEN } from "@/lib/store-hold";
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({
@@ -91,6 +92,7 @@ function Checkout() {
     return () => { cancelled = true; };
   }, []);
   const sizeType = isSmallOrder(items) ? "small" : "big";
+  const allItemsOrderable = areAllItemsOrderable(items);
   const pickupEligible = isPickupEligible(items);
   const isPickup = deliveryArea === "pickup-maadi";
   useEffect(() => {
@@ -271,6 +273,18 @@ function Checkout() {
     );
   }
 
+  if (!allItemsOrderable) {
+    return (
+      <Layout>
+        <section className="container mx-auto px-6 py-24 max-w-2xl text-center">
+          <h1 className="font-serif text-4xl">{t("checkout.pausedCartTitle", "Some items in your cart are paused")}</h1>
+          <p className="mt-4 text-muted-foreground">{t("checkout.removePausedItems", "Remove paused items to check out with the tent, bundle, swing, or rocking chair.")}</p>
+          <Button asChild className="mt-6"><Link to="/cart">{t("checkout.returnToCart", "Return to cart")}</Link></Button>
+        </section>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <section className="container mx-auto px-6 lg:px-10 py-16 max-w-5xl">
@@ -299,7 +313,7 @@ function Checkout() {
                     {DELIVERY_AREAS.filter((a) => a.value !== "pickup-maadi" || pickupEligible).map((a) => (
                       <SelectItem key={a.value} value={a.value}>
                         {a.value === "pickup-maadi" ? t("checkout.pickupMaadi", "Pickup from Maadi (Free)") : a.label}
-                        {a.value !== "other" && a.value !== "pickup-maadi" && (
+                        {!PUBLIC_PRICES_HIDDEN && a.value !== "other" && a.value !== "pickup-maadi" && (
                           <span className="text-muted-foreground"> — EGP {a.fees[sizeType].toLocaleString()}</span>
                         )}
                       </SelectItem>
@@ -325,20 +339,24 @@ function Checkout() {
             <div className="space-y-1"><Label htmlFor="notes">{t("checkout.deliveryNotesOptional", "Delivery notes (optional)")}</Label><Textarea id="notes" name="notes" maxLength={500} rows={2} defaultValue={details?.notes ?? ""} /></div>
 
             <div className="rounded-xl bg-muted/50 border border-border p-4 text-sm text-muted-foreground">
-              {t("checkout.nextStepNote", "Next step: pay {upfront} upfront via {instapay} — this is {percent}% of the furniture total after discounts. Pay {remaining} on delivery: {remainingPercent}% furniture balance ({remainingProduct}) + delivery {delivery}.")
-                .replace("{upfront}", `EGP ${upfront.toLocaleString()}`)
-                .replace("{instapay}", t("checkout.instapayBrand", "InstaPay"))
-                .replace("{percent}", String(UPFRONT_PERCENT))
-                .replace("{remaining}", `EGP ${remainingOnDelivery.toLocaleString()}`)
-                .replace("{remainingPercent}", String(REMAINING_PERCENT))
-                .replace("{remainingProduct}", `EGP ${remainingProduct.toLocaleString()}`)
-                .replace("{delivery}", isOther ? "(TBD)" : `(EGP ${shipping.toLocaleString()})`)}
+              {PUBLIC_PRICES_HIDDEN
+                ? t("checkout.paymentShownNextStep", "Continue to the next step to see the required InstaPay amount and payment details.")
+                : t("checkout.nextStepNote", "Next step: pay {upfront} upfront via {instapay} — this is {percent}% of the furniture total after discounts. Pay {remaining} on delivery: {remainingPercent}% furniture balance ({remainingProduct}) + delivery {delivery}.")
+                  .replace("{upfront}", `EGP ${upfront.toLocaleString()}`)
+                  .replace("{instapay}", t("checkout.instapayBrand", "InstaPay"))
+                  .replace("{percent}", String(UPFRONT_PERCENT))
+                  .replace("{remaining}", `EGP ${remainingOnDelivery.toLocaleString()}`)
+                  .replace("{remainingPercent}", String(REMAINING_PERCENT))
+                  .replace("{remainingProduct}", `EGP ${remainingProduct.toLocaleString()}`)
+                  .replace("{delivery}", isOther ? "(TBD)" : `(EGP ${shipping.toLocaleString()})`)}
             </div>
 
             <Button type="submit" size="lg" className="w-full" disabled={!deliveryArea}>
-              {t("checkout.continueToPayment", "Continue to payment — Pay {percent}% now ({amount})")
-                .replace("{percent}", String(UPFRONT_PERCENT))
-                .replace("{amount}", `EGP ${upfront.toLocaleString()}`)}
+              {PUBLIC_PRICES_HIDDEN
+                ? t("checkout.continueToPaymentShort", "Continue to payment")
+                : t("checkout.continueToPayment", "Continue to payment — Pay {percent}% now ({amount})")
+                  .replace("{percent}", String(UPFRONT_PERCENT))
+                  .replace("{amount}", `EGP ${upfront.toLocaleString()}`)}
             </Button>
           </form>
           ) : (
@@ -478,25 +496,28 @@ function Checkout() {
               {items.map((it, i) => (
                 <div key={i} className="flex justify-between gap-3 text-sm">
                   <span>{it.name} × {it.quantity}</span>
-                  <span>EGP {(it.unitPrice * it.quantity).toLocaleString()}</span>
+                  {!PUBLIC_PRICES_HIDDEN && <span>EGP {(it.unitPrice * it.quantity).toLocaleString()}</span>}
                 </div>
               ))}
             </div>
-            <div className="border-t border-border pt-3 space-y-1 text-sm">
-              <div className="flex justify-between"><span>{t("common.subtotal", "Subtotal")}</span><span>EGP {subtotal.toLocaleString()}</span></div>
-              {promo && (
-                <div className="flex justify-between text-primary">
-                  <span>{t("checkout.promoLabel", "Promo ({code})").replace("{code}", promo.code)}</span>
-                  <span>− EGP {promo.discount.toLocaleString()}</span>
+            {!PUBLIC_PRICES_HIDDEN && (
+              <div className="border-t border-border pt-3 space-y-1 text-sm">
+                <div className="flex justify-between"><span>{t("common.subtotal", "Subtotal")}</span><span>EGP {subtotal.toLocaleString()}</span></div>
+                {promo && (
+                  <div className="flex justify-between text-primary">
+                    <span>{t("checkout.promoLabel", "Promo ({code})").replace("{code}", promo.code)}</span>
+                    <span>− EGP {promo.discount.toLocaleString()}</span>
+                  </div>
+                )}
+                <div className="flex justify-between">
+                  <span>{t("checkout.deliveryLabel", "Delivery{area}").replace("{area}", deliveryArea ? ` — ${getAreaLabel(deliveryArea)}` : "")}</span>
+                  <span>{isOther ? t("checkout.deliveryTBD", "TBD") : `EGP ${shipping.toLocaleString()}`}</span>
                 </div>
-              )}
-              <div className="flex justify-between">
-                <span>{t("checkout.deliveryLabel", "Delivery{area}").replace("{area}", deliveryArea ? ` — ${getAreaLabel(deliveryArea)}` : "")}</span>
-                <span>{isOther ? t("checkout.deliveryTBD", "TBD") : `EGP ${shipping.toLocaleString()}`}</span>
+                <div className="flex justify-between font-serif text-lg pt-2"><span>{t("common.total", "Total")}</span><span className="text-primary">EGP {total.toLocaleString()}</span></div>
               </div>
-              <div className="flex justify-between font-serif text-lg pt-2"><span>{t("common.total", "Total")}</span><span className="text-primary">EGP {total.toLocaleString()}</span></div>
-            </div>
+            )}
 
+            {!PUBLIC_PRICES_HIDDEN && (
             <div className="border-t border-border pt-3">
               {promo ? (
                 <div className="flex items-center justify-between text-xs">
@@ -517,7 +538,9 @@ function Checkout() {
                 </div>
               )}
             </div>
+            )}
 
+            {step === "pay" ? (
             <div className="border-t border-border pt-3 space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">{t("checkout.payNowFurniture", "Pay now ({percent}% furniture)").replace("{percent}", String(UPFRONT_PERCENT))}</span>
@@ -536,6 +559,11 @@ function Checkout() {
                 <span className="font-medium">EGP {remainingOnDelivery.toLocaleString()}</span>
               </div>
             </div>
+            ) : (
+              <div className="border-t border-border pt-3 text-sm text-muted-foreground">
+                {t("checkout.paymentShownAtPaymentStep", "Payment amounts are shown on the payment step.")}
+              </div>
+            )}
           </aside>
         </div>
       </section>

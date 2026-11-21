@@ -24,6 +24,7 @@ import { useI18n } from "@/lib/i18n";
 import { submitMeasurementBooking } from "@/lib/public-submissions.functions";
 import { sendBookingReceivedEmail } from "@/lib/measurement-booking-emails.functions";
 import { notifyOwnerNewMeasurementBooking } from "@/lib/owner-notifications.functions";
+import { isOrderingAllowed, PUBLIC_PRICES_HIDDEN } from "@/lib/store-hold";
 
 type Variant = {
   id: string;
@@ -162,14 +163,16 @@ export const Route = createFileRoute("/shop/$slug")({
             image: img,
             sku: p.slug,
             brand: { "@type": "Brand", name: "Suzy Wood" },
-            offers: {
-              "@type": "Offer",
-              url,
-              priceCurrency: "EGP",
-              price: offerPrice,
-              availability: "https://schema.org/InStock",
-              ...(salePrice !== null ? { priceValidUntil: p.sale_ends_at ?? undefined } : {}),
-            },
+            ...(PUBLIC_PRICES_HIDDEN ? {} : {
+              offers: {
+                "@type": "Offer",
+                url,
+                priceCurrency: "EGP",
+                price: offerPrice,
+                availability: "https://schema.org/InStock",
+                ...(salePrice !== null ? { priceValidUntil: p.sale_ends_at ?? undefined } : {}),
+              },
+            }),
           }),
         },
       ],
@@ -230,6 +233,7 @@ function ProductPage() {
   const finishes = asOptions(product.finishes);
   const gallery = resolveGallery(product.gallery);
   const isSafetyGate = category?.slug === "safety-gates";
+  const orderingAvailable = isOrderingAllowed(product.slug);
   const isToddlerBed = category?.slug === "kids-beds";
   const BED_RAILS_PRICE = 2000;
   const [size, setSize] = useState(sizes[0]?.value ?? "");
@@ -322,6 +326,10 @@ function ProductPage() {
   const relatedAnnotated = related.map((p) => ({ ...p, category_slug: category?.slug }));
 
   const addToCart = () => {
+    if (!orderingAvailable) {
+      toast.error(t("shop.orderingPausedTitle", "Price update in progress — ordering temporarily unavailable"));
+      return;
+    }
     if (soldOut) return;
     if (customMode) {
       const w = Number(customWidth);
@@ -412,7 +420,7 @@ function ProductPage() {
                 <span className={`px-3 py-1 rounded-full text-[11px] uppercase tracking-[0.22em] ${stockBadge.className}`}>
                   {stockBadge.label}
                 </span>
-                {productSalePrice !== null && (
+                {!PUBLIC_PRICES_HIDDEN && productSalePrice !== null && (
                   <span className="px-3 py-1 rounded-full bg-destructive text-destructive-foreground text-[11px] uppercase tracking-[0.22em]">
                     {t("shop.saleSave33", "Sale — Save 33%")}
                   </span>
@@ -421,16 +429,28 @@ function ProductPage() {
               <h1 className="font-serif text-4xl md:text-5xl mt-5">{product.name}</h1>
               {product.tagline && <p className="mt-3 text-muted-foreground">{product.tagline}</p>}
               <div className="mt-6 flex items-center gap-3">
-                <p className="font-serif text-3xl text-primary">
-                  {selectedVariant ? "" : t("shop.fromPrefix", "From ")}
-                  {unitPrice === 0 ? t("shop.priceUponMeasurement", "Price upon measurement") : `EGP ${unitPrice.toLocaleString()}`}
-                </p>
-                {productSalePrice !== null && (
-                  <p className="text-lg text-muted-foreground line-through">
-                    EGP {product.starting_price.toLocaleString()}
-                  </p>
+                {PUBLIC_PRICES_HIDDEN ? (
+                  <p className="font-serif text-xl text-primary">{t("shop.priceHidden", "Price hidden while we update our catalog")}</p>
+                ) : (
+                  <>
+                    <p className="font-serif text-3xl text-primary">
+                      {selectedVariant ? "" : t("shop.fromPrefix", "From ")}
+                      {unitPrice === 0 ? t("shop.priceUponMeasurement", "Price upon measurement") : `EGP ${unitPrice.toLocaleString()}`}
+                    </p>
+                    {productSalePrice !== null && (
+                      <p className="text-lg text-muted-foreground line-through">
+                        EGP {product.starting_price.toLocaleString()}
+                      </p>
+                    )}
+                  </>
                 )}
               </div>
+              {!orderingAvailable && (
+                <div className="mt-4 rounded-xl border border-border bg-muted/40 p-4 text-sm">
+                  <p className="font-medium">{t("shop.orderingPausedTitle", "Ordering is temporarily paused for this piece")}</p>
+                  <p className="mt-1 text-muted-foreground">{t("shop.orderingPausedBody", "We’re updating our prices. The teepee tent, Tent + Swing Bundle, swing, and rocking chair are still available.")}</p>
+                </div>
+              )}
             </div>
 
             {product.description && <p className="text-foreground leading-relaxed">{product.description}</p>}
@@ -453,7 +473,7 @@ function ProductPage() {
                           disabled={out}
                           className={`px-4 py-2 rounded-full border text-sm transition-colors ${isSel ? "border-primary bg-primary text-primary-foreground" : "border-border hover:border-primary"} ${out ? "opacity-50 line-through cursor-not-allowed" : ""}`}
                         >
-                          {v.name} — {Number(vDisplay) === 0 ? t("shop.priceUponMeasurement", "Price upon measurement") : `EGP ${Number(vDisplay).toLocaleString()}`}{vSale !== null ? ` ${t("shop.wasPrice", "(was EGP {price})").replace("{price}", Number(v.price).toLocaleString())}` : ""}{out ? ` ${t("shop.outOfStockSuffix", "(Out of stock)")}` : ""}
+                          {v.name}{!PUBLIC_PRICES_HIDDEN && <> — {Number(vDisplay) === 0 ? t("shop.priceUponMeasurement", "Price upon measurement") : `EGP ${Number(vDisplay).toLocaleString()}`}{vSale !== null ? ` ${t("shop.wasPrice", "(was EGP {price})").replace("{price}", Number(v.price).toLocaleString())}` : ""}</>}{out ? ` ${t("shop.outOfStockSuffix", "(Out of stock)")}` : ""}
                         </button>
                       );
                     })}
@@ -463,7 +483,9 @@ function ProductPage() {
                         onClick={() => setCustomMode(true)}
                         className={`px-4 py-2 rounded-full border text-sm transition-colors ${customMode ? "border-primary bg-primary text-primary-foreground" : "border-dashed border-border hover:border-primary"}`}
                       >
-                        {t("shop.customSizeOption", "✏️ Custom Size — +{price} EGP").replace("{price}", customSurcharge.toLocaleString())}
+                        {PUBLIC_PRICES_HIDDEN
+                          ? t("shop.customSizeOptionNoPrice", "✏️ Custom Size")
+                          : t("shop.customSizeOption", "✏️ Custom Size — +{price} EGP").replace("{price}", customSurcharge.toLocaleString())}
                       </button>
                     )}
                   </div>
@@ -484,9 +506,11 @@ function ProductPage() {
                       )}
                       {customWidth && customLength && (
                         <p className="text-xs">
-                          {t("shop.customSizeSummary", "Custom size: {size} — Additional charge: {price} EGP")
-                            .replace("{size}", `${customWidth} x ${customLength} cm`)
-                            .replace("{price}", `${customSurcharge.toLocaleString()}`)}
+                          {PUBLIC_PRICES_HIDDEN
+                            ? `${t("shop.customSizeSummaryNoPrice", "Custom size: {size}").replace("{size}", `${customWidth} x ${customLength} cm`)}`
+                            : t("shop.customSizeSummary", "Custom size: {size} — Additional charge: {price} EGP")
+                              .replace("{size}", `${customWidth} x ${customLength} cm`)
+                              .replace("{price}", `${customSurcharge.toLocaleString()}`)}
                         </p>
                       )}
                     </div>
@@ -572,7 +596,7 @@ function ProductPage() {
                 <div className="space-y-2">
                   <Label htmlFor="engrave">
                     {t("shop.engravingLabel", "Add child's name for custom engraving (optional)")}
-                    {engravingSurcharge > 0 && (
+                    {!PUBLIC_PRICES_HIDDEN && engravingSurcharge > 0 && (
                       <span className="ml-2 text-xs text-muted-foreground">
                         +{engravingSurcharge.toLocaleString()} EGP
                       </span>
@@ -598,7 +622,7 @@ function ProductPage() {
                     <div className="flex-1">
                       <div className="flex items-center justify-between gap-2">
                         <span className="font-medium text-sm">{t("shop.ottomanTitle", "Include matching Ottoman Leg Rest")}</span>
-                        <span className="text-sm text-primary font-medium">
+                        <span className={`text-sm text-primary font-medium ${PUBLIC_PRICES_HIDDEN ? "hidden" : ""}`}>
                           {ottomanPrice > 0 ? `+${ottomanPrice.toLocaleString()} EGP` : t("shop.priceOnRequest", "Price on request")}
                         </span>
                       </div>
@@ -623,7 +647,7 @@ function ProductPage() {
                     <div className="flex-1">
                       <div className="flex items-center justify-between gap-2">
                         <span className="font-medium text-sm">{t("shop.portableTitle", "Add a Portable Changing Table")}</span>
-                        <span className="text-sm text-primary font-medium">
+                        <span className={`text-sm text-primary font-medium ${PUBLIC_PRICES_HIDDEN ? "hidden" : ""}`}>
                           {portablePrice > 0 ? `+${portablePrice.toLocaleString()} EGP` : t("shop.priceOnRequest", "Price on request")}
                         </span>
                       </div>
@@ -648,7 +672,7 @@ function ProductPage() {
                     <div className="flex-1">
                       <div className="flex items-center justify-between gap-2">
                         <span className="font-medium text-sm">{t("shop.bedRailsTitle", "Add Bed Rails")}</span>
-                        <span className="text-sm text-primary font-medium">+{BED_RAILS_PRICE.toLocaleString()} EGP</span>
+                        <span className={`text-sm text-primary font-medium ${PUBLIC_PRICES_HIDDEN ? "hidden" : ""}`}>+{BED_RAILS_PRICE.toLocaleString()} EGP</span>
                       </div>
                       <p className="text-xs text-muted-foreground italic mt-1">{t("shop.bedRailsNote", "Protective side rails to keep little ones safe at night.")}</p>
                     </div>
@@ -668,7 +692,7 @@ function ProductPage() {
                     <div className="flex-1">
                       <div className="flex items-center justify-between gap-2">
                         <span className="font-medium text-sm">{mattressTier === "small" ? t("shop.mattressTitleSmall", "Add Mattress (Small)") : t("shop.mattressTitleBig", "Add Mattress (Big)")}</span>
-                        <span className="text-sm text-primary font-medium">+{mattressPrice.toLocaleString()} EGP</span>
+                        <span className={`text-sm text-primary font-medium ${PUBLIC_PRICES_HIDDEN ? "hidden" : ""}`}>+{mattressPrice.toLocaleString()} EGP</span>
                       </div>
                       {category?.mattress_addon_note && (
                         <p className="text-xs text-muted-foreground italic mt-1">{category.mattress_addon_note}</p>
@@ -691,7 +715,7 @@ function ProductPage() {
                     <div className="flex-1">
                       <div className="flex items-center justify-between gap-2">
                         <span className="font-medium text-sm">{t("shop.fairyLightsTitle", "Add Fairy Lights")}</span>
-                        <span className="text-sm text-primary font-medium">
+                        <span className={`text-sm text-primary font-medium ${PUBLIC_PRICES_HIDDEN ? "hidden" : ""}`}>
                           {lightsPrice > 0 ? `+${lightsPrice.toLocaleString()} EGP` : t("shop.priceOnRequest", "Price on request")}
                         </span>
                       </div>
@@ -721,7 +745,7 @@ function ProductPage() {
                     <div className="flex-1">
                       <div className="flex items-center justify-between gap-2">
                         <span className="font-medium text-sm">{t("shop.pompomsTitle", "Add Pompoms")}</span>
-                        <span className="text-sm text-primary font-medium">
+                        <span className={`text-sm text-primary font-medium ${PUBLIC_PRICES_HIDDEN ? "hidden" : ""}`}>
                           {pompomPrice > 0 ? `+${pompomPrice.toLocaleString()} EGP` : t("shop.priceOnRequest", "Price on request")}
                         </span>
                       </div>
@@ -765,6 +789,10 @@ function ProductPage() {
                   <Button size="lg" className="flex-1" disabled variant="secondary">
                     {t("shop.soldOutButton", "Sold Out")}
                   </Button>
+                ) : !orderingAvailable ? (
+                  <Button size="lg" className="flex-1" disabled variant="secondary">
+                    {t("shop.orderingPausedTitle", "Price update in progress — ordering temporarily unavailable")}
+                  </Button>
                 ) : (
                   <Button size="lg" className="flex-1" onClick={addToCart}>
                     <ShoppingBag className="h-4 w-4 me-2" /> {t("shop.addToCartButton", "Add to Cart")}
@@ -772,9 +800,11 @@ function ProductPage() {
                 )}
                 <WishlistButton productId={product.id} />
               </div>
-              <Button asChild size="lg" variant="outline" className="w-full">
-                <Link to="/custom-builds">{t("shop.requestCustomBuild", "Need a specific size? Request a Custom Build")}</Link>
-              </Button>
+              {!PUBLIC_PRICES_HIDDEN && (
+                <Button asChild size="lg" variant="outline" className="w-full">
+                  <Link to="/custom-builds">{t("shop.requestCustomBuild", "Need a specific size? Request a Custom Build")}</Link>
+                </Button>
+              )}
             </div>
 
             <p className="text-xs text-muted-foreground pt-4 border-t border-border">
@@ -873,7 +903,7 @@ function SafetyGateRightColumn({ product }: { product: Product }) {
       <div className="space-y-3">
         <p className="text-[11px] uppercase tracking-[0.22em] text-secondary">{t("shop.whatsIncluded", "What's included")}</p>
         <ul className="space-y-2 text-sm">
-          <li className="flex items-start gap-2"><Check className="h-4 w-4 text-secondary mt-0.5" /> {t("shop.measurementVisitFee", "250 EGP measurement visit")}</li>
+          <li className="flex items-start gap-2"><Check className="h-4 w-4 text-secondary mt-0.5" /> {t("shop.measurementVisitFee", "Measurement visit")}</li>
           <li className="flex items-start gap-2"><Check className="h-4 w-4 text-secondary mt-0.5" /> {t("shop.expertAdvice", "Expert advice on the best fit")}</li>
           <li className="flex items-start gap-2"><Check className="h-4 w-4 text-secondary mt-0.5" /> {t("shop.customQuote24h", "Custom quote within 24 hours")}</li>
         </ul>

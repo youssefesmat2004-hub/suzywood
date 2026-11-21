@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { isOrderingAllowed } from "@/lib/store-hold";
 
 const OWNER_EMAILS = ["Youssef.esmat2004@gmail.com", "suzzy.wael@gmail.com"];
 const FROM = "Suzy Wood <info@suzywoodofficial.com>";
@@ -323,7 +324,7 @@ async function runCheck(request: Request) {
   {
     const [cats, prods, csizes, variants] = await Promise.all([
       supabaseAdmin.rpc("admin_categories"),
-      supabaseAdmin.from("products").select("id, name, category_id, starting_price, sale_price, portable_changing_table_enabled").eq("is_active", true),
+      supabaseAdmin.from("products").select("id, slug, name, category_id, starting_price, sale_price, portable_changing_table_enabled").eq("is_active", true),
       supabaseAdmin.from("category_sizes").select("category_id, label, mattress_tier").eq("is_active", true),
       supabaseAdmin.from("product_variants").select("product_id, name, price, variant_type").eq("is_active", true),
     ]);
@@ -344,7 +345,9 @@ async function runCheck(request: Request) {
 
     const orderIds: string[] = [];
     const failedOrders: string[] = [];
-    const productList = ((prods.data as any[]) ?? []);
+    const allProducts = ((prods.data as any[]) ?? []);
+    const productList = allProducts.filter((p) => isOrderingAllowed(p.slug));
+    const pausedProduct = allProducts.find((p) => !isOrderingAllowed(p.slug));
 
     for (const p of productList) {
       const c = catMap.get(p.category_id);
@@ -428,11 +431,45 @@ async function runCheck(request: Request) {
       else orderIds.push(row.id);
     }
 
+    let pausedBlockOk = !pausedProduct;
+    let pausedBlockDetail = pausedProduct ? "" : "No paused product found to test";
+    if (pausedProduct) {
+      const { error } = await supabaseAdmin.rpc("create_order_with_items", {
+        _details: {
+          name: `${MARKER} paused-product test`,
+          email: "healthcheck@suzywoodofficial.com",
+          phone: "01000000000",
+          address: MARKER,
+          city: "Cairo",
+          governorate: "Cairo",
+          notes: `${MARKER} must be rejected`,
+        },
+        _items: [{
+          product_id: pausedProduct.id,
+          product_name: pausedProduct.name,
+          size: "",
+          finish: "",
+          engraving: "",
+          unit_price: 1,
+          quantity: 1,
+        }],
+        _upfront_rate: 0.75,
+        _promo_code: "",
+        _instapay_reference: MARKER,
+        _payment_proof_path: "",
+        _delivery_area: "Maadi",
+        _order_size_type: "big",
+      } as never);
+      pausedBlockOk = !!error?.message?.includes("temporarily paused");
+      pausedBlockDetail = pausedBlockOk ? `${pausedProduct.name} rejected` : (error?.message ?? "Paused product was accepted");
+    }
+    add("Real orders", "Paused products are rejected", pausedBlockOk, pausedBlockDetail);
+
     add(
       "Real orders",
-      "Every product can be ordered with all extras",
+      "Every available product can be ordered with all extras",
       failedOrders.length === 0 && productList.length > 0,
-      failedOrders.length ? failedOrders.slice(0, 5).join(" | ") : `${orderIds.length}/${productList.length} products ordered`,
+      failedOrders.length ? failedOrders.slice(0, 5).join(" | ") : `${orderIds.length}/${productList.length} available products ordered`,
     );
 
     if (orderIds.length) {

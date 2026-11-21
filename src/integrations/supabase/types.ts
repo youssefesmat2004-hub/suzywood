@@ -1375,6 +1375,22 @@ export type Database = {
               order_number: string
             }[]
           }
+      create_order_with_items_before_price_hold: {
+        Args: {
+          _delivery_area?: string
+          _details: Json
+          _instapay_reference: string
+          _items: Json
+          _order_size_type?: string
+          _payment_proof_path: string
+          _promo_code: string
+          _upfront_rate: number
+        }
+        Returns: {
+          id: string
+          order_number: string
+        }[]
+      }
       get_carpenter_owed_orders: {
         Args: { _carpenter_id: number }
         Returns: {

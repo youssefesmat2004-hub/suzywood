@@ -12,6 +12,7 @@ import type { Category, Product } from "@/lib/types";
 import { PUBLIC_CATEGORY_COLUMNS, PUBLIC_PRODUCT_COLUMNS } from "@/lib/types";
 import { getActiveSalePrice, localizedProduct, localizedText } from "@/lib/types";
 import { useI18n } from "@/lib/i18n";
+import { PUBLIC_PRICES_HIDDEN } from "@/lib/store-hold";
 
 function ShopError({ error: rawError, reset }: { error: unknown; reset: () => void }) {
   const error = rawError instanceof Error ? rawError : new Error(String(rawError));
@@ -167,8 +168,8 @@ function Shop() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="newest">{t("shop.sortNewest", "Newest")}</SelectItem>
-              <SelectItem value="price_asc">{t("shop.sortPriceAsc", "Price: Low to High")}</SelectItem>
-              <SelectItem value="price_desc">{t("shop.sortPriceDesc", "Price: High to Low")}</SelectItem>
+              {!PUBLIC_PRICES_HIDDEN && <SelectItem value="price_asc">{t("shop.sortPriceAsc", "Price: Low to High")}</SelectItem>}
+              {!PUBLIC_PRICES_HIDDEN && <SelectItem value="price_desc">{t("shop.sortPriceDesc", "Price: High to Low")}</SelectItem>}
             </SelectContent>
           </Select>
         </div>
