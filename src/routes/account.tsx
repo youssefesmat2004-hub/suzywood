@@ -15,7 +15,15 @@ type Order = {
 };
 
 export const Route = createFileRoute("/account")({
-  head: () => ({ meta: [{ title: "My Account — Suzy Wood" }] }),
+  head: () => ({ meta: [
+    { title: "My Account — Suzy Wood" },
+    { name: "description", content: "Manage your Suzy Wood account and view your order history." },
+    { property: "og:title", content: "My Account — Suzy Wood" },
+    { property: "og:description", content: "Manage your Suzy Wood account and view your order history." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    { name: "robots", content: "noindex" },
+  ] }),
   component: Account,
 });
 

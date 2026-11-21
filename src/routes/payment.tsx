@@ -11,6 +11,10 @@ export const Route = createFileRoute("/payment")({
   head: () => ({ meta: [
     { title: "Pay with Instapay — Suzy Wood" },
     { name: "description", content: "Pay for your Suzy Wood order via Instapay — scan the QR or send to our Instapay number." },
+    { property: "og:title", content: "Pay with Instapay — Suzy Wood" },
+    { property: "og:description", content: "Payment instructions for your Suzy Wood order using InstaPay." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
   ] }),
   component: PaymentPage,
 });

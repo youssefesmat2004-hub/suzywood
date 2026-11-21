@@ -4,6 +4,7 @@ import { Layout } from "@/components/site/Layout";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { ARABIC_FAQ } from "@/lib/arabic-faq";
 import { useI18n } from "@/lib/i18n";
+import { PUBLIC_PRICES_HIDDEN } from "@/lib/store-hold";
 
 type FAQGroup = { category: string; items: { q: string; a: string }[] };
 
@@ -13,6 +14,13 @@ export const Route = createFileRoute("/faq")({
     let groups: FAQGroup[] = [];
     if (data?.value) {
       try { groups = JSON.parse(data.value); } catch { /* ignore */ }
+    }
+    if (PUBLIC_PRICES_HIDDEN) {
+      groups = groups.map((group) => ({ ...group, items: group.items.map((item) => {
+        if (item.q === "How do I place an order?") return { ...item, a: "During our price update, only the teepee tent, Tent + Swing Bundle, swing, and rocking chair can be ordered online. Catalog prices are hidden; payment details appear at the payment step. Safety-gate measurement bookings remain open on the safety-gate product page." };
+        if (item.q === "Can I request a custom piece?") return { ...item, a: "Custom-build requests are temporarily paused while we update prices. You can browse our previous work and contact us with questions. Safety-gate measurement bookings remain open." };
+        return item;
+      }) }));
     }
     return { groups };
   },

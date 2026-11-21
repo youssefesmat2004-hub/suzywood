@@ -16,6 +16,11 @@ export const Route = createFileRoute("/thank-you")({
   head: () => ({ meta: [
     { title: "Thank you — Suzy Wood" },
     { name: "description", content: "Your Suzy Wood order has been received and is pending payment verification." },
+    { property: "og:title", content: "Thank you — Suzy Wood" },
+    { property: "og:description", content: "Your Suzy Wood order has been received and is pending payment verification." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    { name: "robots", content: "noindex" },
   ] }),
   validateSearch: (s) => searchSchema.parse(s),
   component: ThankYou,

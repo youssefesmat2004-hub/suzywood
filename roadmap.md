@@ -1,5 +1,10 @@
 # Current tasks
 
+- [x] Review current Google visibility and fresh search scan results.
+- [x] Correct confirmed sitemap and page metadata issues without changing the ordering hold.
+- [x] Research realistic English and Arabic search targets for Egypt.
+- [x] Verify the corrections and report search limitations and publishing needs.
+
 - [x] Hide public catalog, promotional, add-on, and cart prices without changing saved price data.
 - [x] Label paused products “Price update in progress — ordering temporarily unavailable” in English and Arabic.
 - [x] Allow website orders only for the teepee tent, tent + swing bundle, swing, and rocking chair.

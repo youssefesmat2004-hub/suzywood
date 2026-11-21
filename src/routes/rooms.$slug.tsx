@@ -21,9 +21,9 @@ export const Route = createFileRoute("/rooms/$slug")({
         { name: "description", content: room.description },
         { property: "og:title", content: `${room.name} — Suzy Wood` },
         { property: "og:description", content: room.description },
-        { property: "og:image", content: room.images[0] },
         { property: "og:url", content: url },
         { property: "og:type", content: "article" },
+        { name: "twitter:card", content: "summary_large_image" },
       ],
       links: [{ rel: "canonical", href: url }],
       scripts: [

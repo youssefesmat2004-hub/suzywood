@@ -23,7 +23,11 @@ export const Route = createFileRoute("/book")({
       { name: "description", content: "Book a free, no-commitment guidance session with the Suzy Wood team. We'll help you choose the perfect handcrafted piece for your little one." },
       { property: "og:title", content: "Book a Free Session — Suzy Wood" },
       { property: "og:description", content: "Free, no-commitment guidance session with our team." },
+      { property: "og:url", content: "https://suzywoodofficial.com/book" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
+    links: [{ rel: "canonical", href: "https://suzywoodofficial.com/book" }],
   }),
   component: BookPage,
 });

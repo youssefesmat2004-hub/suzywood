@@ -7,10 +7,14 @@ export const Route = createFileRoute("/custom-builds")({
   head: () => ({
     meta: [
       { title: "Custom Builds — Suzy Wood" },
-      { name: "description", content: "Commission a bespoke piece of nursery or toddler furniture from Suzy Wood's Cairo workshop." },
+      { name: "description", content: "Custom-build requests are temporarily paused while Suzy Wood updates prices. Browse the currently available pieces. طلبات التصنيع الخاص متوقفة مؤقتًا لتحديث الأسعار." },
       { property: "og:title", content: "Custom Builds — Suzy Wood" },
-      { property: "og:description", content: "Bespoke wooden furniture for nurseries, toddler rooms, and playrooms." },
+      { property: "og:description", content: "Custom-build requests are temporarily paused during our price update. Browse currently available Suzy Wood pieces." },
+      { property: "og:url", content: "https://suzywoodofficial.com/custom-builds" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
+    links: [{ rel: "canonical", href: "https://suzywoodofficial.com/custom-builds" }],
   }),
   component: CustomBuilds,
 });

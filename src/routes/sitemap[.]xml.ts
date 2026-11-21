@@ -1,31 +1,41 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { rooms } from "@/lib/rooms";
+import { buildSitemapXml, type SitemapEntry } from "@/lib/sitemap-xml";
 
 const BASE_URL = "https://suzywoodofficial.com";
-
-interface SitemapEntry {
-  path: string;
-  lastmod?: string;
-  changefreq?: "always" | "hourly" | "daily" | "weekly" | "monthly" | "yearly" | "never";
-  priority?: string;
-}
 
 export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
       GET: async () => {
         let products: { slug: string; updated_at: string | null }[] = [];
-        let categories: { slug: string; created_at: string | null }[] = [];
+        let categories: { slug: string }[] = [];
         try {
-          const [p, c] = await Promise.all([
-            supabase.from("products").select("slug, updated_at").eq("is_active", true),
-            supabase.from("categories").select("slug, created_at"),
+          const pageSize = 500;
+          await Promise.all([
+            (async () => {
+              for (let offset = 0; ; offset += pageSize) {
+                const { data, error } = await supabase.from("products").select("slug, updated_at").eq("is_active", true).order("id").range(offset, offset + pageSize - 1);
+                if (error) throw error;
+                const page = data ?? [];
+                products.push(...page);
+                if (page.length < pageSize) break;
+              }
+            })(),
+            (async () => {
+              for (let offset = 0; ; offset += pageSize) {
+                const { data, error } = await supabase.from("categories").select("slug").order("id").range(offset, offset + pageSize - 1);
+                if (error) throw error;
+                const page = data ?? [];
+                categories.push(...page);
+                if (page.length < pageSize) break;
+              }
+            })(),
           ]);
-          products = (p.data ?? []) as typeof products;
-          categories = (c.data ?? []) as typeof categories;
-        } catch {
-          // fall through with empty dynamic entries — static routes still ship
+        } catch (error) {
+          console.error("Sitemap public content query failed", error);
+          return new Response("Sitemap temporarily unavailable", { status: 503, headers: { "Cache-Control": "no-store", "Retry-After": "300" } });
         }
 
         const entries: SitemapEntry[] = [
@@ -43,13 +53,12 @@ export const Route = createFileRoute("/sitemap.xml")({
             path: `/shop/category/${c.slug}`,
             changefreq: "weekly" as const,
             priority: "0.8",
-            lastmod: c.created_at ?? undefined,
           })),
           ...products.map((p) => ({
             path: `/shop/${p.slug}`,
             changefreq: "weekly" as const,
             priority: "0.9",
-            lastmod: p.updated_at ?? undefined,
+            lastmod: p.updated_at,
           })),
           ...rooms.map((r) => ({
             path: `/rooms/${r.slug}`,
@@ -58,27 +67,7 @@ export const Route = createFileRoute("/sitemap.xml")({
           })),
         ];
 
-        const today = new Date().toISOString().split("T")[0];
-
-        const urls = entries.map((e) =>
-          [
-            `  <url>`,
-            `    <loc>${BASE_URL}${e.path}</loc>`,
-            `    <lastmod>${e.lastmod ?? today}</lastmod>`,
-            e.changefreq ? `    <changefreq>${e.changefreq}</changefreq>` : null,
-            e.priority ? `    <priority>${e.priority}</priority>` : null,
-            `  </url>`,
-          ]
-            .filter(Boolean)
-            .join("\n")
-        );
-
-        const xml = [
-          `<?xml version="1.0" encoding="UTF-8"?>`,
-          `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`,
-          ...urls,
-          `</urlset>`,
-        ].join("\n");
+        const xml = buildSitemapXml(BASE_URL, entries);
 
         return new Response(xml, {
           headers: {

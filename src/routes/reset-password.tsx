@@ -14,6 +14,10 @@ export const Route = createFileRoute("/reset-password")({
     meta: [
       { title: "Reset Password — Suzy Wood" },
       { name: "description", content: "Choose a new password for your Suzy Wood account." },
+      { property: "og:title", content: "Reset Password — Suzy Wood" },
+      { property: "og:description", content: "Choose a new password for your Suzy Wood account." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex,nofollow" },
     ],
   }),

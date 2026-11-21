@@ -25,6 +25,7 @@ import { submitMeasurementBooking } from "@/lib/public-submissions.functions";
 import { sendBookingReceivedEmail } from "@/lib/measurement-booking-emails.functions";
 import { notifyOwnerNewMeasurementBooking } from "@/lib/owner-notifications.functions";
 import { isOrderingAllowed, PUBLIC_PRICES_HIDDEN } from "@/lib/store-hold";
+import bundleShareImage from "@/assets/search/tent-swing-share.jpg.asset.json";
 
 type Variant = {
   id: string;
@@ -135,21 +136,38 @@ export const Route = createFileRoute("/shop/$slug")({
     const p = loaderData?.product;
     if (!p) return { meta: [{ title: "Piece not found — Suzy Wood" }] };
     const img = resolveImage(p.image_url);
+    // Use the cropped rendition only while the page displays this exact source photo.
+    const shareImage = p.slug === "tent-swing-bundle" && p.image_url?.endsWith("/905b9c11-0d1c-4ff7-9a87-bb8f0ffb3061.png")
+      ? `https://suzywoodofficial.com${bundleShareImage.url}`
+      : img.startsWith("https://") ? img : null;
     const url = `https://suzywoodofficial.com/shop/${p.slug}`;
-    const fallbackDesc = `${p.name} — handcrafted in Egypt by Suzy Wood. Solid wood, made-to-order in ${p.lead_time_weeks} weeks. Safe, heirloom-quality furniture for kids' rooms.`;
-    const desc = (p.tagline && p.tagline.trim().length >= 50) ? p.tagline : fallbackDesc;
+    const searchDetails: Record<string, { title: string; description: string }> = {
+      teepetent: { title: "The Teepee Tent — Kids Play Tent in Egypt | Suzy Wood", description: "Off-white teepee play tent by Suzy Wood in Egypt, with optional fairy lights and pompoms. خيمة أطفال للعب مع إضاءة وبومبوم اختياريين." },
+      "tent-swing-bundle": { title: "Tent + Swing Bundle for Kids in Egypt | Suzy Wood", description: "A Suzy Wood teepee tent and wooden swing together, with optional lights and pompoms. طقم خيمة وأرجوحة أطفال في مصر، بإضافات اختيارية." },
+      theswing: { title: "The Swing — Wooden Baby Swing in Egypt | Suzy Wood", description: "Ceiling-hung solid wood swing for ages 7 months to 3 years, handcrafted in Egypt. أرجوحة أطفال خشبية معلقة من سوزي وود." },
+      therocker: { title: "The Rocker — Nursery Rocking Chair in Egypt | Suzy Wood", description: "Upholstered wooden nursery rocking chair with an optional matching ottoman, made by Suzy Wood. كرسي هزاز لغرفة البيبي مع مسند قدم اختياري." },
+      safetygate: { title: "Custom Wooden Safety Gates in Cairo | Suzy Wood", description: "Wooden and wood-and-metal safety gates for stairs and doorways. Book a measurement before ordering. بوابات أمان للأطفال في القاهرة؛ احجز المعاينة." },
+    };
+    const details = searchDetails[p.slug];
+    const title = details?.title ?? `${p.name} — Handcrafted in Egypt | Suzy Wood`;
+    const fallbackDesc = `${p.name}, handcrafted by Suzy Wood in Cairo, Egypt. Made to order in ${p.lead_time_weeks} ${p.lead_time_weeks === 1 ? "week" : "weeks"}. Browse the available sizes and finishes.`;
+    const sourceDescription = p.tagline?.trim() || p.description?.trim() || fallbackDesc;
+    const desc = details?.description ?? (sourceDescription.length > 170 ? `${sourceDescription.slice(0, 166).replace(/\s+\S*$/, "")}…` : sourceDescription);
     const salePrice = getActiveSalePrice(p);
     const offerPrice = salePrice ?? p.starting_price;
     return {
       meta: [
-        { title: `${p.name} — Suzy Wood` },
+        { title },
         { name: "description", content: desc },
-        { property: "og:title", content: `${p.name} — Suzy Wood` },
+        { property: "og:title", content: title },
         { property: "og:description", content: desc },
-        { property: "og:image", content: img },
-        { name: "twitter:image", content: img },
+        ...(shareImage ? [
+          { property: "og:image", content: shareImage },
+          { name: "twitter:image", content: shareImage },
+        ] : []),
         { property: "og:url", content: url },
         { property: "og:type", content: "product" },
+        { name: "twitter:card", content: "summary_large_image" },
       ],
       links: [{ rel: "canonical", href: url }],
       scripts: [
@@ -159,10 +177,12 @@ export const Route = createFileRoute("/shop/$slug")({
             "@context": "https://schema.org",
             "@type": "Product",
             name: p.name,
-            description: p.tagline ?? undefined,
+            description: desc,
+            url,
             image: img,
             sku: p.slug,
             brand: { "@type": "Brand", name: "Suzy Wood" },
+            manufacturer: { "@type": "Organization", name: "Suzy Wood", url: "https://suzywoodofficial.com/" },
             ...(PUBLIC_PRICES_HIDDEN ? {} : {
               offers: {
                 "@type": "Offer",
